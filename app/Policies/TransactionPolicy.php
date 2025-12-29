@@ -4,7 +4,6 @@ namespace App\Policies;
 
 use App\Models\Transaction;
 use App\Models\User;
-use Illuminate\Auth\Access\Response;
 
 class TransactionPolicy
 {
@@ -13,7 +12,8 @@ class TransactionPolicy
      */
     public function viewAny(User $user): bool
     {
-        return false;
+        // Users can view transactions in their accounts
+        return true;
     }
 
     /**
@@ -21,7 +21,8 @@ class TransactionPolicy
      */
     public function view(User $user, Transaction $transaction): bool
     {
-        return false;
+        // User must belong to the transaction's account
+        return $user->accounts->contains($transaction->account_id);
     }
 
     /**
@@ -29,7 +30,8 @@ class TransactionPolicy
      */
     public function create(User $user): bool
     {
-        return false;
+        // Members and above can create transactions
+        return true;
     }
 
     /**
@@ -37,7 +39,17 @@ class TransactionPolicy
      */
     public function update(User $user, Transaction $transaction): bool
     {
-        return false;
+        // Must belong to account and not be viewer
+        if (!$user->accounts->contains($transaction->account_id)) {
+            return false;
+        }
+
+        $pivot = $user->accounts()
+            ->where('account_id', $transaction->account_id)
+            ->first()
+            ->pivot;
+
+        return in_array($pivot->role, ['owner', 'admin', 'member']) && $pivot->is_active;
     }
 
     /**
@@ -45,7 +57,8 @@ class TransactionPolicy
      */
     public function delete(User $user, Transaction $transaction): bool
     {
-        return false;
+        // Same as update - members and above can delete
+        return $this->update($user, $transaction);
     }
 
     /**
@@ -53,7 +66,17 @@ class TransactionPolicy
      */
     public function restore(User $user, Transaction $transaction): bool
     {
-        return false;
+        // Admin and owner can restore
+        if (!$user->accounts->contains($transaction->account_id)) {
+            return false;
+        }
+
+        $pivot = $user->accounts()
+            ->where('account_id', $transaction->account_id)
+            ->first()
+            ->pivot;
+
+        return in_array($pivot->role, ['owner', 'admin']) && $pivot->is_active;
     }
 
     /**
@@ -61,6 +84,16 @@ class TransactionPolicy
      */
     public function forceDelete(User $user, Transaction $transaction): bool
     {
-        return false;
+        // Only owner can force delete
+        if (!$user->accounts->contains($transaction->account_id)) {
+            return false;
+        }
+
+        $pivot = $user->accounts()
+            ->where('account_id', $transaction->account_id)
+            ->first()
+            ->pivot;
+
+        return $pivot->role === 'owner' && $pivot->is_active;
     }
 }
