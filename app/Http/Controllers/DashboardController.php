@@ -30,9 +30,9 @@ class DashboardController extends Controller
             ->get();
 
         return Inertia::render('Dashboard', [
+            'currentAccount' => $account,
             'analytics' => $analytics,
             'recentTransactions' => $recentTransactions,
         ]);
     }
 }
-

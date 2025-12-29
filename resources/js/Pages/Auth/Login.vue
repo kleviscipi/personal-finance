@@ -1,31 +1,145 @@
-<template>
-    <div class="min-h-screen bg-gray-50 flex flex-col justify-center py-12 sm:px-6 lg:px-8">
-        <div class="sm:mx-auto sm:w-full sm:max-w-md">
-            <svg class="mx-auto h-12 w-12 text-primary-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-            </svg>
-            <h2 class="mt-6 text-center text-3xl font-extrabold text-gray-900">
-                Sign in to your account
-            </h2>
-            <p class="mt-2 text-center text-sm text-gray-600">
-                Or
-                <Link href="/register" class="font-medium text-primary-600 hover:text-primary-500">
-                    create a new account
-                </Link>
-            </p>
-        </div>
-
-        <div class="mt-8 sm:mx-auto sm:w-full sm:max-w-md">
-            <div class="bg-white py-8 px-4 shadow sm:rounded-lg sm:px-10">
-                <div class="text-center py-8 text-gray-600">
-                    <p>Authentication coming soon...</p>
-                    <p class="mt-2 text-sm">Install Laravel Breeze for full auth functionality</p>
-                </div>
-            </div>
-        </div>
-    </div>
-</template>
-
 <script setup>
-import { Link } from '@inertiajs/vue3';
+import { onMounted, ref } from 'vue';
+import Checkbox from '@/Components/Checkbox.vue';
+import GuestLayout from '@/Layouts/GuestLayout.vue';
+import InputError from '@/Components/InputError.vue';
+import InputLabel from '@/Components/InputLabel.vue';
+import PrimaryButton from '@/Components/PrimaryButton.vue';
+import TextInput from '@/Components/TextInput.vue';
+import { Head, Link, useForm } from '@inertiajs/vue3';
+
+const props = defineProps({
+    canResetPassword: {
+        type: Boolean,
+    },
+    status: {
+        type: String,
+    },
+    recaptchaSiteKey: {
+        type: String,
+        default: null,
+    },
+});
+
+const form = useForm({
+    email: '',
+    password: '',
+    remember: false,
+    recaptcha_token: '',
+});
+
+const recaptchaEl = ref(null);
+const recaptchaWidgetId = ref(null);
+
+const submit = () => {
+    form.post(route('login'), {
+        onFinish: () => {
+            form.reset('password');
+            if (recaptchaWidgetId.value !== null && window.grecaptcha) {
+                window.grecaptcha.reset(recaptchaWidgetId.value);
+                form.recaptcha_token = '';
+            }
+        },
+    });
+};
+
+const renderRecaptcha = () => {
+    if (!props.recaptchaSiteKey || !recaptchaEl.value) {
+        return;
+    }
+
+    if (!window.grecaptcha || !window.grecaptcha.render) {
+        setTimeout(renderRecaptcha, 200);
+        return;
+    }
+
+    recaptchaWidgetId.value = window.grecaptcha.render(recaptchaEl.value, {
+        sitekey: props.recaptchaSiteKey,
+        callback: (token) => {
+            form.recaptcha_token = token;
+        },
+        'expired-callback': () => {
+            form.recaptcha_token = '';
+        },
+    });
+};
+
+onMounted(() => {
+    renderRecaptcha();
+});
 </script>
+
+<template>
+    <GuestLayout>
+        <Head title="Log in" />
+
+        <div
+            v-if="status"
+            class="mb-4 rounded-xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm font-medium text-emerald-700"
+        >
+            {{ status }}
+        </div>
+
+        <form @submit.prevent="submit" class="space-y-6">
+            <div>
+                <InputLabel for="email" value="Email" />
+
+                <TextInput
+                    id="email"
+                    type="email"
+                    class="mt-1 block w-full"
+                    v-model="form.email"
+                    required
+                    autofocus
+                    autocomplete="username"
+                />
+
+                <InputError class="mt-2" :message="form.errors.email" />
+            </div>
+
+            <div>
+                <InputLabel for="password" value="Password" />
+
+                <TextInput
+                    id="password"
+                    type="password"
+                    class="mt-1 block w-full"
+                    v-model="form.password"
+                    required
+                    autocomplete="current-password"
+                />
+
+                <InputError class="mt-2" :message="form.errors.password" />
+            </div>
+
+            <div class="flex items-center justify-between">
+                <label class="flex items-center">
+                    <Checkbox name="remember" v-model:checked="form.remember" />
+                    <span class="ms-2 text-sm text-slate-600">
+                        Remember me
+                    </span>
+                </label>
+                <Link
+                    v-if="canResetPassword"
+                    :href="route('password.request')"
+                    class="text-sm font-medium text-sky-600 hover:text-sky-700"
+                >
+                    Forgot password?
+                </Link>
+            </div>
+
+            <div v-if="recaptchaSiteKey" class="mt-4">
+                <div ref="recaptchaEl"></div>
+                <InputError class="mt-2" :message="form.errors.recaptcha_token" />
+            </div>
+
+            <PrimaryButton
+                class="w-full justify-center"
+                :class="{ 'opacity-25': form.processing }"
+                :disabled="form.processing"
+            >
+                Log in
+            </PrimaryButton>
+        </form>
+    </GuestLayout>
+</template>

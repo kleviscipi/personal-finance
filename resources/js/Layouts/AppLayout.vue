@@ -1,17 +1,19 @@
 <template>
-    <div class="min-h-screen bg-gray-50">
+    <div class="min-h-screen text-slate-900">
         <!-- Navigation -->
-        <nav class="bg-white border-b border-gray-200">
+        <nav class="bg-white/80 backdrop-blur border-b border-slate-200/70 relative z-50">
             <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
                 <div class="flex justify-between h-16">
                     <div class="flex">
                         <!-- Logo -->
                         <div class="flex-shrink-0 flex items-center">
-                            <Link :href="route('dashboard')" class="flex items-center">
-                                <svg class="h-8 w-8 text-primary-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                                </svg>
-                                <span class="ml-2 text-xl font-bold text-gray-900">Personal Finance</span>
+                            <Link :href="route('dashboard')" class="flex items-center gap-2">
+                                <div class="h-9 w-9 rounded-xl bg-sky-600/10 flex items-center justify-center text-sky-600">
+                                    <svg class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                    </svg>
+                                </div>
+                                <span class="text-xl font-semibold tracking-tight text-slate-900">Personal Finance</span>
                             </Link>
                         </div>
 
@@ -19,56 +21,180 @@
                         <div class="hidden sm:ml-6 sm:flex sm:space-x-8">
                             <Link 
                                 :href="route('dashboard')" 
-                                :class="[route().current('dashboard') ? 'border-primary-500 text-gray-900' : 'border-transparent text-gray-500 hover:border-gray-300 hover:text-gray-700', 'inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium']"
+                                :class="[route().current('dashboard') ? 'border-sky-500 text-slate-900' : 'border-transparent text-slate-500 hover:border-slate-300 hover:text-slate-800', 'inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium']"
                             >
                                 Dashboard
                             </Link>
                             <Link 
                                 :href="route('transactions.index')" 
-                                :class="[route().current('transactions.*') ? 'border-primary-500 text-gray-900' : 'border-transparent text-gray-500 hover:border-gray-300 hover:text-gray-700', 'inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium']"
+                                :class="[route().current('transactions.*') ? 'border-sky-500 text-slate-900' : 'border-transparent text-slate-500 hover:border-slate-300 hover:text-slate-800', 'inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium']"
                             >
                                 Transactions
                             </Link>
                             <Link 
                                 :href="route('budgets.index')" 
-                                :class="[route().current('budgets.*') ? 'border-primary-500 text-gray-900' : 'border-transparent text-gray-500 hover:border-gray-300 hover:text-gray-700', 'inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium']"
+                                :class="[route().current('budgets.*') ? 'border-sky-500 text-slate-900' : 'border-transparent text-slate-500 hover:border-slate-300 hover:text-slate-800', 'inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium']"
                             >
                                 Budgets
                             </Link>
                             <Link 
                                 :href="route('categories.index')" 
-                                :class="[route().current('categories.*') ? 'border-primary-500 text-gray-900' : 'border-transparent text-gray-500 hover:border-gray-300 hover:text-gray-700', 'inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium']"
+                                :class="[route().current('categories.*') ? 'border-sky-500 text-slate-900' : 'border-transparent text-slate-500 hover:border-slate-300 hover:text-slate-800', 'inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium']"
                             >
                                 Categories
+                            </Link>
+                            <Link 
+                                :href="route('statistics.index')" 
+                                :class="[route().current('statistics.*') ? 'border-sky-500 text-slate-900' : 'border-transparent text-slate-500 hover:border-slate-300 hover:text-slate-800', 'inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium']"
+                            >
+                                Statistics
                             </Link>
                         </div>
                     </div>
 
                     <!-- User Menu -->
                     <div class="hidden sm:ml-6 sm:flex sm:items-center">
-                        <button @click="showAccountSelector = !showAccountSelector" class="inline-flex items-center px-3 py-2 border border-gray-300 shadow-sm text-sm leading-4 font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500">
-                            <svg class="-ml-0.5 mr-2 h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-6l-2-2H5a2 2 0 00-2 2z" />
-                            </svg>
-                            {{ currentAccount?.name || 'Select Account' }}
-                        </button>
-
                         <div class="ml-3 relative">
-                            <button @click="showUserMenu = !showUserMenu" class="flex items-center text-sm rounded-full focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500">
-                                <div class="h-8 w-8 rounded-full bg-primary-600 flex items-center justify-center text-white font-medium">
-                                    {{ auth.user?.name?.charAt(0).toUpperCase() }}
+                            <button
+                                @click="showUserMenu = !showUserMenu"
+                                class="flex items-center gap-3 rounded-full px-2 py-1 text-sm focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-sky-500"
+                            >
+                                <div class="text-left leading-tight">
+                                    <div class="text-sm font-medium text-gray-900">
+                                        {{ auth?.user?.name || 'Account' }}
+                                    </div>
+                                    <div class="text-xs text-gray-500">
+                                        {{ auth?.user?.email || '' }}
+                                    </div>
+                                </div>
+                                <div class="h-8 w-8 rounded-full bg-sky-600 flex items-center justify-center text-white font-medium">
+                                    {{ userInitial }}
                                 </div>
                             </button>
 
                             <!-- User dropdown -->
-                            <div v-show="showUserMenu" class="origin-top-right absolute right-0 mt-2 w-48 rounded-md shadow-lg py-1 bg-white ring-1 ring-black ring-opacity-5">
+                            <div v-show="showUserMenu" class="origin-top-right absolute right-0 mt-2 w-56 rounded-md shadow-lg py-1 bg-white ring-1 ring-black ring-opacity-5 z-[999]">
+                                <div class="px-4 py-2 text-xs text-gray-500">
+                                    Signed in as
+                                    <div class="text-sm font-medium text-gray-900">
+                                        {{ auth?.user?.email || '' }}
+                                    </div>
+                                </div>
                                 <Link :href="route('profile.edit')" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">Profile</Link>
+                                <Link :href="route('family.index')" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">Family</Link>
                                 <Link :href="route('settings')" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">Settings</Link>
                                 <Link :href="route('logout')" method="post" as="button" class="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
-                                    Sign out
+                                    Log out
                                 </Link>
                             </div>
                         </div>
+                    </div>
+
+                    <!-- Mobile menu button -->
+                    <div class="flex items-center sm:hidden">
+                        <button
+                            type="button"
+                            @click="showMobileMenu = !showMobileMenu"
+                            class="inline-flex items-center justify-center rounded-md p-2 text-gray-500 hover:text-gray-700 hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-sky-500"
+                        >
+                            <svg
+                                v-if="!showMobileMenu"
+                                class="h-6 w-6"
+                                fill="none"
+                                viewBox="0 0 24 24"
+                                stroke="currentColor"
+                            >
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16" />
+                            </svg>
+                            <svg
+                                v-else
+                                class="h-6 w-6"
+                                fill="none"
+                                viewBox="0 0 24 24"
+                                stroke="currentColor"
+                            >
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                            </svg>
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Mobile menu -->
+            <div v-show="showMobileMenu" class="sm:hidden border-t border-gray-200">
+                <div class="space-y-1 px-4 py-4">
+                    <Link
+                        :href="route('dashboard')"
+                        class="block rounded-md px-3 py-2 text-base font-medium text-gray-700 hover:bg-gray-100"
+                    >
+                        Dashboard
+                    </Link>
+                    <Link
+                        :href="route('transactions.index')"
+                        class="block rounded-md px-3 py-2 text-base font-medium text-gray-700 hover:bg-gray-100"
+                    >
+                        Transactions
+                    </Link>
+                    <Link
+                        :href="route('budgets.index')"
+                        class="block rounded-md px-3 py-2 text-base font-medium text-gray-700 hover:bg-gray-100"
+                    >
+                        Budgets
+                    </Link>
+                    <Link
+                        :href="route('categories.index')"
+                        class="block rounded-md px-3 py-2 text-base font-medium text-gray-700 hover:bg-gray-100"
+                    >
+                        Categories
+                    </Link>
+                    <Link
+                        :href="route('statistics.index')"
+                        class="block rounded-md px-3 py-2 text-base font-medium text-gray-700 hover:bg-gray-100"
+                    >
+                        Statistics
+                    </Link>
+                    <Link
+                        :href="route('family.index')"
+                        class="block rounded-md px-3 py-2 text-base font-medium text-gray-700 hover:bg-gray-100"
+                    >
+                        Family
+                    </Link>
+                    <Link
+                        :href="route('settings')"
+                        class="block rounded-md px-3 py-2 text-base font-medium text-gray-700 hover:bg-gray-100"
+                    >
+                        Settings
+                    </Link>
+                </div>
+                <div class="border-t border-gray-200 px-4 py-4">
+                    <div class="flex items-center gap-3">
+                        <div class="h-9 w-9 rounded-full bg-sky-600 flex items-center justify-center text-white font-medium">
+                            {{ userInitial }}
+                        </div>
+                        <div>
+                            <div class="text-sm font-medium text-gray-900">
+                                {{ auth?.user?.name || 'Account' }}
+                            </div>
+                            <div class="text-sm text-gray-500">
+                                {{ auth?.user?.email || '' }}
+                            </div>
+                        </div>
+                    </div>
+                    <div class="mt-4 space-y-1">
+                        <Link
+                            :href="route('profile.edit')"
+                            class="block rounded-md px-3 py-2 text-base font-medium text-gray-700 hover:bg-gray-100"
+                        >
+                            Profile
+                        </Link>
+                        <Link
+                            :href="route('logout')"
+                            method="post"
+                            as="button"
+                            class="block w-full text-left rounded-md px-3 py-2 text-base font-medium text-gray-700 hover:bg-gray-100"
+                        >
+                            Sign out
+                        </Link>
                     </div>
                 </div>
             </div>
@@ -84,14 +210,22 @@
 </template>
 
 <script setup>
-import { ref } from 'vue';
+import { computed, ref } from 'vue';
 import { Link } from '@inertiajs/vue3';
 
-defineProps({
+const props = defineProps({
     auth: Object,
     currentAccount: Object,
 });
 
 const showUserMenu = ref(false);
-const showAccountSelector = ref(false);
+const showMobileMenu = ref(false);
+
+const userInitial = computed(() => {
+    const name = props.auth?.user?.name;
+    if (!name || typeof name !== 'string') {
+        return '?';
+    }
+    return name.charAt(0).toUpperCase();
+});
 </script>

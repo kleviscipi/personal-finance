@@ -1,5 +1,6 @@
 <template>
     <AppLayout :auth="auth" :current-account="currentAccount">
+        <Head title="Transactions" />
         <div class="space-y-6">
             <!-- Header -->
             <div class="md:flex md:items-center md:justify-between">
@@ -9,7 +10,7 @@
                     </h2>
                 </div>
                 <div class="mt-4 flex md:mt-0 md:ml-4">
-                    <Link :href="route('transactions.create')" class="inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-primary-600 hover:bg-primary-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500">
+                    <Link :href="route('transactions.create')" class="inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
                         <svg class="-ml-1 mr-2 h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
                         </svg>
@@ -19,11 +20,11 @@
             </div>
 
             <!-- Filters -->
-            <div class="bg-white shadow rounded-lg p-4">
+            <div class="pf-card p-4">
                 <div class="grid grid-cols-1 gap-4 sm:grid-cols-4">
                     <div>
                         <label class="block text-sm font-medium text-gray-700">Type</label>
-                        <select v-model="filters.type" @change="applyFilters" class="mt-1 block w-full pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-primary-500 focus:border-primary-500 sm:text-sm rounded-md">
+                        <select v-model="filters.type" @change="applyFilters" class="mt-1 block w-full pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm rounded-md">
                             <option value="">All Types</option>
                             <option value="expense">Expense</option>
                             <option value="income">Income</option>
@@ -32,7 +33,7 @@
                     </div>
                     <div>
                         <label class="block text-sm font-medium text-gray-700">Category</label>
-                        <select v-model="filters.category_id" @change="applyFilters" class="mt-1 block w-full pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-primary-500 focus:border-primary-500 sm:text-sm rounded-md">
+                        <select v-model="filters.category_id" @change="applyFilters" class="mt-1 block w-full pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm rounded-md">
                             <option value="">All Categories</option>
                             <option v-for="category in categories" :key="category.id" :value="category.id">
                                 {{ category.name }}
@@ -41,24 +42,29 @@
                     </div>
                     <div>
                         <label class="block text-sm font-medium text-gray-700">From Date</label>
-                        <input type="date" v-model="filters.date_from" @change="applyFilters" class="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-primary-500 focus:border-primary-500 sm:text-sm">
+                        <input type="date" v-model="filters.date_from" @change="applyFilters" class="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm">
                     </div>
                     <div>
                         <label class="block text-sm font-medium text-gray-700">To Date</label>
-                        <input type="date" v-model="filters.date_to" @change="applyFilters" class="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-primary-500 focus:border-primary-500 sm:text-sm">
+                        <input type="date" v-model="filters.date_to" @change="applyFilters" class="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm">
                     </div>
                 </div>
             </div>
 
             <!-- Transactions List -->
-            <div class="bg-white shadow overflow-hidden sm:rounded-lg">
+            <div class="pf-card overflow-hidden">
                 <ul role="list" class="divide-y divide-gray-200">
                     <li v-for="transaction in transactions.data" :key="transaction.id" class="px-4 py-4 sm:px-6 hover:bg-gray-50">
                         <div class="flex items-center justify-between">
                             <div class="flex items-center flex-1">
-                                <div :class="['flex-shrink-0 h-12 w-12 rounded-full flex items-center justify-center', 
-                                    transaction.type === 'income' ? 'bg-green-100' : 
-                                    transaction.type === 'transfer' ? 'bg-blue-100' : 'bg-red-100']">
+                                <div
+                                    class="flex-shrink-0 h-12 w-12 rounded-full flex items-center justify-center"
+                                    :class="transaction.category?.color ? '' : [
+                                        transaction.type === 'income' ? 'bg-green-100' :
+                                        transaction.type === 'transfer' ? 'bg-blue-100' : 'bg-red-100'
+                                    ]"
+                                    :style="transaction.category?.color ? { backgroundColor: transaction.category.color } : {}"
+                                >
                                     <span :class="['text-2xl', 
                                         transaction.type === 'income' ? 'text-green-600' : 
                                         transaction.type === 'transfer' ? 'text-blue-600' : 'text-red-600']">
@@ -88,7 +94,7 @@
                                     </div>
                                 </div>
                                 <div class="flex space-x-2">
-                                    <Link :href="route('transactions.edit', transaction.id)" class="text-primary-600 hover:text-primary-900">
+                                    <Link :href="route('transactions.edit', transaction.id)" class="text-indigo-600 hover:text-indigo-900">
                                         <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
                                         </svg>
@@ -109,7 +115,7 @@
                         <h3 class="mt-2 text-sm font-medium text-gray-900">No transactions</h3>
                         <p class="mt-1 text-sm text-gray-500">Get started by creating a new transaction.</p>
                         <div class="mt-6">
-                            <Link :href="route('transactions.create')" class="inline-flex items-center px-4 py-2 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-primary-600 hover:bg-primary-700">
+                            <Link :href="route('transactions.create')" class="inline-flex items-center px-4 py-2 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700">
                                 <svg class="-ml-1 mr-2 h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
                                 </svg>
@@ -120,7 +126,7 @@
                 </ul>
 
                 <!-- Pagination -->
-                <div v-if="transactions.data && transactions.data.length > 0" class="bg-white px-4 py-3 flex items-center justify-between border-t border-gray-200 sm:px-6">
+                <div v-if="transactions.data && transactions.data.length > 0" class="bg-white/60 px-4 py-3 flex items-center justify-between border-t border-slate-200/60 sm:px-6">
                     <div class="flex-1 flex justify-between sm:hidden">
                         <Link v-if="transactions.prev_page_url" :href="transactions.prev_page_url" class="relative inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50">
                             Previous
@@ -143,12 +149,25 @@
                         </div>
                         <div>
                             <nav class="relative z-0 inline-flex rounded-md shadow-sm -space-x-px">
-                                <Link v-for="link in transactions.links" :key="link.label" :href="link.url" :class="[
-                                    'relative inline-flex items-center px-4 py-2 border text-sm font-medium',
-                                    link.active ? 'z-10 bg-primary-50 border-primary-500 text-primary-600' : 'bg-white border-gray-300 text-gray-500 hover:bg-gray-50',
-                                    !link.url ? 'cursor-not-allowed opacity-50' : ''
-                                ]" v-html="link.label">
-                                </Link>
+                                <template v-for="link in transactions.links" :key="link.label">
+                                    <Link
+                                        v-if="link.url"
+                                        :href="link.url"
+                                        :class="[
+                                            'relative inline-flex items-center px-4 py-2 border text-sm font-medium',
+                                            link.active ? 'z-10 bg-indigo-50 border-indigo-500 text-indigo-600' : 'bg-white border-gray-300 text-gray-500 hover:bg-gray-50',
+                                        ]"
+                                        v-html="link.label"
+                                    />
+                                    <span
+                                        v-else
+                                        :class="[
+                                            'relative inline-flex items-center px-4 py-2 border text-sm font-medium cursor-not-allowed opacity-50',
+                                            link.active ? 'z-10 bg-indigo-50 border-indigo-500 text-indigo-600' : 'bg-white border-gray-300 text-gray-500',
+                                        ]"
+                                        v-html="link.label"
+                                    />
+                                </template>
                             </nav>
                         </div>
                     </div>
@@ -160,7 +179,7 @@
 
 <script setup>
 import { ref } from 'vue';
-import { Link, router } from '@inertiajs/vue3';
+import { Head, Link, router } from '@inertiajs/vue3';
 import AppLayout from '../../Layouts/AppLayout.vue';
 
 const props = defineProps({

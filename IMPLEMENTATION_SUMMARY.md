@@ -4,6 +4,32 @@
 
 This document provides a comprehensive summary of the Personal Finance Web Application implementation, covering all architectural decisions, design patterns, and development choices made.
 
+## Vision & Goal
+
+Build a modern Personal Finance Web Application designed for individuals and families, with a clean UX, correct financial logic, and an architecture ready to evolve into a SaaS. This is a complete personal finance system (YNAB-level structure, Mint-level visibility), not a simple expense tracker.
+
+**Core Principles (Non-Negotiable)**
+- PostgreSQL as primary datastore
+- Laravel domain-driven structure
+- Multi-currency from day one (USD, EUR, ALL)
+- Family/shared finances (account-based tenancy)
+- Accurate decimal math
+- Backend-driven aggregations
+- Auditability & history
+- SaaS-ready (tenancy, billing, limits)
+
+**Tech Stack (Mandatory)**
+- Backend: Laravel 11+, PostgreSQL, Eloquent + Query Builder, Migrations + Seeders, Policies + Gates, Jobs/Queues ready
+- Frontend: Laravel + Inertia (Vue), TailwindCSS, modern UI components
+
+**Multi-Account / Family Model (Critical)**
+- One Account (workspace) represents a personal or family finance space
+- Users authenticate individually
+- Data belongs to an account, not directly to a user
+- One account can have multiple users; one user can belong to multiple accounts (future)
+- Roles: Owner, Admin, Member, Viewer
+- Authorization enforced via policies; no global user data leakage
+
 ## What Has Been Built
 
 ### 1. Core Infrastructure ✅
@@ -21,11 +47,12 @@ personal-finance/
 │   ├── Http/Controllers/     # HTTP request handlers
 │   ├── Models/               # Eloquent models (8 models)
 │   ├── Policies/            # Authorization policies (4 policies)
-│   └── Services/            # Business logic layer (4 services)
+│   ├── Services/            # Business logic layer (4 services)
+│   └── Support/             # Shared utilities (decimal math)
 ├── database/
-│   ├── migrations/          # Database schema (9 migrations)
-│   └── seeders/            # Default data seeders
-├── resources/              # Frontend assets (future)
+│   ├── migrations/          # Database schema (11 migrations)
+│   └── seeders/            # Default data seeders (3)
+├── resources/              # Frontend assets (Inertia/Vue)
 └── routes/                 # Application routes
 
 Documentation:
@@ -37,20 +64,22 @@ Documentation:
 
 ### 2. Database Schema ✅
 
-#### Tables Created (9 total)
+#### Tables Created (11 total, including Laravel defaults)
 
 **Core Tables:**
 1. **users** - Authentication (Laravel default, extended)
-2. **accounts** - Workspaces/tenants for data isolation
-3. **account_user** - Pivot table with roles (owner, admin, member, viewer)
+2. **cache** - Laravel cache store
+3. **jobs** - Laravel queue jobs
+4. **accounts** - Workspaces/tenants for data isolation
+5. **account_user** - Pivot table with roles (owner, admin, member, viewer)
 
 **Financial Tables:**
-4. **categories** - Income/expense categories with icons & colors
-5. **subcategories** - Category subdivisions
-6. **transactions** - Core financial records with DECIMAL(19,4) precision
-7. **budgets** - Budget definitions with monthly/yearly periods
-8. **transaction_histories** - Complete audit trail
-9. **account_settings** - Per-account preferences
+6. **categories** - Income/expense categories with icons & colors
+7. **subcategories** - Category subdivisions
+8. **transactions** - Core financial records with DECIMAL(19,4) precision
+9. **budgets** - Budget definitions with monthly/yearly periods
+10. **transaction_histories** - Complete audit trail
+11. **account_settings** - Per-account preferences
 
 #### Key Features:
 - ✅ Multi-currency support (USD, EUR, ALL)
@@ -169,7 +198,7 @@ Created 4 specialized service classes:
 - Budget CRUD operations
 - Real-time progress tracking
 - Overspending detection
-- Percentage calculations with bcmath
+- Percentage calculations with bcmath (or decimal fallback)
 
 #### AnalyticsService
 ```php
@@ -188,6 +217,7 @@ Created 4 specialized service classes:
 - Category-based aggregations
 - Budget vs actual comparisons
 - Multi-month trend analysis
+- Net cash flow uses decimal-safe subtraction
 
 #### CurrencyService
 ```php
@@ -201,6 +231,10 @@ Created 4 specialized service classes:
 - Multi-currency configuration
 - Symbol formatting
 - Future FX conversion placeholder
+
+### 5.1 Decimal Math Support ✅
+
+Added a fallback decimal math helper to avoid hard failures if BCMath is missing. When BCMath is available, it is used; otherwise, safe float fallbacks are applied with fixed precision.
 
 ### 6. Database Seeders ✅
 
@@ -227,15 +261,32 @@ Pre-seeds 10 default categories with 30+ subcategories:
 - Icon and color assignments
 - Hierarchical structure
 
+#### AdminAccountSeeder
+Creates an initial admin user, a default account, account settings, and seeds categories for that account.
+
+**Defaults (overridable via .env):**
+- `ADMIN_NAME`, `ADMIN_EMAIL`, `ADMIN_PASSWORD`
+- `DEFAULT_ACCOUNT_NAME`, `DEFAULT_ACCOUNT_CURRENCY`
+
 ### 7. Controllers ✅
 
-Created 5 controller skeletons ready for implementation:
+Core controllers are implemented with initial functionality:
 
-1. **AccountController** - Account management
-2. **TransactionController** - Transaction CRUD
-3. **BudgetController** - Budget management
-4. **CategoryController** - Category/subcategory management
-5. **DashboardController** - Analytics & dashboard
+1. **AccountController** - Account creation (create/store) with settings and owner pivot
+2. **TransactionController** - Transaction list, create/store, edit/update, delete
+3. **BudgetController** - Index placeholder
+4. **CategoryController** - Index placeholder
+5. **DashboardController** - Dashboard analytics and recent transactions
+
+### 8. Frontend (Inertia + Vue) ✅
+
+Implemented minimum pages and layout:
+- `/login`, `/register` (auth pages)
+- `/dashboard` (analytics + recent transactions)
+- `/transactions` (index listing + filters)
+- `/budgets`, `/categories` (placeholder pages)
+- `/accounts/create` (account creation flow)
+- Shared `AppLayout` with navigation
 
 ## Design Patterns & Principles
 
@@ -257,7 +308,7 @@ Created 5 controller skeletons ready for implementation:
 
 ### 4. Service Layer Pattern
 - Business logic extracted to service classes
-- Controllers remain thin (future implementation)
+- Controllers remain thin, delegating to services
 - Services are testable and reusable
 - Database transactions wrapped properly
 
@@ -357,22 +408,16 @@ Created 5 controller skeletons ready for implementation:
 ## What's Not Yet Implemented
 
 ### Frontend
-- [ ] Inertia.js setup and configuration
-- [ ] Vue.js/React components
-- [ ] TailwindCSS styling
-- [ ] Dashboard UI
-- [ ] Transaction management interface
-- [ ] Budget visualization
-- [ ] Category management UI
-- [ ] Settings pages
+- [ ] Transactions create/edit forms
+- [ ] Budgets create/edit/manage UI
+- [ ] Categories create/edit/manage UI
+- [ ] Settings page implementation
 - [ ] Member management interface
 
 ### Backend
-- [ ] Controller method implementations
-- [ ] Route definitions (web & API)
 - [ ] Form request validation classes
-- [ ] Authentication scaffolding (Breeze)
 - [ ] Middleware for account context
+- [ ] Account members management endpoints
 - [ ] API rate limiting
 - [ ] Webhook system
 
@@ -406,43 +451,34 @@ php artisan key:generate
 # Then migrate
 php artisan migrate
 
-# Seed categories (after creating an account)
-php artisan db:seed --class=CategorySeeder
+# Seed admin user, default account, and categories
+php artisan db:seed
 ```
 
 ### Next Steps
 
-1. **Install Laravel Breeze**
+1. **Install Laravel Breeze (optional, for full auth scaffolding)**
 ```bash
 composer require laravel/breeze
 php artisan breeze:install vue
 npm install && npm run dev
 ```
 
-2. **Implement Controller Methods**
-- Start with DashboardController
-- Then TransactionController
-- Then BudgetController
-- Then CategoryController
-- Finally AccountController
+2. **Finish Controller Coverage**
+- Account members management
+- Budgets create/update flows
+- Categories create/update flows
+- Transaction create/edit forms to match controller endpoints
 
-3. **Define Routes**
-```php
-// web.php
-Route::middleware(['auth'])->group(function () {
-    Route::get('/dashboard', [DashboardController::class, 'index']);
-    Route::resource('transactions', TransactionController::class);
-    Route::resource('budgets', BudgetController::class);
-    Route::resource('categories', CategoryController::class);
-});
-```
+3. **Define API Routes**
+- Add `/api` endpoints for mobile/third-party integrations
+- Add member management routes (e.g., `/family` or `/accounts/{account}/members`)
 
-4. **Create Vue Components**
-- Layout component with navigation
-- Dashboard with charts
-- Transaction forms and lists
-- Budget progress bars
-- Category management
+4. **Expand Vue Components**
+- Transaction create/edit forms
+- Budget management UI
+- Category management UI
+- Settings + members pages
 
 5. **Write Tests**
 ```bash

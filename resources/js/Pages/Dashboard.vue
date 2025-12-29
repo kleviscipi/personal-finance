@@ -9,7 +9,7 @@
                     </h2>
                 </div>
                 <div class="mt-4 flex md:mt-0 md:ml-4">
-                    <Link :href="route('transactions.create')" class="ml-3 inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-primary-600 hover:bg-primary-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500">
+                    <Link :href="route('transactions.create')" class="ml-3 inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-sky-600 hover:bg-sky-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-sky-500">
                         <svg class="-ml-1 mr-2 h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
                         </svg>
@@ -21,7 +21,7 @@
             <!-- Stats Cards -->
             <div class="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-4">
                 <!-- Income Card -->
-                <div class="bg-white overflow-hidden shadow rounded-lg">
+                <div class="pf-card overflow-hidden">
                     <div class="p-5">
                         <div class="flex items-center">
                             <div class="flex-shrink-0">
@@ -46,7 +46,7 @@
                 </div>
 
                 <!-- Expenses Card -->
-                <div class="bg-white overflow-hidden shadow rounded-lg">
+                <div class="pf-card overflow-hidden">
                     <div class="p-5">
                         <div class="flex items-center">
                             <div class="flex-shrink-0">
@@ -71,7 +71,7 @@
                 </div>
 
                 <!-- Net Cash Flow Card -->
-                <div class="bg-white overflow-hidden shadow rounded-lg">
+                <div class="pf-card overflow-hidden">
                     <div class="p-5">
                         <div class="flex items-center">
                             <div class="flex-shrink-0">
@@ -96,7 +96,7 @@
                 </div>
 
                 <!-- Budgets Card -->
-                <div class="bg-white overflow-hidden shadow rounded-lg">
+                <div class="pf-card overflow-hidden">
                     <div class="p-5">
                         <div class="flex items-center">
                             <div class="flex-shrink-0">
@@ -124,7 +124,7 @@
             <!-- Charts Row -->
             <div class="grid grid-cols-1 gap-5 lg:grid-cols-2">
                 <!-- Expenses by Category -->
-                <div class="bg-white overflow-hidden shadow rounded-lg">
+                <div class="pf-card overflow-hidden">
                     <div class="p-6">
                         <h3 class="text-lg leading-6 font-medium text-gray-900 mb-4">
                             Expenses by Category
@@ -136,7 +136,7 @@
                 </div>
 
                 <!-- Budget Usage -->
-                <div class="bg-white overflow-hidden shadow rounded-lg">
+                <div class="pf-card overflow-hidden">
                     <div class="p-6">
                         <h3 class="text-lg leading-6 font-medium text-gray-900 mb-4">
                             Budget Usage
@@ -159,7 +159,7 @@
                             </div>
                             <div v-if="!analytics.budget_usage || analytics.budget_usage.length === 0" class="text-center py-8 text-gray-500">
                                 <p>No budgets set for this month</p>
-                                <Link :href="route('budgets.create')" class="text-primary-600 hover:text-primary-500 text-sm mt-2 inline-block">
+                                <Link :href="route('budgets.create')" class="text-sky-600 hover:text-sky-500 text-sm mt-2 inline-block">
                                     Create your first budget
                                 </Link>
                             </div>
@@ -168,13 +168,210 @@
                 </div>
             </div>
 
+            <!-- Cash Flow & Income vs Expenses -->
+            <div class="grid grid-cols-1 gap-5 lg:grid-cols-2">
+                <div class="pf-card overflow-hidden">
+                    <div class="p-6">
+                        <h3 class="text-lg leading-6 font-medium text-gray-900 mb-4">
+                            Cash Flow Trend
+                        </h3>
+                        <div class="h-64">
+                            <Line :data="cashFlowChartData" :options="chartOptions" />
+                        </div>
+                    </div>
+                </div>
+
+                <div class="pf-card overflow-hidden">
+                    <div class="p-6">
+                        <h3 class="text-lg leading-6 font-medium text-gray-900 mb-4">
+                            Income vs Expenses
+                        </h3>
+                        <div class="h-64">
+                            <Bar :data="incomeExpenseChartData" :options="barOptions" />
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Top Categories & Budget Variance -->
+            <div class="grid grid-cols-1 gap-5 lg:grid-cols-2">
+                <div class="pf-card overflow-hidden">
+                    <div class="p-6">
+                        <h3 class="text-lg leading-6 font-medium text-gray-900 mb-4">
+                            Top Categories (Last 30 Days)
+                        </h3>
+                        <div class="space-y-4">
+                            <div
+                                v-for="category in analytics.top_categories || []"
+                                :key="category.category"
+                                class="flex items-center justify-between"
+                            >
+                                <div class="flex items-center gap-3">
+                                    <span
+                                        class="h-3 w-3 rounded-full"
+                                        :style="{ backgroundColor: category.color || '#6b7280' }"
+                                    ></span>
+                                    <span class="text-sm text-gray-700">
+                                        {{ category.category }}
+                                    </span>
+                                </div>
+                                <div class="text-sm font-medium text-gray-900">
+                                    {{ formatCurrency(category.total) }}
+                                    <span class="text-xs text-gray-500">
+                                        ({{ category.percentage }}%)
+                                    </span>
+                                </div>
+                            </div>
+                            <div
+                                v-if="!analytics.top_categories || analytics.top_categories.length === 0"
+                                class="text-sm text-gray-500"
+                            >
+                                No category data yet.
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="pf-card overflow-hidden">
+                    <div class="p-6">
+                        <h3 class="text-lg leading-6 font-medium text-gray-900 mb-4">
+                            Budget Variance
+                        </h3>
+                        <div class="space-y-4">
+                            <div
+                                v-for="budget in analytics.budget_variance || []"
+                                :key="budget.id"
+                                class="flex items-center justify-between"
+                            >
+                                <div class="flex items-center gap-3">
+                                    <span
+                                        class="h-3 w-3 rounded-full"
+                                        :style="{ backgroundColor: budget.color || '#6b7280' }"
+                                    ></span>
+                                    <span class="text-sm text-gray-700">
+                                        {{ budget.category || 'Budget' }}
+                                    </span>
+                                </div>
+                                <div
+                                    :class="[
+                                        'text-sm font-medium',
+                                        parseFloat(budget.variance) > 0 ? 'text-red-600' : 'text-green-600',
+                                    ]"
+                                >
+                                    {{ formatCurrency(budget.variance) }}
+                                </div>
+                            </div>
+                            <div
+                                v-if="!analytics.budget_variance || analytics.budget_variance.length === 0"
+                                class="text-sm text-gray-500"
+                            >
+                                No budget variance data yet.
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Forecast, Savings Rate, Category Spikes -->
+            <div class="grid grid-cols-1 gap-5 lg:grid-cols-3">
+                <div class="pf-card overflow-hidden">
+                    <div class="p-6">
+                        <h3 class="text-lg leading-6 font-medium text-gray-900 mb-4">
+                            Savings Rate
+                        </h3>
+                        <div class="text-3xl font-semibold text-gray-900">
+                            {{ analytics.savings_rate?.rate || 0 }}%
+                        </div>
+                        <p class="mt-2 text-sm text-gray-500">
+                            Income vs expenses this month.
+                        </p>
+                    </div>
+                </div>
+
+                <div class="pf-card overflow-hidden">
+                    <div class="p-6">
+                        <h3 class="text-lg leading-6 font-medium text-gray-900 mb-4">
+                            30 / 90 Day Forecast
+                        </h3>
+                        <div class="space-y-3">
+                            <div class="flex items-center justify-between text-sm">
+                                <span class="text-gray-600">30 days</span>
+                                <span class="font-medium text-gray-900">
+                                    {{ formatCurrency(analytics.forecast?.forecast_30?.net || 0) }}
+                                </span>
+                            </div>
+                            <div class="flex items-center justify-between text-sm">
+                                <span class="text-gray-600">90 days</span>
+                                <span class="font-medium text-gray-900">
+                                    {{ formatCurrency(analytics.forecast?.forecast_90?.net || 0) }}
+                                </span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="pf-card overflow-hidden">
+                    <div class="p-6">
+                        <h3 class="text-lg leading-6 font-medium text-gray-900 mb-4">
+                            Category Spikes
+                        </h3>
+                        <div class="space-y-3">
+                            <div
+                                v-for="spike in analytics.category_spikes || []"
+                                :key="spike.category"
+                                class="flex items-center justify-between text-sm"
+                            >
+                                <span class="text-gray-700">
+                                    {{ spike.category }}
+                                </span>
+                                <span class="text-red-600">
+                                    +{{ spike.delta_percent }}%
+                                </span>
+                            </div>
+                            <div
+                                v-if="!analytics.category_spikes || analytics.category_spikes.length === 0"
+                                class="text-sm text-gray-500"
+                            >
+                                No spikes detected.
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Balance Change -->
+            <div class="pf-card overflow-hidden">
+                <div class="p-6">
+                    <h3 class="text-lg leading-6 font-medium text-gray-900 mb-4">
+                        Balance Change (Net by Month)
+                    </h3>
+                    <div class="grid grid-cols-2 gap-4 sm:grid-cols-4 lg:grid-cols-6">
+                        <div
+                            v-for="row in analytics.monthly_summary || []"
+                            :key="row.month"
+                            class="rounded-lg border border-gray-200 p-3"
+                        >
+                            <div class="text-xs text-gray-500">{{ row.month }}</div>
+                            <div
+                                :class="[
+                                    'text-sm font-medium',
+                                    parseFloat(row.net) >= 0 ? 'text-green-600' : 'text-red-600',
+                                ]"
+                            >
+                                {{ formatCurrency(row.net) }}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
             <!-- Recent Transactions -->
-            <div class="bg-white shadow overflow-hidden sm:rounded-lg">
+            <div class="pf-card overflow-hidden">
                 <div class="px-4 py-5 sm:px-6 flex items-center justify-between">
                     <h3 class="text-lg leading-6 font-medium text-gray-900">
                         Recent Transactions
                     </h3>
-                    <Link :href="route('transactions.index')" class="text-sm font-medium text-primary-600 hover:text-primary-500">
+                    <Link :href="route('transactions.index')" class="text-sm font-medium text-sky-600 hover:text-sky-500">
                         View all
                     </Link>
                 </div>
@@ -183,8 +380,12 @@
                         <li v-for="transaction in recentTransactions" :key="transaction.id" class="px-4 py-4 sm:px-6 hover:bg-gray-50">
                             <div class="flex items-center justify-between">
                                 <div class="flex items-center">
-                                    <div :class="['flex-shrink-0 h-10 w-10 rounded-full flex items-center justify-center', transaction.type === 'income' ? 'bg-green-100' : 'bg-red-100']">
-                                        <span :class="['text-lg', transaction.type === 'income' ? 'text-green-600' : 'text-red-600']">
+                                    <div
+                                        class="flex-shrink-0 h-10 w-10 rounded-full flex items-center justify-center"
+                                        :class="transaction.category?.color ? '' : (transaction.type === 'income' ? 'bg-green-100' : 'bg-red-100')"
+                                        :style="transaction.category?.color ? { backgroundColor: transaction.category.color } : {}"
+                                    >
+                                        <span :class="['text-lg', transaction.category?.color ? 'text-white' : (transaction.type === 'income' ? 'text-green-600' : 'text-red-600')]">
                                             {{ transaction.category?.icon || '💰' }}
                                         </span>
                                     </div>
@@ -210,7 +411,7 @@
                         </li>
                         <li v-if="!recentTransactions || recentTransactions.length === 0" class="px-4 py-8 text-center">
                             <p class="text-gray-500">No transactions yet</p>
-                            <Link :href="route('transactions.create')" class="text-primary-600 hover:text-primary-500 text-sm mt-2 inline-block">
+                            <Link :href="route('transactions.create')" class="text-sky-600 hover:text-sky-500 text-sm mt-2 inline-block">
                                 Add your first transaction
                             </Link>
                         </li>
@@ -225,10 +426,29 @@
 import { computed } from 'vue';
 import { Link } from '@inertiajs/vue3';
 import AppLayout from '../Layouts/AppLayout.vue';
-import { Doughnut } from 'vue-chartjs';
-import { Chart as ChartJS, ArcElement, Tooltip, Legend } from 'chart.js';
+import { Doughnut, Line, Bar } from 'vue-chartjs';
+import {
+    Chart as ChartJS,
+    ArcElement,
+    Tooltip,
+    Legend,
+    CategoryScale,
+    LinearScale,
+    BarElement,
+    PointElement,
+    LineElement,
+} from 'chart.js';
 
-ChartJS.register(ArcElement, Tooltip, Legend);
+ChartJS.register(
+    ArcElement,
+    Tooltip,
+    Legend,
+    CategoryScale,
+    LinearScale,
+    BarElement,
+    PointElement,
+    LineElement,
+);
 
 const props = defineProps({
     auth: Object,
@@ -243,17 +463,43 @@ const expenseChartData = computed(() => {
         labels: expenses.map(e => e.category),
         datasets: [{
             data: expenses.map(e => parseFloat(e.total)),
-            backgroundColor: [
-                '#f59e0b',
-                '#8b5cf6',
-                '#ef4444',
-                '#06b6d4',
-                '#ec4899',
-                '#f97316',
-                '#14b8a6',
-                '#6b7280',
-            ],
+            backgroundColor: expenses.map(e => e.color || '#6b7280'),
         }],
+    };
+});
+
+const monthlySummary = computed(() => props.analytics.monthly_summary || []);
+
+const cashFlowChartData = computed(() => {
+    return {
+        labels: monthlySummary.value.map((row) => row.month),
+        datasets: [
+            {
+                label: 'Net',
+                data: monthlySummary.value.map((row) => parseFloat(row.net)),
+                borderColor: '#2563eb',
+                backgroundColor: 'rgba(37, 99, 235, 0.2)',
+                tension: 0.35,
+            },
+        ],
+    };
+});
+
+const incomeExpenseChartData = computed(() => {
+    return {
+        labels: monthlySummary.value.map((row) => row.month),
+        datasets: [
+            {
+                label: 'Income',
+                data: monthlySummary.value.map((row) => parseFloat(row.income)),
+                backgroundColor: '#10b981',
+            },
+            {
+                label: 'Expenses',
+                data: monthlySummary.value.map((row) => parseFloat(row.expenses)),
+                backgroundColor: '#ef4444',
+            },
+        ],
     };
 });
 
@@ -267,10 +513,30 @@ const chartOptions = {
     },
 };
 
+const barOptions = {
+    responsive: true,
+    maintainAspectRatio: false,
+    plugins: {
+        legend: {
+            position: 'bottom',
+        },
+    },
+    scales: {
+        x: {
+            stacked: true,
+        },
+        y: {
+            stacked: true,
+        },
+    },
+};
+
 const formatCurrency = (amount) => {
     return new Intl.NumberFormat('en-US', {
         style: 'currency',
         currency: props.currentAccount?.base_currency || 'USD',
+        minimumFractionDigits: 2,
+        maximumFractionDigits: 2,
     }).format(parseFloat(amount || 0));
 };
 

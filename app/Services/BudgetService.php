@@ -4,6 +4,7 @@ namespace App\Services;
 
 use App\Models\Account;
 use App\Models\Budget;
+use App\Support\DecimalMath;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\DB;
 
@@ -57,9 +58,13 @@ class BudgetService
             ->whereNull('deleted_at')
             ->sum('amount');
         
-        $remaining = bcsub($budget->amount, $spent, self::DECIMAL_PRECISION);
+        $remaining = DecimalMath::sub($budget->amount, $spent, self::DECIMAL_PRECISION);
         $percentage = $budget->amount > 0 
-            ? bcmul(bcdiv($spent, $budget->amount, self::DECIMAL_PRECISION), 100, self::PERCENTAGE_PRECISION)
+            ? DecimalMath::mul(
+                DecimalMath::div($spent, $budget->amount, self::DECIMAL_PRECISION),
+                100,
+                self::PERCENTAGE_PRECISION
+            )
             : 0;
         
         return [
@@ -67,7 +72,7 @@ class BudgetService
             'spent' => $spent,
             'remaining' => $remaining,
             'percentage' => $percentage,
-            'is_overspent' => bccomp($spent, $budget->amount, self::DECIMAL_PRECISION) > 0,
+            'is_overspent' => DecimalMath::comp($spent, $budget->amount, self::DECIMAL_PRECISION) > 0,
         ];
     }
 }

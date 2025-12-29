@@ -49,4 +49,9 @@ class Account extends Model
     {
         return $this->hasOne(AccountSettings::class);
     }
+
+    public function invitations(): HasMany
+    {
+        return $this->hasMany(AccountInvitation::class);
+    }
 }

@@ -16,6 +16,9 @@ class TransactionController extends Controller
     public function index(Request $request)
     {
         $account = $request->user()->accounts()->first();
+        if (!$account) {
+            return redirect()->route('accounts.create');
+        }
         
         $query = $account->transactions()->with(['category', 'subcategory', 'creator']);
         
@@ -36,9 +39,10 @@ class TransactionController extends Controller
         }
         
         $transactions = $query->latest('date')->paginate(15);
-        $categories = $account->categories;
+        $categories = $account->categories()->orderBy('order')->orderBy('name')->get();
         
         return Inertia::render('Transactions/Index', [
+            'currentAccount' => $account,
             'transactions' => $transactions,
             'categories' => $categories,
             'filters' => $request->only(['type', 'category_id', 'date_from', 'date_to']),
@@ -48,9 +52,19 @@ class TransactionController extends Controller
     public function create()
     {
         $account = auth()->user()->accounts()->first();
-        $categories = $account->categories()->with('subcategories')->get();
+        if (!$account) {
+            return redirect()->route('accounts.create');
+        }
+        $categories = $account->categories()
+            ->with(['subcategories' => function ($query) {
+                $query->orderBy('order')->orderBy('name');
+            }])
+            ->orderBy('order')
+            ->orderBy('name')
+            ->get();
         
         return Inertia::render('Transactions/Create', [
+            'currentAccount' => $account,
             'categories' => $categories,
         ]);
     }
@@ -62,7 +76,7 @@ class TransactionController extends Controller
             'amount' => 'required|numeric|min:0',
             'currency' => 'required|in:USD,EUR,ALL',
             'date' => 'required|date',
-            'category_id' => 'required|exists:categories,id',
+            'category_id' => 'nullable|exists:categories,id',
             'subcategory_id' => 'nullable|exists:subcategories,id',
             'description' => 'nullable|string|max:1000',
             'payment_method' => 'nullable|string|max:255',
@@ -79,9 +93,19 @@ class TransactionController extends Controller
         $this->authorize('update', $transaction);
         
         $account = auth()->user()->accounts()->first();
-        $categories = $account->categories()->with('subcategories')->get();
+        if (!$account) {
+            return redirect()->route('accounts.create');
+        }
+        $categories = $account->categories()
+            ->with(['subcategories' => function ($query) {
+                $query->orderBy('order')->orderBy('name');
+            }])
+            ->orderBy('order')
+            ->orderBy('name')
+            ->get();
         
         return Inertia::render('Transactions/Edit', [
+            'currentAccount' => $account,
             'transaction' => $transaction->load(['category', 'subcategory']),
             'categories' => $categories,
         ]);
@@ -96,7 +120,7 @@ class TransactionController extends Controller
             'amount' => 'required|numeric|min:0',
             'currency' => 'required|in:USD,EUR,ALL',
             'date' => 'required|date',
-            'category_id' => 'required|exists:categories,id',
+            'category_id' => 'nullable|exists:categories,id',
             'subcategory_id' => 'nullable|exists:subcategories,id',
             'description' => 'nullable|string|max:1000',
             'payment_method' => 'nullable|string|max:255',
@@ -116,4 +140,3 @@ class TransactionController extends Controller
         return redirect()->route('transactions.index')->with('message', 'Transaction deleted successfully.');
     }
 }
-
