@@ -546,6 +546,110 @@ class AnalyticsService
             ->toArray();
     }
 
+    /**
+     * Get total balance (cumulative net worth from all transactions)
+     */
+    public function getTotalBalance(Account $account): string
+    {
+        $result = DB::table('transactions')
+            ->where('account_id', $account->id)
+            ->whereNull('deleted_at')
+            ->select(
+                DB::raw("SUM(CASE WHEN type = 'income' THEN amount ELSE 0 END) as total_income"),
+                DB::raw("SUM(CASE WHEN type = 'expense' THEN amount ELSE 0 END) as total_expenses")
+            )
+            ->first();
+
+        $totalIncome = $result->total_income ?? 0;
+        $totalExpenses = $result->total_expenses ?? 0;
+
+        return DecimalMath::sub($totalIncome, $totalExpenses, 4);
+    }
+
+    /**
+     * Get balance history showing cumulative balance over time
+     */
+    public function getBalanceHistory(Account $account, int $months = 12): array
+    {
+        $startDate = now()->subMonths($months - 1)->startOfMonth();
+
+        // Get monthly aggregates
+        $monthlyData = DB::table('transactions')
+            ->where('account_id', $account->id)
+            ->where('date', '>=', $startDate)
+            ->whereNull('deleted_at')
+            ->select(
+                DB::raw("to_char(date_trunc('month', date), 'YYYY-MM') as month"),
+                DB::raw("SUM(CASE WHEN type = 'income' THEN amount ELSE 0 END) as income"),
+                DB::raw("SUM(CASE WHEN type = 'expense' THEN amount ELSE 0 END) as expenses")
+            )
+            ->groupBy(DB::raw("date_trunc('month', date)"))
+            ->orderBy(DB::raw("date_trunc('month', date)"))
+            ->get();
+
+        // Get starting balance (all transactions before start date)
+        $startingBalanceResult = DB::table('transactions')
+            ->where('account_id', $account->id)
+            ->where('date', '<', $startDate)
+            ->whereNull('deleted_at')
+            ->select(
+                DB::raw("SUM(CASE WHEN type = 'income' THEN amount ELSE 0 END) as income"),
+                DB::raw("SUM(CASE WHEN type = 'expense' THEN amount ELSE 0 END) as expenses")
+            )
+            ->first();
+
+        $cumulativeBalance = DecimalMath::sub(
+            $startingBalanceResult->income ?? 0,
+            $startingBalanceResult->expenses ?? 0,
+            4
+        );
+
+        $history = [];
+        foreach ($monthlyData as $row) {
+            $monthIncome = $row->income ?? 0;
+            $monthExpenses = $row->expenses ?? 0;
+            $monthSavings = DecimalMath::sub($monthIncome, $monthExpenses, 4);
+            
+            // Add monthly savings to cumulative balance
+            $cumulativeBalance = DecimalMath::add($cumulativeBalance, $monthSavings, 4);
+
+            $history[] = [
+                'month' => $row->month,
+                'income' => $monthIncome,
+                'expenses' => $monthExpenses,
+                'savings' => $monthSavings,
+                'balance' => $cumulativeBalance,
+            ];
+        }
+
+        return $history;
+    }
+
+    /**
+     * Get current month savings (same as net cash flow but with context)
+     */
+    public function getCurrentMonthSavings(Account $account): array
+    {
+        $currentMonth = now()->format('m');
+        $currentYear = now()->format('Y');
+        
+        $income = $this->getMonthlyIncome($account, $currentMonth, $currentYear);
+        $expenses = $this->getMonthlyExpenses($account, $currentMonth, $currentYear);
+        $savings = DecimalMath::sub($income, $expenses, 4);
+        
+        $savingsRate = 0.0;
+        if ((float) $income > 0) {
+            $savingsRate = round((float) DecimalMath::div($savings, $income, 4) * 100, 2);
+        }
+
+        return [
+            'amount' => $savings,
+            'rate' => $savingsRate,
+            'income' => $income,
+            'expenses' => $expenses,
+        ];
+    }
+
     public function getDashboardData(Account $account): array
     {
         $currentMonth = now()->format('m');
@@ -564,6 +668,9 @@ class AnalyticsService
             'savings_rate' => $this->getSavingsRate($account, $currentMonth, $currentYear),
             'forecast' => $this->getForecast($account),
             'category_spikes' => $this->getCategorySpikes($account),
+            'total_balance' => $this->getTotalBalance($account),
+            'balance_history' => $this->getBalanceHistory($account, 12),
+            'current_month_savings' => $this->getCurrentMonthSavings($account),
         ];
     }
 }

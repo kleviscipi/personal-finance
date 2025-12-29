@@ -19,7 +19,7 @@
             </div>
 
             <!-- Stats Cards -->
-            <div class="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-4">
+            <div class="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-5">
                 <!-- Income Card -->
                 <div class="pf-card overflow-hidden">
                     <div class="p-5">
@@ -70,12 +70,12 @@
                     </div>
                 </div>
 
-                <!-- Net Cash Flow Card -->
+                <!-- Monthly Savings Card -->
                 <div class="pf-card overflow-hidden">
                     <div class="p-5">
                         <div class="flex items-center">
                             <div class="flex-shrink-0">
-                                <div :class="['rounded-md p-3', parseFloat(analytics.net_cash_flow) >= 0 ? 'bg-blue-500' : 'bg-orange-500']">
+                                <div :class="['rounded-md p-3', parseFloat(analytics.current_month_savings?.amount || 0) >= 0 ? 'bg-blue-500' : 'bg-orange-500']">
                                     <svg class="h-6 w-6 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
                                     </svg>
@@ -84,10 +84,41 @@
                             <div class="ml-5 w-0 flex-1">
                                 <dl>
                                     <dt class="text-sm font-medium text-gray-500 truncate">
-                                        Net Cash Flow
+                                        Monthly Savings
                                     </dt>
                                     <dd class="text-lg font-medium text-gray-900">
-                                        {{ formatCurrency(analytics.net_cash_flow) }}
+                                        {{ formatCurrency(analytics.current_month_savings?.amount || 0) }}
+                                    </dd>
+                                    <dd class="text-xs text-gray-500">
+                                        {{ analytics.current_month_savings?.rate || 0 }}% rate
+                                    </dd>
+                                </dl>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Total Balance Card -->
+                <div class="pf-card overflow-hidden">
+                    <div class="p-5">
+                        <div class="flex items-center">
+                            <div class="flex-shrink-0">
+                                <div :class="['rounded-md p-3', parseFloat(analytics.total_balance || 0) >= 0 ? 'bg-indigo-500' : 'bg-red-500']">
+                                    <svg class="h-6 w-6 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 6l3 1m0 0l-3 9a5.002 5.002 0 006.001 0M6 7l3 9M6 7l6-2m6 2l3-1m-3 1l-3 9a5.002 5.002 0 006.001 0M18 7l3 9m-3-9l-6-2m0-2v2m0 16V5m0 16H9m3 0h3" />
+                                    </svg>
+                                </div>
+                            </div>
+                            <div class="ml-5 w-0 flex-1">
+                                <dl>
+                                    <dt class="text-sm font-medium text-gray-500 truncate">
+                                        Total Balance
+                                    </dt>
+                                    <dd class="text-lg font-medium text-gray-900">
+                                        {{ formatCurrency(analytics.total_balance) }}
+                                    </dd>
+                                    <dd class="text-xs text-gray-500">
+                                        Net Worth
                                     </dd>
                                 </dl>
                             </div>
@@ -164,6 +195,18 @@
                                 </Link>
                             </div>
                         </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Balance Trend Chart (Full Width) -->
+            <div class="pf-card overflow-hidden">
+                <div class="p-6">
+                    <h3 class="text-lg leading-6 font-medium text-gray-900 mb-4">
+                        Balance & Savings Trend (12 Months)
+                    </h3>
+                    <div class="h-80">
+                        <Line :data="balanceTrendChartData" :options="balanceTrendOptions" />
                     </div>
                 </div>
             </div>
@@ -502,6 +545,80 @@ const incomeExpenseChartData = computed(() => {
         ],
     };
 });
+
+const balanceHistory = computed(() => props.analytics.balance_history || []);
+
+const balanceTrendChartData = computed(() => {
+    return {
+        labels: balanceHistory.value.map((row) => row.month),
+        datasets: [
+            {
+                label: 'Total Balance',
+                data: balanceHistory.value.map((row) => parseFloat(row.balance)),
+                borderColor: '#6366f1',
+                backgroundColor: 'rgba(99, 102, 241, 0.1)',
+                tension: 0.35,
+                fill: true,
+                yAxisID: 'y',
+            },
+            {
+                label: 'Monthly Savings',
+                data: balanceHistory.value.map((row) => parseFloat(row.savings)),
+                borderColor: '#10b981',
+                backgroundColor: 'rgba(16, 185, 129, 0.1)',
+                tension: 0.35,
+                fill: true,
+                yAxisID: 'y',
+            },
+        ],
+    };
+});
+
+const balanceTrendOptions = {
+    responsive: true,
+    maintainAspectRatio: false,
+    interaction: {
+        mode: 'index',
+        intersect: false,
+    },
+    plugins: {
+        legend: {
+            position: 'bottom',
+        },
+        tooltip: {
+            callbacks: {
+                label: function(context) {
+                    let label = context.dataset.label || '';
+                    if (label) {
+                        label += ': ';
+                    }
+                    label += new Intl.NumberFormat('en-US', {
+                        style: 'currency',
+                        currency: props.currentAccount?.base_currency || 'USD',
+                    }).format(context.parsed.y);
+                    return label;
+                }
+            }
+        }
+    },
+    scales: {
+        y: {
+            type: 'linear',
+            position: 'left',
+            ticks: {
+                callback: function(value) {
+                    return new Intl.NumberFormat('en-US', {
+                        style: 'currency',
+                        currency: props.currentAccount?.base_currency || 'USD',
+                        minimumFractionDigits: 0,
+                        maximumFractionDigits: 0,
+                    }).format(value);
+                }
+            }
+        },
+    },
+};
+
 
 const chartOptions = {
     responsive: true,
