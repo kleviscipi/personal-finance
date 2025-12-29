@@ -6,6 +6,25 @@ A modern, professional Personal Finance Web Application built with Laravel 11 an
 
 Build a YNAB-level structured, Mint-level visibility personal finance system with clean, developer-first Laravel architecture that can scale into a SaaS business.
 
+## 🐳 Quick Start with Docker (Recommended)
+
+The fastest way to get started is using Docker:
+
+```bash
+# Clone the repository
+git clone https://github.com/kleviscipi/personal-finance.git
+cd personal-finance
+
+# Run the setup script
+./setup.sh
+```
+
+The application will be available at:
+- **Web App**: http://localhost
+- **Mail Dashboard**: http://localhost:8025 (Mailpit)
+
+See [DOCKER_SETUP.md](DOCKER_SETUP.md) for detailed Docker instructions.
+
 ## ✨ Key Features
 
 ### Multi-Account & Family Support
@@ -43,6 +62,7 @@ Build a YNAB-level structured, Mint-level visibility personal finance system wit
 - **Frontend**: Inertia.js + Vue.js/React (to be configured)
 - **Styling**: TailwindCSS
 - **Authentication**: Laravel Breeze/Fortify
+- **Containers**: Docker + Docker Compose
 
 ### Database Schema
 
@@ -72,6 +92,17 @@ app/
 ```
 
 ## 🚀 Getting Started
+
+### Option 1: Docker (Recommended)
+
+```bash
+# Run the automated setup
+./setup.sh
+```
+
+Access the app at http://localhost
+
+### Option 2: Manual Setup
 
 ### Prerequisites
 - PHP 8.2+
