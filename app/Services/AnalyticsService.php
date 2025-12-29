@@ -115,11 +115,11 @@ class AnalyticsService
             ->whereNull('transactions.deleted_at')
             ->select(
                 'categories.name as category',
-                DB::raw('DATE_FORMAT(transactions.date, "%Y-%m") as month'),
+                DB::raw("to_char(transactions.date, 'YYYY-MM') as month"),
                 DB::raw('SUM(transactions.amount) as total')
             )
-            ->groupBy('categories.id', 'categories.name', DB::raw('DATE_FORMAT(transactions.date, "%Y-%m")'))
-            ->orderBy(DB::raw('DATE_FORMAT(transactions.date, "%Y-%m")'))
+            ->groupBy('categories.id', 'categories.name', DB::raw("to_char(transactions.date, 'YYYY-MM')"))
+            ->orderBy(DB::raw("to_char(transactions.date, 'YYYY-MM')"))
             ->get()
             ->groupBy('category')
             ->toArray();

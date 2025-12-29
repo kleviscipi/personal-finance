@@ -9,6 +9,10 @@ use Illuminate\Support\Facades\DB;
 
 class BudgetService
 {
+    // Precision constants for financial calculations
+    private const DECIMAL_PRECISION = 4;
+    private const PERCENTAGE_PRECISION = 2;
+
     public function createBudget(Account $account, array $data): Budget
     {
         return Budget::create([
@@ -53,9 +57,9 @@ class BudgetService
             ->whereNull('deleted_at')
             ->sum('amount');
         
-        $remaining = bcsub($budget->amount, $spent, 4);
+        $remaining = bcsub($budget->amount, $spent, self::DECIMAL_PRECISION);
         $percentage = $budget->amount > 0 
-            ? bcmul(bcdiv($spent, $budget->amount, 4), 100, 2)
+            ? bcmul(bcdiv($spent, $budget->amount, self::DECIMAL_PRECISION), 100, self::PERCENTAGE_PRECISION)
             : 0;
         
         return [
@@ -63,7 +67,7 @@ class BudgetService
             'spent' => $spent,
             'remaining' => $remaining,
             'percentage' => $percentage,
-            'is_overspent' => bccomp($spent, $budget->amount, 4) > 0,
+            'is_overspent' => bccomp($spent, $budget->amount, self::DECIMAL_PRECISION) > 0,
         ];
     }
 }

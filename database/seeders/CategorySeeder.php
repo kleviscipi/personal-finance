@@ -11,16 +11,26 @@ class CategorySeeder extends Seeder
 {
     /**
      * Run the database seeds.
+     * 
+     * Note: This seeder can be called in two ways:
+     * 1. Without parameters - seeds categories for ALL existing accounts
+     * 2. With specific account - seeds categories for that account only
      */
-    public function run(): void
+    public function run(?int $accountId = null): void
     {
-        // This seeder is designed to be called when a new account is created
-        // It can also be used to seed default categories for all accounts
-        
-        $accounts = Account::all();
-        
-        foreach ($accounts as $account) {
-            $this->seedCategoriesForAccount($account);
+        if ($accountId) {
+            // Seed for specific account
+            $account = Account::find($accountId);
+            if ($account) {
+                $this->seedCategoriesForAccount($account);
+            }
+        } else {
+            // Seed for all accounts
+            $accounts = Account::all();
+            
+            foreach ($accounts as $account) {
+                $this->seedCategoriesForAccount($account);
+            }
         }
     }
     
