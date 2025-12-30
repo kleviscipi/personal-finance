@@ -38,15 +38,6 @@
                                 Transactions
                             </Link>
                             <Link 
-                                :href="route('budgets.index')" 
-                                :class="[route().current('budgets.*') ? 'border-sky-500 text-slate-900' : 'border-transparent text-slate-500 hover:border-slate-300 hover:text-slate-800', 'inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium']"
-                            >
-                                <svg class="mr-2 h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8V6m0 10v2m9-6a9 9 0 11-18 0 9 9 0 0118 0z" />
-                                </svg>
-                                Budgets
-                            </Link>
-                            <Link 
                                 :href="route('categories.index')" 
                                 :class="[route().current('categories.*') ? 'border-sky-500 text-slate-900' : 'border-transparent text-slate-500 hover:border-slate-300 hover:text-slate-800', 'inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium']"
                             >
