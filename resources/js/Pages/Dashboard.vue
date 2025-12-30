@@ -236,8 +236,8 @@
                 </div>
             </div>
 
-            <!-- Top Categories & Budget Variance -->
-            <div class="grid grid-cols-1 gap-5 lg:grid-cols-2">
+            <!-- Top Categories, Top Subcategories & Budget Variance -->
+            <div class="grid grid-cols-1 gap-5 lg:grid-cols-3">
                 <div class="pf-card overflow-hidden">
                     <div class="p-6">
                         <h3 class="text-lg leading-6 font-medium text-gray-900 mb-4">
@@ -270,6 +270,43 @@
                                 class="text-sm text-gray-500"
                             >
                                 No category data yet.
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="pf-card overflow-hidden">
+                    <div class="p-6">
+                        <h3 class="text-lg leading-6 font-medium text-gray-900 mb-4">
+                            Top Subcategories (Last 30 Days)
+                        </h3>
+                        <div class="space-y-4">
+                            <div
+                                v-for="subcategory in analytics.top_subcategories || []"
+                                :key="subcategory.label || subcategory.subcategory"
+                                class="flex items-center justify-between"
+                            >
+                                <div class="flex items-center gap-3">
+                                    <span
+                                        class="h-3 w-3 rounded-full"
+                                        :style="{ backgroundColor: subcategory.color || '#6b7280' }"
+                                    ></span>
+                                    <span class="text-sm text-gray-700">
+                                        {{ subcategory.label || subcategory.subcategory }}
+                                    </span>
+                                </div>
+                                <div class="text-sm font-medium text-gray-900">
+                                    {{ formatCurrency(subcategory.total) }}
+                                    <span class="text-xs text-gray-500">
+                                        ({{ subcategory.percentage }}%)
+                                    </span>
+                                </div>
+                            </div>
+                            <div
+                                v-if="!analytics.top_subcategories || analytics.top_subcategories.length === 0"
+                                class="text-sm text-gray-500"
+                            >
+                                No subcategory data yet.
                             </div>
                         </div>
                     </div>

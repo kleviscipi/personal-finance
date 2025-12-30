@@ -1,5 +1,7 @@
 <script setup>
+import { computed, ref } from 'vue';
 import AppLayout from '../../Layouts/AppLayout.vue';
+import ConfirmDialog from '@/Components/ConfirmDialog.vue';
 import { Head, Link, router } from '@inertiajs/vue3';
 
 defineProps({
@@ -35,11 +37,38 @@ const formatDate = (value) => {
     });
 };
 
-const deleteBudget = (budgetId) => {
-    if (confirm('Are you sure you want to delete this budget?')) {
-        router.delete(route('budgets.destroy', budgetId));
-    }
+const confirmingDelete = ref(false);
+const pendingBudget = ref(null);
+
+const requestDeleteBudget = (budget) => {
+    pendingBudget.value = budget;
+    confirmingDelete.value = true;
 };
+
+const closeDeleteModal = () => {
+    confirmingDelete.value = false;
+    pendingBudget.value = null;
+};
+
+const confirmDeleteBudget = () => {
+    if (!pendingBudget.value) {
+        return;
+    }
+
+    router.delete(route('budgets.destroy', pendingBudget.value.id), {
+        onFinish: () => closeDeleteModal(),
+    });
+};
+
+const deleteMessage = computed(() => {
+    const budget = pendingBudget.value;
+    if (!budget) {
+        return 'Delete this budget?';
+    }
+    const name = budget.category?.name || 'this budget';
+    const sub = budget.subcategory?.name ? ` • ${budget.subcategory.name}` : '';
+    return `Delete ${name}${sub}?`;
+});
 </script>
 
 <template>
@@ -108,7 +137,7 @@ const deleteBudget = (budgetId) => {
                             <button
                                 type="button"
                                 class="text-sm text-red-600 hover:text-red-700"
-                                @click="deleteBudget(budget.id)"
+                                @click="requestDeleteBudget(budget)"
                             >
                                 Delete
                             </button>
@@ -117,5 +146,13 @@ const deleteBudget = (budgetId) => {
                 </div>
             </div>
         </div>
+        <ConfirmDialog
+            :show="confirmingDelete"
+            title="Delete budget?"
+            :message="deleteMessage"
+            confirm-text="Delete"
+            @close="closeDeleteModal"
+            @confirm="confirmDeleteBudget"
+        />
     </AppLayout>
 </template>

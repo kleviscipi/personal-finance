@@ -76,6 +76,37 @@ class AnalyticsService
             ->get()
             ->toArray();
 
+        $topSubcategoriesRows = DB::table('transactions')
+            ->join('subcategories', 'transactions.subcategory_id', '=', 'subcategories.id')
+            ->join('categories', 'subcategories.category_id', '=', 'categories.id')
+            ->where('transactions.account_id', $account->id)
+            ->where('transactions.type', 'expense')
+            ->whereBetween('transactions.date', [$startDate, $endDate])
+            ->whereNull('transactions.deleted_at')
+            ->select(
+                'subcategories.id as subcategory_id',
+                'subcategories.name as subcategory',
+                'categories.name as category',
+                'categories.color as color',
+                DB::raw('SUM(transactions.amount) as total')
+            )
+            ->groupBy('subcategories.id', 'subcategories.name', 'categories.name', 'categories.color')
+            ->orderByDesc('total')
+            ->limit(8)
+            ->get()
+            ->toArray();
+
+        $topSubcategories = collect($topSubcategoriesRows)->map(function ($row) {
+            $label = $row->category ? "{$row->category} • {$row->subcategory}" : $row->subcategory;
+            return [
+                'subcategory' => $row->subcategory,
+                'category' => $row->category,
+                'label' => $label,
+                'color' => $row->color,
+                'total' => $row->total,
+            ];
+        })->toArray();
+
         $topCategoryIds = collect($topCategories)->pluck('category_id')->filter()->values();
         $categoryMonthlyRows = DB::table('transactions')
             ->join('categories', 'transactions.category_id', '=', 'categories.id')
@@ -97,6 +128,35 @@ class AnalyticsService
             ->get()
             ->toArray();
 
+        $topSubcategoryIds = collect($topSubcategoriesRows)->pluck('subcategory_id')->filter()->values();
+        $subcategoryMonthlyRows = DB::table('transactions')
+            ->join('subcategories', 'transactions.subcategory_id', '=', 'subcategories.id')
+            ->join('categories', 'subcategories.category_id', '=', 'categories.id')
+            ->where('transactions.account_id', $account->id)
+            ->where('transactions.type', 'expense')
+            ->whereBetween('transactions.date', [$startDate, $endDate])
+            ->whereNull('transactions.deleted_at')
+            ->when($topSubcategoryIds->isNotEmpty(), function ($query) use ($topSubcategoryIds) {
+                $query->whereIn('transactions.subcategory_id', $topSubcategoryIds);
+            })
+            ->select(
+                'subcategories.id as subcategory_id',
+                'subcategories.name as subcategory',
+                'categories.name as category',
+                'categories.color as color',
+                DB::raw("to_char(date_trunc('month', transactions.date), 'YYYY-MM') as month"),
+                DB::raw('SUM(transactions.amount) as total')
+            )
+            ->groupBy(
+                'subcategories.id',
+                'subcategories.name',
+                'categories.name',
+                'categories.color',
+                DB::raw("date_trunc('month', transactions.date)")
+            )
+            ->get()
+            ->toArray();
+
         $categoryById = [];
         foreach ($topCategories as $category) {
             $categoryById[$category->category_id] = [
@@ -105,9 +165,25 @@ class AnalyticsService
             ];
         }
 
+        $subcategoryById = [];
+        foreach ($topSubcategoriesRows as $subcategory) {
+            $label = $subcategory->category ? "{$subcategory->category} • {$subcategory->subcategory}" : $subcategory->subcategory;
+            $subcategoryById[$subcategory->subcategory_id] = [
+                'subcategory' => $subcategory->subcategory,
+                'category' => $subcategory->category,
+                'label' => $label,
+                'color' => $subcategory->color,
+            ];
+        }
+
         $categoryMonthMap = [];
         foreach ($categoryMonthlyRows as $row) {
             $categoryMonthMap[$row->category_id][$row->month] = $row->total;
+        }
+
+        $subcategoryMonthMap = [];
+        foreach ($subcategoryMonthlyRows as $row) {
+            $subcategoryMonthMap[$row->subcategory_id][$row->month] = $row->total;
         }
 
         $categorySeries = [];
@@ -118,6 +194,21 @@ class AnalyticsService
             }
             $categorySeries[] = [
                 'category' => $info['category'],
+                'color' => $info['color'],
+                'values' => $values,
+            ];
+        }
+
+        $subcategorySeries = [];
+        foreach ($subcategoryById as $subcategoryId => $info) {
+            $values = [];
+            foreach ($months as $month) {
+                $values[] = $subcategoryMonthMap[$subcategoryId][$month] ?? 0;
+            }
+            $subcategorySeries[] = [
+                'subcategory' => $info['subcategory'],
+                'category' => $info['category'],
+                'label' => $info['label'],
                 'color' => $info['color'],
                 'values' => $values,
             ];
@@ -166,10 +257,15 @@ class AnalyticsService
         return [
             'monthly_summary' => $monthlySummary,
             'top_categories' => $topCategories,
+            'top_subcategories' => $topSubcategories,
             'expense_by_month' => $expenseByMonth,
             'category_mix' => [
                 'months' => $months,
                 'series' => $categorySeries,
+            ],
+            'subcategory_mix' => [
+                'months' => $months,
+                'series' => $subcategorySeries,
             ],
             'expense_share' => [
                 'months' => $months,
@@ -187,6 +283,13 @@ class AnalyticsService
     public function getMonthlySummary(Account $account, int $months = 12): array
     {
         $startDate = now()->subMonths($months - 1)->startOfMonth();
+        $endDate = now()->startOfMonth();
+        $monthsList = [];
+        $cursor = $startDate->copy();
+        while ($cursor <= $endDate) {
+            $monthsList[] = $cursor->format('Y-m');
+            $cursor->addMonth();
+        }
 
         $rows = DB::table('transactions')
             ->where('account_id', $account->id)
@@ -202,17 +305,20 @@ class AnalyticsService
             ->get()
             ->toArray();
 
-        return array_map(function ($row) {
+        $rowMap = collect($rows)->keyBy('month');
+
+        return array_map(function ($month) use ($rowMap) {
+            $row = $rowMap->get($month);
             $income = $row->income ?? 0;
             $expenses = $row->expenses ?? 0;
 
             return [
-                'month' => $row->month,
+                'month' => $month,
                 'income' => $income,
                 'expenses' => $expenses,
                 'net' => DecimalMath::sub($income, $expenses, 4),
             ];
-        }, $rows);
+        }, $monthsList);
     }
 
     public function getMonthlyExpensesByCategory(Account $account, ?string $month = null, ?string $year = null): array
@@ -388,6 +494,43 @@ class AnalyticsService
         return $rows->map(function ($row) use ($total) {
             return [
                 'category' => $row->category,
+                'color' => $row->color,
+                'total' => $row->total,
+                'percentage' => round(($row->total / $total) * 100, 1),
+            ];
+        })->toArray();
+    }
+
+    public function getTopSubcategories(Account $account, int $days = 30): array
+    {
+        $startDate = now()->subDays($days);
+
+        $rows = DB::table('transactions')
+            ->join('subcategories', 'transactions.subcategory_id', '=', 'subcategories.id')
+            ->join('categories', 'subcategories.category_id', '=', 'categories.id')
+            ->where('transactions.account_id', $account->id)
+            ->where('transactions.type', 'expense')
+            ->where('transactions.date', '>=', $startDate)
+            ->whereNull('transactions.deleted_at')
+            ->select(
+                'subcategories.name as subcategory',
+                'categories.name as category',
+                'categories.color',
+                DB::raw('SUM(transactions.amount) as total')
+            )
+            ->groupBy('subcategories.id', 'subcategories.name', 'categories.name', 'categories.color')
+            ->orderByDesc('total')
+            ->limit(6)
+            ->get();
+
+        $total = $rows->sum('total') ?: 1;
+
+        return $rows->map(function ($row) use ($total) {
+            $label = $row->category ? "{$row->category} • {$row->subcategory}" : $row->subcategory;
+            return [
+                'subcategory' => $row->subcategory,
+                'category' => $row->category,
+                'label' => $label,
                 'color' => $row->color,
                 'total' => $row->total,
                 'percentage' => round(($row->total / $total) * 100, 1),
@@ -577,6 +720,13 @@ class AnalyticsService
     public function getBalanceHistory(Account $account, int $months = 12): array
     {
         $startDate = now()->subMonths($months - 1)->startOfMonth();
+        $endDate = now()->startOfMonth();
+        $monthsList = [];
+        $cursor = $startDate->copy();
+        while ($cursor <= $endDate) {
+            $monthsList[] = $cursor->format('Y-m');
+            $cursor->addMonth();
+        }
 
         // Get monthly aggregates
         $monthlyData = DB::table('transactions')
@@ -591,6 +741,8 @@ class AnalyticsService
             ->groupBy(DB::raw("date_trunc('month', date)"))
             ->orderBy(DB::raw("date_trunc('month', date)"))
             ->get();
+
+        $monthlyMap = collect($monthlyData)->keyBy('month');
 
         // Get starting balance (all transactions before start date)
         $startingBalanceResult = DB::table('transactions')
@@ -610,7 +762,8 @@ class AnalyticsService
         );
 
         $history = [];
-        foreach ($monthlyData as $row) {
+        foreach ($monthsList as $month) {
+            $row = $monthlyMap->get($month);
             $monthIncome = $row->income ?? 0;
             $monthExpenses = $row->expenses ?? 0;
             $monthSavings = DecimalMath::sub($monthIncome, $monthExpenses, 4);
@@ -619,7 +772,7 @@ class AnalyticsService
             $cumulativeBalance = DecimalMath::add($cumulativeBalance, $monthSavings, 4);
 
             $history[] = [
-                'month' => $row->month,
+                'month' => $month,
                 'income' => $monthIncome,
                 'expenses' => $monthExpenses,
                 'savings' => $monthSavings,
@@ -670,6 +823,7 @@ class AnalyticsService
             'category_trends' => $this->getCategoryTrends($account, 6),
             'monthly_summary' => $this->getMonthlySummary($account, 12),
             'top_categories' => $this->getTopCategories($account, 30),
+            'top_subcategories' => $this->getTopSubcategories($account, 30),
             'savings_rate' => $this->getSavingsRate($account, $currentMonth, $currentYear),
             'forecast' => $this->getForecast($account),
             'category_spikes' => $this->getCategorySpikes($account),

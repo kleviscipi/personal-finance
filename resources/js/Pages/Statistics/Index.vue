@@ -101,6 +101,17 @@ const categoryMixChart = computed(() => ({
     })),
 }));
 
+const subcategoryMixChart = computed(() => ({
+    labels: props.analytics?.subcategory_mix?.months || [],
+    datasets: (props.analytics?.subcategory_mix?.series || []).map((series) => ({
+        label: series.label || series.subcategory,
+        data: series.values.map((value) => parseFloat(value)),
+        backgroundColor: series.color || '#94a3b8',
+        borderWidth: 0,
+        fill: true,
+    })),
+}));
+
 const expenseShareChart = computed(() => ({
     labels: props.analytics?.expense_share?.months || [],
     datasets: (props.analytics?.expense_share?.series || []).map((series) => ({
@@ -277,34 +288,68 @@ const applyFilters = () => {
                 </div>
             </div>
 
-            <div class="pf-card p-6">
-                <h3 class="text-lg font-semibold text-slate-900 mb-4">
-                    Top Categories
-                </h3>
-                <div class="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
-                    <div
-                        v-for="category in analytics?.top_categories || []"
-                        :key="category.category"
-                        class="flex items-center justify-between rounded-xl border border-slate-200/70 bg-white/70 px-4 py-3"
-                    >
-                        <div class="flex items-center gap-3">
-                            <span
-                                class="h-3 w-3 rounded-full"
-                                :style="{ backgroundColor: category.color || '#94a3b8' }"
-                            ></span>
-                            <span class="text-sm text-slate-700">
-                                {{ category.category }}
+            <div class="grid grid-cols-1 gap-5 lg:grid-cols-2">
+                <div class="pf-card p-6">
+                    <h3 class="text-lg font-semibold text-slate-900 mb-4">
+                        Top Categories
+                    </h3>
+                    <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
+                        <div
+                            v-for="category in analytics?.top_categories || []"
+                            :key="category.category"
+                            class="flex items-center justify-between rounded-xl border border-slate-200/70 bg-white/70 px-4 py-3"
+                        >
+                            <div class="flex items-center gap-3">
+                                <span
+                                    class="h-3 w-3 rounded-full"
+                                    :style="{ backgroundColor: category.color || '#94a3b8' }"
+                                ></span>
+                                <span class="text-sm text-slate-700">
+                                    {{ category.category }}
+                                </span>
+                            </div>
+                            <span class="text-sm font-medium text-slate-900">
+                                {{ formatCurrency(category.total) }}
                             </span>
                         </div>
-                        <span class="text-sm font-medium text-slate-900">
-                            {{ formatCurrency(category.total) }}
-                        </span>
+                        <div
+                            v-if="!analytics?.top_categories || analytics.top_categories.length === 0"
+                            class="text-sm text-slate-500"
+                        >
+                            No category data for this range.
+                        </div>
                     </div>
-                    <div
-                        v-if="!analytics?.top_categories || analytics.top_categories.length === 0"
-                        class="text-sm text-slate-500"
-                    >
-                        No category data for this range.
+                </div>
+
+                <div class="pf-card p-6">
+                    <h3 class="text-lg font-semibold text-slate-900 mb-4">
+                        Top Subcategories
+                    </h3>
+                    <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
+                        <div
+                            v-for="subcategory in analytics?.top_subcategories || []"
+                            :key="subcategory.label || subcategory.subcategory"
+                            class="flex items-center justify-between rounded-xl border border-slate-200/70 bg-white/70 px-4 py-3"
+                        >
+                            <div class="flex items-center gap-3">
+                                <span
+                                    class="h-3 w-3 rounded-full"
+                                    :style="{ backgroundColor: subcategory.color || '#94a3b8' }"
+                                ></span>
+                                <span class="text-sm text-slate-700">
+                                    {{ subcategory.label || subcategory.subcategory }}
+                                </span>
+                            </div>
+                            <span class="text-sm font-medium text-slate-900">
+                                {{ formatCurrency(subcategory.total) }}
+                            </span>
+                        </div>
+                        <div
+                            v-if="!analytics?.top_subcategories || analytics.top_subcategories.length === 0"
+                            class="text-sm text-slate-500"
+                        >
+                            No subcategory data for this range.
+                        </div>
                     </div>
                 </div>
             </div>
@@ -321,11 +366,20 @@ const applyFilters = () => {
 
                 <div class="pf-card p-6">
                     <h3 class="text-lg font-semibold text-slate-900 mb-4">
-                        Expense Share Over Time
+                        Subcategory Mix by Month
                     </h3>
                     <div class="h-64">
-                        <Bar :data="expenseShareChart" :options="shareOptions" />
+                        <Bar :data="subcategoryMixChart" :options="barOptions" />
                     </div>
+                </div>
+            </div>
+
+            <div class="pf-card p-6">
+                <h3 class="text-lg font-semibold text-slate-900 mb-4">
+                    Expense Share Over Time
+                </h3>
+                <div class="h-64">
+                    <Bar :data="expenseShareChart" :options="shareOptions" />
                 </div>
             </div>
 

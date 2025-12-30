@@ -1,6 +1,7 @@
 <script setup>
-import { ref, watch } from 'vue';
+import { computed, ref, watch } from 'vue';
 import AppLayout from '@/Layouts/AppLayout.vue';
+import ConfirmDialog from '@/Components/ConfirmDialog.vue';
 import InputError from '@/Components/InputError.vue';
 import InputLabel from '@/Components/InputLabel.vue';
 import PrimaryButton from '@/Components/PrimaryButton.vue';
@@ -67,13 +68,39 @@ const updateSubcategory = (subcategory) => {
     );
 };
 
-const deleteSubcategory = (subcategoryId) => {
-    if (confirm('Delete this subcategory?')) {
-        router.delete(
-            route('categories.subcategories.destroy', [props.category.id, subcategoryId]),
-        );
-    }
+const confirmingDelete = ref(false);
+const pendingSubcategory = ref(null);
+
+const requestDeleteSubcategory = (subcategory) => {
+    pendingSubcategory.value = subcategory;
+    confirmingDelete.value = true;
 };
+
+const closeDeleteModal = () => {
+    confirmingDelete.value = false;
+    pendingSubcategory.value = null;
+};
+
+const confirmDeleteSubcategory = () => {
+    if (!pendingSubcategory.value) {
+        return;
+    }
+
+    router.delete(
+        route('categories.subcategories.destroy', [props.category.id, pendingSubcategory.value.id]),
+        {
+            onFinish: () => closeDeleteModal(),
+        },
+    );
+};
+
+const deleteMessage = computed(() => {
+    const subcategory = pendingSubcategory.value;
+    if (!subcategory) {
+        return 'Delete this subcategory?';
+    }
+    return `Delete ${subcategory.name}?`;
+});
 
 const onDragStart = (index) => {
     draggingIndex.value = index;
@@ -268,7 +295,7 @@ const onDrop = (index) => {
                                 <button
                                     type="button"
                                     class="text-sm text-red-600 hover:text-red-700"
-                                    @click="deleteSubcategory(subcategory.id)"
+                                    @click="requestDeleteSubcategory(subcategory)"
                                 >
                                     Delete
                                 </button>
@@ -278,5 +305,13 @@ const onDrop = (index) => {
                 </div>
             </div>
         </div>
+        <ConfirmDialog
+            :show="confirmingDelete"
+            title="Delete subcategory?"
+            :message="deleteMessage"
+            confirm-text="Delete"
+            @close="closeDeleteModal"
+            @confirm="confirmDeleteSubcategory"
+        />
     </AppLayout>
 </template>

@@ -1,5 +1,7 @@
 <script setup>
+import { computed, ref } from 'vue';
 import AppLayout from '@/Layouts/AppLayout.vue';
+import ConfirmDialog from '@/Components/ConfirmDialog.vue';
 import InputError from '@/Components/InputError.vue';
 import InputLabel from '@/Components/InputLabel.vue';
 import PrimaryButton from '@/Components/PrimaryButton.vue';
@@ -30,11 +32,36 @@ const updateMember = (member) => {
     });
 };
 
-const removeMember = (memberId) => {
-    if (confirm('Remove this member from the account?')) {
-        router.delete(route('family.destroy', memberId));
-    }
+const confirmingDelete = ref(false);
+const pendingMember = ref(null);
+
+const requestRemoveMember = (member) => {
+    pendingMember.value = member;
+    confirmingDelete.value = true;
 };
+
+const closeDeleteModal = () => {
+    confirmingDelete.value = false;
+    pendingMember.value = null;
+};
+
+const confirmRemoveMember = () => {
+    if (!pendingMember.value) {
+        return;
+    }
+
+    router.delete(route('family.destroy', pendingMember.value.id), {
+        onFinish: () => closeDeleteModal(),
+    });
+};
+
+const deleteMessage = computed(() => {
+    const member = pendingMember.value;
+    if (!member) {
+        return 'Remove this member from the account?';
+    }
+    return `Remove ${member.name || member.email}?`;
+});
 </script>
 
 <template>
@@ -136,7 +163,7 @@ const removeMember = (memberId) => {
                             <button
                                 type="button"
                                 class="text-sm text-red-600 hover:text-red-700"
-                                @click="removeMember(member.id)"
+                                @click="requestRemoveMember(member)"
                             >
                                 Remove
                             </button>
@@ -145,5 +172,13 @@ const removeMember = (memberId) => {
                 </div>
             </div>
         </div>
+        <ConfirmDialog
+            :show="confirmingDelete"
+            title="Remove member?"
+            :message="deleteMessage"
+            confirm-text="Remove"
+            @close="closeDeleteModal"
+            @confirm="confirmRemoveMember"
+        />
     </AppLayout>
 </template>
