@@ -4,6 +4,16 @@ namespace App\Support;
 
 class DecimalMath
 {
+    public static function add(string|int|float $left, string|int|float $right, int $scale = 2): string
+    {
+        if (function_exists('bcadd')) {
+            return bcadd((string) $left, (string) $right, $scale);
+        }
+
+        $result = (float) $left + (float) $right;
+        return number_format($result, $scale, '.', '');
+    }
+
     public static function sub(string|int|float $left, string|int|float $right, int $scale = 2): string
     {
         if (function_exists('bcsub')) {

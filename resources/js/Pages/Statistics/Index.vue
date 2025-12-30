@@ -77,6 +77,19 @@ const incomeExpenseChart = computed(() => ({
     ],
 }));
 
+const transferChart = computed(() => ({
+    labels: monthlySummary.value.map((row) => row.month),
+    datasets: [
+        {
+            label: 'Transfers',
+            data: monthlySummary.value.map((row) => parseFloat(row.transfers || 0)),
+            borderColor: '#6366f1',
+            backgroundColor: 'rgba(99, 102, 241, 0.2)',
+            tension: 0.35,
+        },
+    ],
+}));
+
 const categoryMixChart = computed(() => ({
     labels: props.analytics?.category_mix?.months || [],
     datasets: (props.analytics?.category_mix?.series || []).map((series) => ({
@@ -208,7 +221,7 @@ const applyFilters = () => {
                 </div>
             </div>
 
-            <div class="grid grid-cols-1 gap-5 lg:grid-cols-3">
+            <div class="grid grid-cols-1 gap-5 lg:grid-cols-4">
                 <div class="pf-card p-6">
                     <div class="text-sm text-slate-500">Total income</div>
                     <div class="mt-2 text-2xl font-semibold text-slate-900">
@@ -219,6 +232,12 @@ const applyFilters = () => {
                     <div class="text-sm text-slate-500">Total expenses</div>
                     <div class="mt-2 text-2xl font-semibold text-slate-900">
                         {{ formatCurrency(analytics?.totals?.expenses || 0) }}
+                    </div>
+                </div>
+                <div class="pf-card p-6">
+                    <div class="text-sm text-slate-500">Total transfers</div>
+                    <div class="mt-2 text-2xl font-semibold text-slate-900">
+                        {{ formatCurrency(analytics?.totals?.transfers || 0) }}
                     </div>
                 </div>
                 <div class="pf-card p-6">
@@ -246,6 +265,15 @@ const applyFilters = () => {
                     <div class="h-64">
                         <Bar :data="incomeExpenseChart" :options="barOptions" />
                     </div>
+                </div>
+            </div>
+
+            <div class="pf-card p-6">
+                <h3 class="text-lg font-semibold text-slate-900 mb-4">
+                    Transfers Over Time
+                </h3>
+                <div class="h-64">
+                    <Line :data="transferChart" :options="chartOptions" />
                 </div>
             </div>
 

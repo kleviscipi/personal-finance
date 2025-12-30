@@ -203,6 +203,20 @@
         <!-- Page Content -->
         <main class="py-6">
             <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                <div
+                    v-if="flashMessage"
+                    class="mb-6 rounded-lg border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-800"
+                    role="status"
+                >
+                    {{ flashMessage }}
+                </div>
+                <div
+                    v-if="flashError"
+                    class="mb-6 rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-800"
+                    role="alert"
+                >
+                    {{ flashError }}
+                </div>
                 <slot />
             </div>
         </main>
@@ -211,12 +225,16 @@
 
 <script setup>
 import { computed, ref } from 'vue';
-import { Link } from '@inertiajs/vue3';
+import { Link, usePage } from '@inertiajs/vue3';
 
 const props = defineProps({
     auth: Object,
     currentAccount: Object,
 });
+
+const page = usePage();
+const flashMessage = computed(() => page.props.flash?.message || '');
+const flashError = computed(() => page.props.flash?.error || '');
 
 const showUserMenu = ref(false);
 const showMobileMenu = ref(false);

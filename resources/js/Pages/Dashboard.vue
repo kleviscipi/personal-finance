@@ -568,7 +568,7 @@ const balanceTrendChartData = computed(() => {
                 backgroundColor: 'rgba(16, 185, 129, 0.1)',
                 tension: 0.35,
                 fill: true,
-                yAxisID: 'y',
+                yAxisID: 'y1',
             },
         ],
     };
@@ -605,6 +605,23 @@ const balanceTrendOptions = {
         y: {
             type: 'linear',
             position: 'left',
+            ticks: {
+                callback: function(value) {
+                    return new Intl.NumberFormat('en-US', {
+                        style: 'currency',
+                        currency: props.currentAccount?.base_currency || 'USD',
+                        minimumFractionDigits: 0,
+                        maximumFractionDigits: 0,
+                    }).format(value);
+                }
+            }
+        },
+        y1: {
+            type: 'linear',
+            position: 'right',
+            grid: {
+                drawOnChartArea: false,
+            },
             ticks: {
                 callback: function(value) {
                     return new Intl.NumberFormat('en-US', {

@@ -27,7 +27,8 @@ class AnalyticsService
             ->select(
                 DB::raw("to_char(date_trunc('month', date), 'YYYY-MM') as month"),
                 DB::raw("SUM(CASE WHEN type = 'income' THEN amount ELSE 0 END) as income"),
-                DB::raw("SUM(CASE WHEN type = 'expense' THEN amount ELSE 0 END) as expenses")
+                DB::raw("SUM(CASE WHEN type = 'expense' THEN amount ELSE 0 END) as expenses"),
+                DB::raw("SUM(CASE WHEN type = 'transfer' THEN amount ELSE 0 END) as transfers")
             )
             ->groupBy(DB::raw("date_trunc('month', date)"))
             ->orderBy(DB::raw("date_trunc('month', date)"))
@@ -39,11 +40,13 @@ class AnalyticsService
             $row = $monthlyMap->get($month);
             $income = $row->income ?? 0;
             $expenses = $row->expenses ?? 0;
+            $transfers = $row->transfers ?? 0;
 
             return [
                 'month' => $month,
                 'income' => $income,
                 'expenses' => $expenses,
+                'transfers' => $transfers,
                 'net' => DecimalMath::sub($income, $expenses, 4),
             ];
         }, $months);
@@ -155,7 +158,8 @@ class AnalyticsService
             ->whereNull('deleted_at')
             ->select(
                 DB::raw("SUM(CASE WHEN type = 'income' THEN amount ELSE 0 END) as income"),
-                DB::raw("SUM(CASE WHEN type = 'expense' THEN amount ELSE 0 END) as expenses")
+                DB::raw("SUM(CASE WHEN type = 'expense' THEN amount ELSE 0 END) as expenses"),
+                DB::raw("SUM(CASE WHEN type = 'transfer' THEN amount ELSE 0 END) as transfers")
             )
             ->first();
 
@@ -175,6 +179,7 @@ class AnalyticsService
             'totals' => [
                 'income' => $totals->income ?? 0,
                 'expenses' => $totals->expenses ?? 0,
+                'transfers' => $totals->transfers ?? 0,
                 'net' => DecimalMath::sub($totals->income ?? 0, $totals->expenses ?? 0, 4),
             ],
         ];
