@@ -9,12 +9,39 @@ use Illuminate\Support\Facades\DB;
 
 class AnalyticsService
 {
+    public function __construct(
+        private CurrencyService $currencyService
+    ) {}
+
     private function excludeOpeningBalance($query, string $table = 'transactions'): void
     {
         $query->where(function ($inner) use ($table) {
             $inner->whereNull("{$table}.metadata")
                 ->orWhereRaw("({$table}.metadata->>'opening_balance')::boolean IS DISTINCT FROM true");
         });
+    }
+
+    /**
+     * Convert transaction amount to account's base currency
+     * 
+     * @param string $amount Transaction amount
+     * @param string $transactionCurrency Currency of the transaction
+     * @param string $baseCurrency Account's base currency
+     * @param string $date Transaction date for historical rate lookup
+     * @return string Converted amount
+     */
+    private function convertToBaseCurrency(
+        string $amount,
+        string $transactionCurrency,
+        string $baseCurrency,
+        string $date
+    ): string {
+        return $this->currencyService->convert(
+            $amount,
+            $transactionCurrency,
+            $baseCurrency,
+            $date
+        );
     }
 
     public function getStatisticsRange(Account $account, string $startDate, string $endDate): array

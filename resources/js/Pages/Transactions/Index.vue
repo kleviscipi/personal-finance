@@ -91,6 +91,9 @@
                                     </div>
                                     <div class="text-sm text-gray-500">
                                         {{ formatDate(transaction.date) }}
+                                        <span v-if="transaction.currency !== currentAccount?.base_currency" class="ml-1 text-xs text-blue-600" :title="`Original: ${transaction.amount} ${transaction.currency}`">
+                                            ({{ transaction.currency }})
+                                        </span>
                                     </div>
                                 </div>
                                 <div class="flex space-x-2">
