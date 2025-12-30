@@ -236,7 +236,7 @@ const applyFilters = () => {
                 Statistics exclude opening balance adjustments from income and expense totals.
             </div>
 
-            <div class="grid grid-cols-1 gap-5 lg:grid-cols-6">
+            <div class="grid grid-cols-1 gap-5 md:grid-cols-3 lg:grid-cols-6">
                 <div class="pf-card p-6 min-w-0">
                     <div class="flex items-center justify-between">
                         <div class="text-sm text-slate-500">Total income</div>
@@ -246,7 +246,7 @@ const applyFilters = () => {
                             </svg>
                         </span>
                     </div>
-                    <div class="mt-2 text-xl font-semibold text-slate-900 truncate">
+                    <div class="mt-2 text-xl font-semibold text-slate-900 break-words">
                         {{ formatCurrency(analytics?.totals?.income || 0) }}
                     </div>
                 </div>
@@ -259,7 +259,7 @@ const applyFilters = () => {
                             </svg>
                         </span>
                     </div>
-                    <div class="mt-2 text-xl font-semibold text-slate-900 truncate">
+                    <div class="mt-2 text-xl font-semibold text-slate-900 break-words">
                         {{ formatCurrency(analytics?.totals?.expenses || 0) }}
                     </div>
                 </div>
@@ -272,7 +272,7 @@ const applyFilters = () => {
                             </svg>
                         </span>
                     </div>
-                    <div class="mt-2 text-xl font-semibold text-slate-900 truncate">
+                    <div class="mt-2 text-xl font-semibold text-slate-900 break-words">
                         {{ formatCurrency(analytics?.totals?.transfers || 0) }}
                     </div>
                 </div>
@@ -285,7 +285,7 @@ const applyFilters = () => {
                             </svg>
                         </span>
                     </div>
-                    <div class="mt-2 text-xl font-semibold text-slate-900 truncate">
+                    <div class="mt-2 text-xl font-semibold text-slate-900 break-words">
                         {{ formatCurrency(analytics?.totals?.opening_balance || 0) }}
                     </div>
                 </div>
@@ -298,7 +298,7 @@ const applyFilters = () => {
                             </svg>
                         </span>
                     </div>
-                    <div class="mt-2 text-xl font-semibold text-slate-900 truncate">
+                    <div class="mt-2 text-xl font-semibold text-slate-900 break-words">
                         {{ formatCurrency(analytics?.totals?.net || 0) }}
                     </div>
                 </div>
@@ -311,7 +311,7 @@ const applyFilters = () => {
                             </svg>
                         </span>
                     </div>
-                    <div class="mt-2 text-xl font-semibold text-slate-900 truncate">
+                    <div class="mt-2 text-xl font-semibold text-slate-900 break-words">
                         {{ formatCurrency((analytics?.totals?.net || 0) + (analytics?.totals?.opening_balance || 0)) }}
                     </div>
                 </div>
