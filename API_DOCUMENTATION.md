@@ -651,6 +651,162 @@ API versioning is done via URL path:
 
 Breaking changes will result in a new version. Non-breaking changes will be added to existing versions.
 
+## Exchange Rates
+
+Manage currency exchange rates for multi-currency support.
+
+### List Exchange Rates
+
+```http
+GET /exchange-rates
+```
+
+**Query Parameters:**
+- `base_currency` (optional) - Filter by base currency code
+- `target_currency` (optional) - Filter by target currency code
+- `date_from` (optional) - Filter rates from date (YYYY-MM-DD)
+- `date_to` (optional) - Filter rates to date (YYYY-MM-DD)
+- `page` (optional) - Page number for pagination
+- `per_page` (optional) - Results per page (default: 20, max: 100)
+
+**Response:**
+```json
+{
+  "data": [
+    {
+      "id": 1,
+      "base_currency": "USD",
+      "target_currency": "EUR",
+      "rate": "0.92000000",
+      "date": "2024-12-30",
+      "source": "manual",
+      "created_at": "2024-12-30T10:00:00.000000Z",
+      "updated_at": "2024-12-30T10:00:00.000000Z"
+    }
+  ],
+  "links": {},
+  "meta": {
+    "current_page": 1,
+    "total": 50
+  }
+}
+```
+
+### Create Exchange Rate
+
+```http
+POST /exchange-rates
+```
+
+**Request Body:**
+```json
+{
+  "base_currency": "USD",
+  "target_currency": "EUR",
+  "rate": "0.92",
+  "date": "2024-12-30",
+  "source": "manual"
+}
+```
+
+**Validation Rules:**
+- `base_currency` - required, must be a supported currency code
+- `target_currency` - required, must be a supported currency code, different from base_currency
+- `rate` - required, numeric, minimum 0.00000001
+- `date` - required, valid date (YYYY-MM-DD format)
+- `source` - optional, string, max 255 characters
+
+**Response:**
+```json
+{
+  "success": true,
+  "message": "Exchange rate saved successfully."
+}
+```
+
+### Update Exchange Rate
+
+```http
+PATCH /exchange-rates/{id}
+```
+
+**Request Body:**
+```json
+{
+  "rate": "0.93",
+  "source": "updated"
+}
+```
+
+**Validation Rules:**
+- `rate` - required, numeric, minimum 0.00000001
+- `source` - optional, string, max 255 characters
+
+**Response:**
+```json
+{
+  "success": true,
+  "message": "Exchange rate updated successfully."
+}
+```
+
+### Delete Exchange Rate
+
+```http
+DELETE /exchange-rates/{id}
+```
+
+**Response:**
+```json
+{
+  "success": true,
+  "message": "Exchange rate deleted successfully."
+}
+```
+
+### Supported Currencies
+
+The following currencies are currently supported:
+
+- **USD** - US Dollar ($)
+- **EUR** - Euro (€)
+- **GBP** - British Pound (£)
+- **JPY** - Japanese Yen (¥)
+- **CHF** - Swiss Franc
+- **CAD** - Canadian Dollar (C$)
+- **AUD** - Australian Dollar (A$)
+- **ALL** - Albanian Lek (L)
+
+### Exchange Rate Notes
+
+1. **Uniqueness**: Only one exchange rate can exist per base/target currency pair per date
+2. **Bidirectionality**: You must create rates in both directions (USD→EUR and EUR→USD)
+3. **Historical Rates**: Rates are date-specific for accurate historical conversion
+4. **Fallback Behavior**: If no rate exists for a specific date, the most recent available rate is used
+5. **Precision**: Rates are stored with 8 decimal places for high precision
+
+### Example: Setting Up Currency Pair
+
+To enable conversion between USD and EUR, create two rates:
+
+```http
+POST /exchange-rates
+{
+  "base_currency": "USD",
+  "target_currency": "EUR",
+  "rate": "0.92",
+  "date": "2024-12-30"
+}
+
+POST /exchange-rates
+{
+  "base_currency": "EUR",
+  "target_currency": "USD",
+  "rate": "1.09",
+  "date": "2024-12-30"
+}
+```
+
 ## Support
 
 For API support and questions:
