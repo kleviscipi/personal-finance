@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Services\AnalyticsService;
+use App\Support\ActiveAccount;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 
@@ -14,7 +15,7 @@ class DashboardController extends Controller
 
     public function index(Request $request)
     {
-        $account = $request->user()->accounts()->first();
+        $account = ActiveAccount::resolve($request);
         
         if (!$account) {
             // Redirect to account creation if no account exists

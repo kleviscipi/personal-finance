@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Category;
+use App\Support\ActiveAccount;
 use Illuminate\Http\Request;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Support\Facades\DB;
@@ -14,7 +15,7 @@ class CategoryController extends Controller
 {
     public function index(Request $request): Response|RedirectResponse
     {
-        $account = $request->user()->accounts()->first();
+        $account = ActiveAccount::resolve($request);
         if (!$account) {
             return redirect()->route('accounts.create');
         }
@@ -33,7 +34,7 @@ class CategoryController extends Controller
     {
         $this->authorize('create', Category::class);
 
-        $account = $request->user()->accounts()->first();
+        $account = ActiveAccount::resolve($request);
         if (!$account) {
             return redirect()->route('accounts.create');
         }
@@ -45,7 +46,7 @@ class CategoryController extends Controller
     {
         $this->authorize('create', Category::class);
 
-        $account = $request->user()->accounts()->first();
+        $account = ActiveAccount::resolve($request);
         if (!$account) {
             return redirect()->route('accounts.create');
         }
@@ -76,7 +77,7 @@ class CategoryController extends Controller
     {
         $this->authorize('update', $category);
 
-        $account = $request->user()->accounts()->first();
+        $account = ActiveAccount::resolve($request);
         if (!$account) {
             return redirect()->route('accounts.create');
         }
@@ -92,7 +93,7 @@ class CategoryController extends Controller
     {
         $this->authorize('update', $category);
 
-        $account = $request->user()->accounts()->first();
+        $account = ActiveAccount::resolve($request);
         if (!$account) {
             return redirect()->route('accounts.create');
         }
@@ -124,7 +125,7 @@ class CategoryController extends Controller
 
     public function reorder(Request $request)
     {
-        $account = $request->user()->accounts()->first();
+        $account = ActiveAccount::resolve($request);
         if (!$account) {
             return redirect()->route('accounts.create');
         }

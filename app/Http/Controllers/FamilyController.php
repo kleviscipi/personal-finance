@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\AccountInvitation;
 use App\Models\User;
 use App\Notifications\FamilyInviteNotification;
+use App\Support\ActiveAccount;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
@@ -17,7 +18,7 @@ class FamilyController extends Controller
 {
     public function index(Request $request): Response|RedirectResponse
     {
-        $account = $request->user()->accounts()->first();
+        $account = ActiveAccount::resolve($request);
         if (!$account) {
             return redirect()->route('accounts.create');
         }
@@ -42,7 +43,7 @@ class FamilyController extends Controller
 
     public function store(Request $request): RedirectResponse
     {
-        $account = $request->user()->accounts()->first();
+        $account = ActiveAccount::resolve($request);
         if (!$account) {
             return redirect()->route('accounts.create');
         }
@@ -90,7 +91,7 @@ class FamilyController extends Controller
 
     public function update(Request $request, User $user): RedirectResponse
     {
-        $account = $request->user()->accounts()->first();
+        $account = ActiveAccount::resolve($request);
         if (!$account) {
             return redirect()->route('accounts.create');
         }
@@ -112,7 +113,7 @@ class FamilyController extends Controller
 
     public function destroy(Request $request, User $user): RedirectResponse
     {
-        $account = $request->user()->accounts()->first();
+        $account = ActiveAccount::resolve($request);
         if (!$account) {
             return redirect()->route('accounts.create');
         }

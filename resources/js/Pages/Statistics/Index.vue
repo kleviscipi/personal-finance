@@ -232,29 +232,87 @@ const applyFilters = () => {
                 </div>
             </div>
 
-            <div class="grid grid-cols-1 gap-5 lg:grid-cols-4">
+            <div class="rounded-lg border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-600">
+                Statistics exclude opening balance adjustments from income and expense totals.
+            </div>
+
+            <div class="grid grid-cols-1 gap-5 lg:grid-cols-6">
                 <div class="pf-card p-6">
-                    <div class="text-sm text-slate-500">Total income</div>
+                    <div class="flex items-center justify-between">
+                        <div class="text-sm text-slate-500">Total income</div>
+                        <span class="flex h-8 w-8 items-center justify-center rounded-full bg-emerald-50 text-emerald-600">
+                            <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 11l5-5m0 0l5 5m-5-5v12" />
+                            </svg>
+                        </span>
+                    </div>
                     <div class="mt-2 text-2xl font-semibold text-slate-900">
                         {{ formatCurrency(analytics?.totals?.income || 0) }}
                     </div>
                 </div>
                 <div class="pf-card p-6">
-                    <div class="text-sm text-slate-500">Total expenses</div>
+                    <div class="flex items-center justify-between">
+                        <div class="text-sm text-slate-500">Total expenses</div>
+                        <span class="flex h-8 w-8 items-center justify-center rounded-full bg-rose-50 text-rose-600">
+                            <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 13l-5 5m0 0l-5-5m5 5V6" />
+                            </svg>
+                        </span>
+                    </div>
                     <div class="mt-2 text-2xl font-semibold text-slate-900">
                         {{ formatCurrency(analytics?.totals?.expenses || 0) }}
                     </div>
                 </div>
                 <div class="pf-card p-6">
-                    <div class="text-sm text-slate-500">Total transfers</div>
+                    <div class="flex items-center justify-between">
+                        <div class="text-sm text-slate-500">Total transfers</div>
+                        <span class="flex h-8 w-8 items-center justify-center rounded-full bg-sky-50 text-sky-600">
+                            <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 7h16M4 17h16M7 10l-3-3 3-3M17 20l3-3-3-3" />
+                            </svg>
+                        </span>
+                    </div>
                     <div class="mt-2 text-2xl font-semibold text-slate-900">
                         {{ formatCurrency(analytics?.totals?.transfers || 0) }}
                     </div>
                 </div>
                 <div class="pf-card p-6">
-                    <div class="text-sm text-slate-500">Net balance</div>
+                    <div class="flex items-center justify-between">
+                        <div class="text-sm text-slate-500">Opening balance</div>
+                        <span class="flex h-8 w-8 items-center justify-center rounded-full bg-amber-50 text-amber-600">
+                            <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1" />
+                            </svg>
+                        </span>
+                    </div>
+                    <div class="mt-2 text-2xl font-semibold text-slate-900">
+                        {{ formatCurrency(analytics?.totals?.opening_balance || 0) }}
+                    </div>
+                </div>
+                <div class="pf-card p-6">
+                    <div class="flex items-center justify-between">
+                        <div class="text-sm text-slate-500">Net balance</div>
+                        <span class="flex h-8 w-8 items-center justify-center rounded-full bg-indigo-50 text-indigo-600">
+                            <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 6l3 1m0 0l-3 9a5.002 5.002 0 006.001 0M6 7l3 9M6 7l6-2m6 2l3-1m-3 1l-3 9a5.002 5.002 0 006.001 0M18 7l3 9m-3-9l-6-2m0-2v2m0 16V5m0 16H9m3 0h3" />
+                            </svg>
+                        </span>
+                    </div>
                     <div class="mt-2 text-2xl font-semibold text-slate-900">
                         {{ formatCurrency(analytics?.totals?.net || 0) }}
+                    </div>
+                </div>
+                <div class="pf-card p-6">
+                    <div class="flex items-center justify-between">
+                        <div class="text-sm text-slate-500">Net incl. opening balance</div>
+                        <span class="flex h-8 w-8 items-center justify-center rounded-full bg-teal-50 text-teal-600">
+                            <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                            </svg>
+                        </span>
+                    </div>
+                    <div class="mt-2 text-2xl font-semibold text-slate-900">
+                        {{ formatCurrency((analytics?.totals?.net || 0) + (analytics?.totals?.opening_balance || 0)) }}
                     </div>
                 </div>
             </div>

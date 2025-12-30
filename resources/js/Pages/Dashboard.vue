@@ -1,6 +1,16 @@
 <template>
     <AppLayout :auth="auth" :current-account="currentAccount">
-        <div class="space-y-6">
+        <div class="space-y-6 relative">
+            <Link
+                :href="route('transactions.create')"
+                class="fixed bottom-6 right-6 z-40 flex h-14 w-14 items-center justify-center rounded-full bg-sky-600 text-white shadow-[0_18px_36px_-16px_rgba(0,122,255,0.8)] transition hover:bg-sky-700 active:scale-95 focus:outline-none focus:ring-2 focus:ring-sky-500 focus:ring-offset-2 sm:bottom-8 sm:right-8"
+                aria-label="Add transaction"
+                title="Add transaction"
+            >
+                <svg class="h-7 w-7" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
+                </svg>
+            </Link>
             <!-- Header -->
             <div class="md:flex md:items-center md:justify-between">
                 <div class="flex-1 min-w-0">
@@ -8,14 +18,7 @@
                         Dashboard
                     </h2>
                 </div>
-                <div class="mt-4 flex md:mt-0 md:ml-4">
-                    <Link :href="route('transactions.create')" class="ml-3 inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-sky-600 hover:bg-sky-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-sky-500">
-                        <svg class="-ml-1 mr-2 h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
-                        </svg>
-                        Add Transaction
-                    </Link>
-                </div>
+                <div class="mt-4 flex md:mt-0 md:ml-4"></div>
             </div>
 
             <!-- Stats Cards -->

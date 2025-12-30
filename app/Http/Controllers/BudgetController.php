@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Budget;
 use App\Services\BudgetService;
+use App\Support\ActiveAccount;
 use Illuminate\Http\Request;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Validation\Rule;
@@ -18,7 +19,7 @@ class BudgetController extends Controller
 
     public function index(Request $request): Response|RedirectResponse
     {
-        $account = $request->user()->accounts()->first();
+        $account = ActiveAccount::resolve($request);
         if (!$account) {
             return redirect()->route('accounts.create');
         }
@@ -37,7 +38,7 @@ class BudgetController extends Controller
     {
         $this->authorize('create', Budget::class);
 
-        $account = $request->user()->accounts()->first();
+        $account = ActiveAccount::resolve($request);
         if (!$account) {
             return redirect()->route('accounts.create');
         }
@@ -58,7 +59,7 @@ class BudgetController extends Controller
     {
         $this->authorize('create', Budget::class);
 
-        $account = $request->user()->accounts()->first();
+        $account = ActiveAccount::resolve($request);
         if (!$account) {
             return redirect()->route('accounts.create');
         }
@@ -90,7 +91,7 @@ class BudgetController extends Controller
     {
         $this->authorize('update', $budget);
 
-        $account = $request->user()->accounts()->first();
+        $account = ActiveAccount::resolve($request);
         if (!$account) {
             return redirect()->route('accounts.create');
         }
@@ -112,7 +113,7 @@ class BudgetController extends Controller
     {
         $this->authorize('update', $budget);
 
-        $account = $request->user()->accounts()->first();
+        $account = ActiveAccount::resolve($request);
         if (!$account) {
             return redirect()->route('accounts.create');
         }

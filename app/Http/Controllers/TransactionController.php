@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Transaction;
 use App\Services\TransactionService;
+use App\Support\ActiveAccount;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 
@@ -15,7 +16,7 @@ class TransactionController extends Controller
 
     public function index(Request $request)
     {
-        $account = $request->user()->accounts()->first();
+        $account = ActiveAccount::resolve($request);
         if (!$account) {
             return redirect()->route('accounts.create');
         }
@@ -51,7 +52,7 @@ class TransactionController extends Controller
 
     public function create()
     {
-        $account = auth()->user()->accounts()->first();
+        $account = ActiveAccount::resolve(request());
         if (!$account) {
             return redirect()->route('accounts.create');
         }
@@ -82,7 +83,10 @@ class TransactionController extends Controller
             'payment_method' => 'nullable|string|max:255',
         ]);
 
-        $account = $request->user()->accounts()->first();
+        $account = ActiveAccount::resolve($request);
+        if (!$account) {
+            return redirect()->route('accounts.create');
+        }
         $this->transactionService->createTransaction($account, $request->user(), $validated);
 
         return redirect()->route('transactions.index')->with('message', 'Transaction created successfully.');
@@ -92,7 +96,7 @@ class TransactionController extends Controller
     {
         $this->authorize('update', $transaction);
         
-        $account = auth()->user()->accounts()->first();
+        $account = ActiveAccount::resolve(request());
         if (!$account) {
             return redirect()->route('accounts.create');
         }

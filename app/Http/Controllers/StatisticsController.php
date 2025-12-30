@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Services\AnalyticsService;
+use App\Support\ActiveAccount;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 use Inertia\Response;
@@ -15,7 +16,7 @@ class StatisticsController extends Controller
 
     public function index(Request $request): Response
     {
-        $account = $request->user()->accounts()->first();
+        $account = ActiveAccount::resolve($request);
         if (!$account) {
             return redirect()->route('accounts.create');
         }

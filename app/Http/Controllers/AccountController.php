@@ -7,6 +7,7 @@ use App\Models\Category;
 use App\Models\AccountSettings;
 use App\Services\CurrencyService;
 use App\Services\TransactionService;
+use App\Support\ActiveAccount;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Validation\Rule;
@@ -55,6 +56,8 @@ class AccountController extends Controller
             'joined_at' => now(),
         ]);
 
+        ActiveAccount::store($request, $account);
+
         if (!empty($validated['opening_balance'])) {
             $openingCategory = Category::firstOrCreate(
                 [
@@ -85,5 +88,21 @@ class AccountController extends Controller
         return redirect()
             ->route('dashboard')
             ->with('message', 'Account created successfully.');
+    }
+
+    public function setActive(Request $request): RedirectResponse
+    {
+        $validated = $request->validate([
+            'account_id' => ['required', 'integer'],
+        ]);
+
+        $account = $request->user()
+            ->accounts()
+            ->where('accounts.id', $validated['account_id'])
+            ->firstOrFail();
+
+        ActiveAccount::store($request, $account);
+
+        return back();
     }
 }

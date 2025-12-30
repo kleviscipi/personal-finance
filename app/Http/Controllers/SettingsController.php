@@ -3,7 +3,9 @@
 namespace App\Http\Controllers;
 
 use App\Models\AccountSettings;
+use App\Jobs\RecomputeAccountBaseAmounts;
 use App\Services\CurrencyService;
+use App\Support\ActiveAccount;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -15,7 +17,7 @@ class SettingsController extends Controller
 {
     public function show(Request $request, CurrencyService $currencyService): Response|RedirectResponse
     {
-        $account = $request->user()->accounts()->first();
+        $account = ActiveAccount::resolve($request);
         if (!$account) {
             return redirect()->route('accounts.create');
         }
@@ -33,7 +35,7 @@ class SettingsController extends Controller
 
     public function update(Request $request, CurrencyService $currencyService): RedirectResponse
     {
-        $account = $request->user()->accounts()->first();
+        $account = ActiveAccount::resolve($request);
         if (!$account) {
             return redirect()->route('accounts.create');
         }
@@ -50,6 +52,8 @@ class SettingsController extends Controller
             'time_format' => ['required', 'string', 'max:20'],
             'notifications_enabled' => ['nullable', 'boolean'],
         ]);
+
+        $baseCurrencyChanged = $account->base_currency !== $validated['base_currency'];
 
         DB::transaction(function () use ($account, $validated) {
             $account->update([
@@ -70,6 +74,10 @@ class SettingsController extends Controller
                 'notifications_enabled' => (bool) ($validated['notifications_enabled'] ?? false),
             ]);
         });
+
+        if ($baseCurrencyChanged) {
+            RecomputeAccountBaseAmounts::dispatch($account->id);
+        }
 
         return redirect()
             ->route('settings')

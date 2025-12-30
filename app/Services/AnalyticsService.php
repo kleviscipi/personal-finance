@@ -9,6 +9,14 @@ use Illuminate\Support\Facades\DB;
 
 class AnalyticsService
 {
+    private function excludeOpeningBalance($query, string $table = 'transactions'): void
+    {
+        $query->where(function ($inner) use ($table) {
+            $inner->whereNull("{$table}.metadata")
+                ->orWhereRaw("({$table}.metadata->>'opening_balance')::boolean IS DISTINCT FROM true");
+        });
+    }
+
     public function getStatisticsRange(Account $account, string $startDate, string $endDate): array
     {
         $rangeStart = Carbon::parse($startDate)->startOfMonth();
@@ -24,6 +32,9 @@ class AnalyticsService
             ->where('account_id', $account->id)
             ->whereBetween('date', [$startDate, $endDate])
             ->whereNull('deleted_at')
+            ->tap(function ($query) {
+                $this->excludeOpeningBalance($query);
+            })
             ->select(
                 DB::raw("to_char(date_trunc('month', date), 'YYYY-MM') as month"),
                 DB::raw("SUM(CASE WHEN type = 'income' THEN amount ELSE 0 END) as income"),
@@ -247,12 +258,22 @@ class AnalyticsService
             ->where('account_id', $account->id)
             ->whereBetween('date', [$startDate, $endDate])
             ->whereNull('deleted_at')
+            ->tap(function ($query) {
+                $this->excludeOpeningBalance($query);
+            })
             ->select(
                 DB::raw("SUM(CASE WHEN type = 'income' THEN amount ELSE 0 END) as income"),
                 DB::raw("SUM(CASE WHEN type = 'expense' THEN amount ELSE 0 END) as expenses"),
                 DB::raw("SUM(CASE WHEN type = 'transfer' THEN amount ELSE 0 END) as transfers")
             )
             ->first();
+
+        $openingBalance = DB::table('transactions')
+            ->where('account_id', $account->id)
+            ->whereBetween('date', [$startDate, $endDate])
+            ->whereNull('deleted_at')
+            ->whereRaw("(metadata->>'opening_balance')::boolean = true")
+            ->sum('amount');
 
         return [
             'monthly_summary' => $monthlySummary,
@@ -277,6 +298,7 @@ class AnalyticsService
                 'expenses' => $totals->expenses ?? 0,
                 'transfers' => $totals->transfers ?? 0,
                 'net' => DecimalMath::sub($totals->income ?? 0, $totals->expenses ?? 0, 4),
+                'opening_balance' => $openingBalance,
             ],
         ];
     }
@@ -295,6 +317,9 @@ class AnalyticsService
             ->where('account_id', $account->id)
             ->where('date', '>=', $startDate)
             ->whereNull('deleted_at')
+            ->tap(function ($query) {
+                $this->excludeOpeningBalance($query);
+            })
             ->select(
                 DB::raw("to_char(date_trunc('month', date), 'YYYY-MM') as month"),
                 DB::raw("SUM(CASE WHEN type = 'income' THEN amount ELSE 0 END) as income"),
@@ -356,6 +381,9 @@ class AnalyticsService
             ->whereYear('date', $year)
             ->whereMonth('date', $month)
             ->whereNull('deleted_at')
+            ->tap(function ($query) {
+                $this->excludeOpeningBalance($query);
+            })
             ->sum('amount');
     }
 
@@ -370,6 +398,9 @@ class AnalyticsService
             ->whereYear('date', $year)
             ->whereMonth('date', $month)
             ->whereNull('deleted_at')
+            ->tap(function ($query) {
+                $this->excludeOpeningBalance($query);
+            })
             ->sum('amount');
     }
 
@@ -568,6 +599,9 @@ class AnalyticsService
             ->where('type', 'income')
             ->where('date', '>=', $startDate)
             ->whereNull('deleted_at')
+            ->tap(function ($query) {
+                $this->excludeOpeningBalance($query);
+            })
             ->sum('amount');
 
         $expenses = DB::table('transactions')
@@ -575,6 +609,9 @@ class AnalyticsService
             ->where('type', 'expense')
             ->where('date', '>=', $startDate)
             ->whereNull('deleted_at')
+            ->tap(function ($query) {
+                $this->excludeOpeningBalance($query);
+            })
             ->sum('amount');
 
         $dailyIncome = DecimalMath::div($income, 30, 4);

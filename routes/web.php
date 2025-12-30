@@ -56,6 +56,7 @@ Route::middleware(['auth'])->group(function () {
 
     Route::get('/accounts/create', [AccountController::class, 'create'])->name('accounts.create');
     Route::post('/accounts', [AccountController::class, 'store'])->name('accounts.store');
+    Route::post('/accounts/active', [AccountController::class, 'setActive'])->name('accounts.active');
     
     Route::get('/settings', [SettingsController::class, 'show'])->name('settings');
     Route::patch('/settings', [SettingsController::class, 'update'])->name('settings.update');

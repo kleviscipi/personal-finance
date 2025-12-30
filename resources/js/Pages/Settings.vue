@@ -44,6 +44,16 @@ const submit = () => {
                 </p>
             </div>
 
+            <div class="rounded-lg border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-700">
+                Editing settings for
+                <span class="font-semibold text-slate-900">
+                    {{ account?.name || 'this account' }}
+                </span>
+                <span v-if="account?.base_currency" class="text-slate-500">
+                    ({{ account.base_currency }})
+                </span>
+            </div>
+
             <form @submit.prevent="submit" class="pf-card">
                 <div class="px-6 py-6 space-y-6">
                     <div>

@@ -1,7 +1,7 @@
 <template>
     <div class="min-h-screen text-slate-900">
         <!-- Navigation -->
-        <nav class="bg-white/80 backdrop-blur border-b border-slate-200/70 relative z-50">
+        <nav class="bg-white/70 backdrop-blur-xl border-b border-slate-200/60 shadow-[0_8px_24px_-20px_rgba(15,23,42,0.4)] relative z-50">
             <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
                 <div class="flex justify-between h-16">
                     <div class="flex">
@@ -80,9 +80,22 @@
                                         {{ auth?.user?.email || '' }}
                                     </div>
                                 </div>
+                                <div v-if="accounts.length" class="px-4 py-2">
+                                    <label class="block text-xs font-medium text-gray-500 mb-1">Active account</label>
+                                    <select
+                                        class="pf-input block w-full text-sm"
+                                        :value="activeAccountId"
+                                        @change="switchAccount"
+                                    >
+                                        <option v-for="account in accounts" :key="account.id" :value="account.id">
+                                            {{ account.name }} ({{ account.base_currency }})
+                                        </option>
+                                    </select>
+                                </div>
                                 <Link :href="route('profile.edit')" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">Profile</Link>
                                 <Link :href="route('family.index')" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">Family</Link>
                                 <Link :href="route('settings')" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">Settings</Link>
+                                <Link :href="route('accounts.create')" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">New Account</Link>
                                 <Link :href="route('logout')" method="post" as="button" class="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
                                     Log out
                                 </Link>
@@ -167,6 +180,18 @@
                     </Link>
                 </div>
                 <div class="border-t border-gray-200 px-4 py-4">
+                    <div v-if="accounts.length" class="mb-4">
+                        <label class="block text-xs font-medium text-gray-500 mb-1">Account</label>
+                        <select
+                            class="pf-input block w-full text-sm"
+                            :value="activeAccountId"
+                            @change="switchAccount"
+                        >
+                            <option v-for="account in accounts" :key="account.id" :value="account.id">
+                                {{ account.name }} ({{ account.base_currency }})
+                            </option>
+                        </select>
+                    </div>
                     <div class="flex items-center gap-3">
                         <div class="h-9 w-9 rounded-full bg-sky-600 flex items-center justify-center text-white font-medium">
                             {{ userInitial }}
@@ -186,6 +211,12 @@
                             class="block rounded-md px-3 py-2 text-base font-medium text-gray-700 hover:bg-gray-100"
                         >
                             Profile
+                        </Link>
+                        <Link
+                            :href="route('accounts.create')"
+                            class="block rounded-md px-3 py-2 text-base font-medium text-gray-700 hover:bg-gray-100"
+                        >
+                            New Account
                         </Link>
                         <Link
                             :href="route('logout')"
@@ -217,7 +248,9 @@
                 >
                     {{ flashError }}
                 </div>
-                <slot />
+                <div class="pf-page">
+                    <slot />
+                </div>
             </div>
         </main>
     </div>
@@ -225,7 +258,7 @@
 
 <script setup>
 import { computed, ref } from 'vue';
-import { Link, usePage } from '@inertiajs/vue3';
+import { Link, router, usePage } from '@inertiajs/vue3';
 
 const props = defineProps({
     auth: Object,
@@ -235,6 +268,8 @@ const props = defineProps({
 const page = usePage();
 const flashMessage = computed(() => page.props.flash?.message || '');
 const flashError = computed(() => page.props.flash?.error || '');
+const accounts = computed(() => page.props.accounts || []);
+const activeAccountId = computed(() => page.props.activeAccount?.id || null);
 
 const showUserMenu = ref(false);
 const showMobileMenu = ref(false);
@@ -246,4 +281,12 @@ const userInitial = computed(() => {
     }
     return name.charAt(0).toUpperCase();
 });
+
+const switchAccount = (event) => {
+    const accountId = event.target.value;
+    if (!accountId || accountId === String(activeAccountId.value)) {
+        return;
+    }
+    router.post(route('accounts.active'), { account_id: accountId }, { preserveScroll: true });
+};
 </script>

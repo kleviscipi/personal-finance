@@ -2,6 +2,7 @@
 
 namespace App\Http\Middleware;
 
+use App\Support\ActiveAccount;
 use Illuminate\Http\Request;
 use Inertia\Middleware;
 
@@ -34,6 +35,10 @@ class HandleInertiaRequests extends Middleware
             'auth' => [
                 'user' => $request->user(),
             ],
+            'accounts' => fn () => $request->user()
+                ? $request->user()->accounts()->orderBy('name')->get(['accounts.id', 'accounts.name', 'accounts.base_currency'])
+                : [],
+            'activeAccount' => fn () => ActiveAccount::resolve($request),
             'flash' => [
                 'message' => fn () => $request->session()->get('message'),
                 'error' => fn () => $request->session()->get('error'),
