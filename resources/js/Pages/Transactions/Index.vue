@@ -87,7 +87,7 @@
                                     <div :class="['text-sm font-semibold', 
                                         transaction.type === 'income' ? 'text-green-600' : 
                                         transaction.type === 'transfer' ? 'text-blue-600' : 'text-gray-900']">
-                                        {{ transaction.type === 'income' ? '+' : transaction.type === 'transfer' ? '↔' : '-' }}{{ formatCurrency(transaction.amount) }}
+                                        {{ transaction.type === 'income' ? '+' : transaction.type === 'transfer' ? '↔' : '-' }}{{ formatCurrency(transaction.amount, transaction.currency) }}
                                     </div>
                                     <div class="text-sm text-gray-500">
                                         {{ formatDate(transaction.date) }}
@@ -245,10 +245,10 @@ const deleteMessage = computed(() => {
     return `Delete ${label}?`;
 });
 
-const formatCurrency = (amount) => {
+const formatCurrency = (amount, currency) => {
     return new Intl.NumberFormat('en-US', {
         style: 'currency',
-        currency: props.currentAccount?.base_currency || 'USD',
+        currency: currency || props.currentAccount?.base_currency || 'USD',
     }).format(parseFloat(amount || 0));
 };
 

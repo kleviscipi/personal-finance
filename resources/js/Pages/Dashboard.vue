@@ -20,6 +20,12 @@
                 </div>
                 <div class="mt-4 flex md:mt-0 md:ml-4"></div>
             </div>
+            <div
+                v-if="missingRateMessage"
+                class="rounded-lg border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-900"
+            >
+                {{ missingRateMessage }}
+            </div>
 
             <!-- Stats Cards -->
             <div class="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-5">
@@ -484,7 +490,7 @@
                                 </div>
                                 <div class="text-right">
                                     <div :class="['text-sm font-medium', transaction.type === 'income' ? 'text-green-600' : 'text-gray-900']">
-                                        {{ transaction.type === 'income' ? '+' : '-' }}{{ formatCurrency(transaction.amount) }}
+                                        {{ transaction.type === 'income' ? '+' : '-' }}{{ formatCurrency(transaction.amount, transaction.currency) }}
                                     </div>
                                     <div class="text-sm text-gray-500">
                                         {{ formatDate(transaction.date) }}
@@ -705,14 +711,28 @@ const barOptions = {
     },
 };
 
-const formatCurrency = (amount) => {
+const formatCurrency = (amount, currency) => {
     return new Intl.NumberFormat('en-US', {
         style: 'currency',
-        currency: props.currentAccount?.base_currency || 'USD',
+        currency: currency || props.currentAccount?.base_currency || 'USD',
         minimumFractionDigits: 2,
         maximumFractionDigits: 2,
     }).format(parseFloat(amount || 0));
 };
+
+const missingRates = computed(() => props.analytics?.missing_rates || {});
+
+const missingRateMessage = computed(() => {
+    const count = missingRates.value?.count || 0;
+    if (!count) {
+        return '';
+    }
+
+    const currencyList = missingRates.value?.currencies?.length
+        ? ` (${missingRates.value.currencies.join(', ')})`
+        : '';
+    return `Missing FX rates for ${count} transactions${currencyList}. Totals use a 1:1 fallback.`;
+});
 
 const formatDate = (date) => {
     return new Date(date).toLocaleDateString('en-US', {

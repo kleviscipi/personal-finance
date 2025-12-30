@@ -125,6 +125,12 @@
                                     </svg>
                                     Settings
                                 </Link>
+                                <Link :href="route('exchange-rates.index')" class="flex items-center gap-2 px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
+                                    <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 7h6m8 0h2M4 17h2m4 0h10M6 5v4m12-4v4M6 15v4m8-4v4" />
+                                    </svg>
+                                    Exchange Rates
+                                </Link>
                                 <Link :href="route('accounts.create')" class="flex items-center gap-2 px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
                                     <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
@@ -233,6 +239,15 @@
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8.5a3.5 3.5 0 100 7 3.5 3.5 0 000-7zM19.4 15a7.97 7.97 0 00.1-2l2-1.2-2-3.4-2.3.7a7.9 7.9 0 00-1.7-1l-.3-2.4H11l-.3 2.4a7.9 7.9 0 00-1.7 1l-2.3-.7-2 3.4 2 1.2a7.97 7.97 0 000 2l-2 1.2 2 3.4 2.3-.7a7.9 7.9 0 001.7 1l.3 2.4h4.4l.3-2.4a7.9 7.9 0 001.7-1l2.3.7 2-3.4-2-1.2z" />
                         </svg>
                         Settings
+                    </Link>
+                    <Link
+                        :href="route('exchange-rates.index')"
+                        class="flex items-center gap-2 rounded-md px-3 py-2 text-base font-medium text-gray-700 hover:bg-gray-100"
+                    >
+                        <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 7h6m8 0h2M4 17h2m4 0h10M6 5v4m12-4v4M6 15v4m8-4v4" />
+                        </svg>
+                        Exchange Rates
                     </Link>
                 </div>
                 <div class="border-t border-gray-200 px-4 py-4">

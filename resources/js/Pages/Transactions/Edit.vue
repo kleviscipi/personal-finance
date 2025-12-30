@@ -12,13 +12,23 @@ const props = defineProps({
     currentAccount: Object,
     transaction: Object,
     categories: Array,
+    currencies: Object,
 });
 
-const currencyOptions = [
-    { code: 'USD', label: 'USD - US Dollar' },
-    { code: 'EUR', label: 'EUR - Euro' },
-    { code: 'ALL', label: 'ALL - Albanian Lek' },
-];
+const currencyOptions = computed(() => {
+    const currencies = Object.values(props.currencies || {});
+    if (!currencies.length) {
+        const fallback = props.currentAccount?.base_currency || 'USD';
+        return [{ code: fallback, label: fallback }];
+    }
+
+    return currencies
+        .map((currency) => ({
+            code: currency.code,
+            label: `${currency.code} - ${currency.name}`,
+        }))
+        .sort((a, b) => a.code.localeCompare(b.code));
+});
 
 const form = useForm({
     type: props.transaction?.type || 'expense',

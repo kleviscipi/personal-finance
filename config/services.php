@@ -18,6 +18,15 @@ return [
         'token' => env('POSTMARK_TOKEN'),
     ],
 
+    'exchangerate_host' => [
+        'base_url' => env('EXCHANGERATE_HOST_BASE_URL', 'https://api.exchangerate.host'),
+        'access_key' => env('EXCHANGERATE_HOST_ACCESS_KEY'),
+        'endpoint' => env('EXCHANGERATE_HOST_ENDPOINT', 'latest'),
+        'sync_base' => env('EXCHANGERATE_HOST_SYNC_BASE', 'ALL'),
+        'sync_symbols' => env('EXCHANGERATE_HOST_SYNC_SYMBOLS', 'USD,EUR'),
+        'sync_time' => env('EXCHANGERATE_HOST_SYNC_TIME', '02:00'),
+    ],
+
     'ses' => [
         'key' => env('AWS_ACCESS_KEY_ID'),
         'secret' => env('AWS_SECRET_ACCESS_KEY'),

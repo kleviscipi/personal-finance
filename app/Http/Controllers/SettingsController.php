@@ -3,7 +3,6 @@
 namespace App\Http\Controllers;
 
 use App\Models\AccountSettings;
-use App\Jobs\RecomputeAccountBaseAmounts;
 use App\Services\CurrencyService;
 use App\Support\ActiveAccount;
 use Illuminate\Http\RedirectResponse;
@@ -75,12 +74,16 @@ class SettingsController extends Controller
             ]);
         });
 
+        $redirect = redirect()->route('settings');
+
         if ($baseCurrencyChanged) {
-            RecomputeAccountBaseAmounts::dispatch($account->id);
+            $exchangeRatesUrl = route('exchange-rates.index');
+            return $redirect
+                ->with('message', 'Settings updated successfully.')
+                ->with('error', "Base currency changed. Sync exchange rates for the new base to keep analytics accurate: {$exchangeRatesUrl}");
         }
 
-        return redirect()
-            ->route('settings')
+        return $redirect
             ->with('message', 'Settings updated successfully.');
     }
 }

@@ -3,15 +3,18 @@
 namespace App\Http\Controllers;
 
 use App\Models\Transaction;
+use App\Services\CurrencyService;
 use App\Services\TransactionService;
 use App\Support\ActiveAccount;
 use Illuminate\Http\Request;
+use Illuminate\Validation\Rule;
 use Inertia\Inertia;
 
 class TransactionController extends Controller
 {
     public function __construct(
-        private TransactionService $transactionService
+        private TransactionService $transactionService,
+        private CurrencyService $currencyService
     ) {}
 
     public function index(Request $request)
@@ -75,7 +78,7 @@ class TransactionController extends Controller
         $validated = $request->validate([
             'type' => 'required|in:expense,income,transfer',
             'amount' => 'required|numeric|min:0',
-            'currency' => 'required|in:USD,EUR,ALL',
+            'currency' => ['required', Rule::in(array_keys($this->currencyService->getSupportedCurrencies()))],
             'date' => 'required|date',
             'category_id' => 'nullable|exists:categories,id',
             'subcategory_id' => 'nullable|exists:subcategories,id',
@@ -122,7 +125,7 @@ class TransactionController extends Controller
         $validated = $request->validate([
             'type' => 'required|in:expense,income,transfer',
             'amount' => 'required|numeric|min:0',
-            'currency' => 'required|in:USD,EUR,ALL',
+            'currency' => ['required', Rule::in(array_keys($this->currencyService->getSupportedCurrencies()))],
             'date' => 'required|date',
             'category_id' => 'nullable|exists:categories,id',
             'subcategory_id' => 'nullable|exists:subcategories,id',

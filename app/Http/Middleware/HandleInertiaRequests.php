@@ -2,6 +2,7 @@
 
 namespace App\Http\Middleware;
 
+use App\Services\CurrencyService;
 use App\Support\ActiveAccount;
 use Illuminate\Http\Request;
 use Inertia\Middleware;
@@ -39,6 +40,7 @@ class HandleInertiaRequests extends Middleware
                 ? $request->user()->accounts()->orderBy('name')->get(['accounts.id', 'accounts.name', 'accounts.base_currency'])
                 : [],
             'activeAccount' => fn () => ActiveAccount::resolve($request),
+            'currencies' => fn () => app(CurrencyService::class)->getSupportedCurrencies(),
             'flash' => [
                 'message' => fn () => $request->session()->get('message'),
                 'error' => fn () => $request->session()->get('error'),

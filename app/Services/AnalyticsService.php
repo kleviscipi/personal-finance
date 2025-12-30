@@ -17,6 +17,64 @@ class AnalyticsService
         });
     }
 
+    private function getMissingRateSummary(Account $account, string $startDate, string $endDate): array
+    {
+        $baseCurrency = $account->base_currency;
+
+        $query = DB::table('transactions')
+            ->where('account_id', $account->id)
+            ->whereBetween('date', [$startDate, $endDate])
+            ->whereNull('deleted_at')
+            ->tap(function ($query) {
+                $this->excludeOpeningBalance($query);
+            })
+            ->where('currency', '!=', $baseCurrency)
+            ->whereRaw(
+                "NOT EXISTS (SELECT 1 FROM exchange_rates er WHERE er.from_currency = transactions.currency AND er.to_currency = ? AND er.rate_date <= transactions.date)",
+                [$baseCurrency]
+            )
+            ->whereRaw(
+                "NOT EXISTS (SELECT 1 FROM exchange_rates er WHERE er.from_currency = ? AND er.to_currency = transactions.currency AND er.rate_date <= transactions.date)",
+                [$baseCurrency]
+            );
+
+        $count = (clone $query)->count();
+        $currencies = (clone $query)->distinct()->pluck('currency')->values()->toArray();
+        $firstDate = (clone $query)->min('date');
+        $lastDate = (clone $query)->max('date');
+
+        return [
+            'count' => $count,
+            'currencies' => $currencies,
+            'first_date' => $firstDate,
+            'last_date' => $lastDate,
+        ];
+    }
+
+    private function normalizeCurrency(string $currency): string
+    {
+        $currency = strtoupper($currency);
+        $currency = preg_replace('/[^A-Z]/', '', $currency);
+
+        return strlen($currency) === 3 ? $currency : 'USD';
+    }
+
+    private function convertedAmountExpression(
+        string $baseCurrency,
+        string $table = 'transactions',
+        string $dateColumn = 'date'
+    ): string {
+        $baseCurrency = $this->normalizeCurrency($baseCurrency);
+        $tableName = preg_replace('/[^a-zA-Z0-9_]/', '', $table);
+        $dateColumnName = preg_replace('/[^a-zA-Z0-9_]/', '', $dateColumn);
+
+        $currencyColumn = "{$tableName}.currency";
+        $amountColumn = "{$tableName}.amount";
+        $dateColumnRef = "{$tableName}.{$dateColumnName}";
+
+        return "CASE WHEN {$currencyColumn} = '{$baseCurrency}' THEN {$amountColumn} ELSE {$amountColumn} * COALESCE((SELECT er.rate FROM exchange_rates er WHERE er.from_currency = {$currencyColumn} AND er.to_currency = '{$baseCurrency}' AND er.rate_date <= {$dateColumnRef} ORDER BY er.rate_date DESC LIMIT 1),(SELECT 1 / NULLIF(er.rate, 0) FROM exchange_rates er WHERE er.from_currency = '{$baseCurrency}' AND er.to_currency = {$currencyColumn} AND er.rate_date <= {$dateColumnRef} ORDER BY er.rate_date DESC LIMIT 1),1) END";
+    }
+
     public function getStatisticsRange(Account $account, string $startDate, string $endDate): array
     {
         $rangeStart = Carbon::parse($startDate)->startOfMonth();
@@ -28,6 +86,8 @@ class AnalyticsService
             $cursor->addMonth();
         }
 
+        $convertedAmount = $this->convertedAmountExpression($account->base_currency);
+
         $monthly = DB::table('transactions')
             ->where('account_id', $account->id)
             ->whereBetween('date', [$startDate, $endDate])
@@ -37,9 +97,9 @@ class AnalyticsService
             })
             ->select(
                 DB::raw("to_char(date_trunc('month', date), 'YYYY-MM') as month"),
-                DB::raw("SUM(CASE WHEN type = 'income' THEN amount ELSE 0 END) as income"),
-                DB::raw("SUM(CASE WHEN type = 'expense' THEN amount ELSE 0 END) as expenses"),
-                DB::raw("SUM(CASE WHEN type = 'transfer' THEN amount ELSE 0 END) as transfers")
+                DB::raw("SUM(CASE WHEN type = 'income' THEN {$convertedAmount} ELSE 0 END) as income"),
+                DB::raw("SUM(CASE WHEN type = 'expense' THEN {$convertedAmount} ELSE 0 END) as expenses"),
+                DB::raw("SUM(CASE WHEN type = 'transfer' THEN {$convertedAmount} ELSE 0 END) as transfers")
             )
             ->groupBy(DB::raw("date_trunc('month', date)"))
             ->orderBy(DB::raw("date_trunc('month', date)"))
@@ -79,7 +139,7 @@ class AnalyticsService
                 'categories.id as category_id',
                 'categories.name as category',
                 'categories.color as color',
-                DB::raw('SUM(transactions.amount) as total')
+                DB::raw("SUM({$convertedAmount}) as total")
             )
             ->groupBy('categories.id', 'categories.name', 'categories.color')
             ->orderByDesc('total')
@@ -99,7 +159,7 @@ class AnalyticsService
                 'subcategories.name as subcategory',
                 'categories.name as category',
                 'categories.color as color',
-                DB::raw('SUM(transactions.amount) as total')
+                DB::raw("SUM({$convertedAmount}) as total")
             )
             ->groupBy('subcategories.id', 'subcategories.name', 'categories.name', 'categories.color')
             ->orderByDesc('total')
@@ -133,7 +193,7 @@ class AnalyticsService
                 'categories.name as category',
                 'categories.color as color',
                 DB::raw("to_char(date_trunc('month', transactions.date), 'YYYY-MM') as month"),
-                DB::raw('SUM(transactions.amount) as total')
+                DB::raw("SUM({$convertedAmount}) as total")
             )
             ->groupBy('categories.id', 'categories.name', 'categories.color', DB::raw("date_trunc('month', transactions.date)"))
             ->get()
@@ -156,7 +216,7 @@ class AnalyticsService
                 'categories.name as category',
                 'categories.color as color',
                 DB::raw("to_char(date_trunc('month', transactions.date), 'YYYY-MM') as month"),
-                DB::raw('SUM(transactions.amount) as total')
+                DB::raw("SUM({$convertedAmount}) as total")
             )
             ->groupBy(
                 'subcategories.id',
@@ -262,9 +322,9 @@ class AnalyticsService
                 $this->excludeOpeningBalance($query);
             })
             ->select(
-                DB::raw("SUM(CASE WHEN type = 'income' THEN amount ELSE 0 END) as income"),
-                DB::raw("SUM(CASE WHEN type = 'expense' THEN amount ELSE 0 END) as expenses"),
-                DB::raw("SUM(CASE WHEN type = 'transfer' THEN amount ELSE 0 END) as transfers")
+                DB::raw("SUM(CASE WHEN type = 'income' THEN {$convertedAmount} ELSE 0 END) as income"),
+                DB::raw("SUM(CASE WHEN type = 'expense' THEN {$convertedAmount} ELSE 0 END) as expenses"),
+                DB::raw("SUM(CASE WHEN type = 'transfer' THEN {$convertedAmount} ELSE 0 END) as transfers")
             )
             ->first();
 
@@ -273,7 +333,8 @@ class AnalyticsService
             ->whereBetween('date', [$startDate, $endDate])
             ->whereNull('deleted_at')
             ->whereRaw("(metadata->>'opening_balance')::boolean = true")
-            ->sum('amount');
+            ->selectRaw("SUM({$convertedAmount}) as total")
+            ->value('total') ?? 0;
 
         return [
             'monthly_summary' => $monthlySummary,
@@ -293,6 +354,7 @@ class AnalyticsService
                 'series' => $expenseShareSeries,
             ],
             'median_expense' => $medianExpense,
+            'missing_rates' => $this->getMissingRateSummary($account, $startDate, $endDate),
             'totals' => [
                 'income' => $totals->income ?? 0,
                 'expenses' => $totals->expenses ?? 0,
@@ -313,6 +375,8 @@ class AnalyticsService
             $cursor->addMonth();
         }
 
+        $convertedAmount = $this->convertedAmountExpression($account->base_currency);
+
         $rows = DB::table('transactions')
             ->where('account_id', $account->id)
             ->where('date', '>=', $startDate)
@@ -322,8 +386,8 @@ class AnalyticsService
             })
             ->select(
                 DB::raw("to_char(date_trunc('month', date), 'YYYY-MM') as month"),
-                DB::raw("SUM(CASE WHEN type = 'income' THEN amount ELSE 0 END) as income"),
-                DB::raw("SUM(CASE WHEN type = 'expense' THEN amount ELSE 0 END) as expenses")
+                DB::raw("SUM(CASE WHEN type = 'income' THEN {$convertedAmount} ELSE 0 END) as income"),
+                DB::raw("SUM(CASE WHEN type = 'expense' THEN {$convertedAmount} ELSE 0 END) as expenses")
             )
             ->groupBy(DB::raw("date_trunc('month', date)"))
             ->orderBy(DB::raw("date_trunc('month', date)"))
@@ -350,6 +414,7 @@ class AnalyticsService
     {
         $month = $month ?? now()->format('m');
         $year = $year ?? now()->format('Y');
+        $convertedAmount = $this->convertedAmountExpression($account->base_currency);
         
         return DB::table('transactions')
             ->join('categories', 'transactions.category_id', '=', 'categories.id')
@@ -362,7 +427,7 @@ class AnalyticsService
                 'categories.name as category',
                 'categories.icon',
                 'categories.color',
-                DB::raw('SUM(transactions.amount) as total')
+                DB::raw("SUM({$convertedAmount}) as total")
             )
             ->groupBy('categories.id', 'categories.name', 'categories.icon', 'categories.color')
             ->orderByDesc('total')
@@ -374,6 +439,7 @@ class AnalyticsService
     {
         $month = $month ?? now()->format('m');
         $year = $year ?? now()->format('Y');
+        $convertedAmount = $this->convertedAmountExpression($account->base_currency);
         
         return DB::table('transactions')
             ->where('account_id', $account->id)
@@ -384,13 +450,15 @@ class AnalyticsService
             ->tap(function ($query) {
                 $this->excludeOpeningBalance($query);
             })
-            ->sum('amount');
+            ->selectRaw("SUM({$convertedAmount}) as total")
+            ->value('total') ?? '0';
     }
 
     public function getMonthlyExpenses(Account $account, ?string $month = null, ?string $year = null): string
     {
         $month = $month ?? now()->format('m');
         $year = $year ?? now()->format('Y');
+        $convertedAmount = $this->convertedAmountExpression($account->base_currency);
         
         return DB::table('transactions')
             ->where('account_id', $account->id)
@@ -401,7 +469,8 @@ class AnalyticsService
             ->tap(function ($query) {
                 $this->excludeOpeningBalance($query);
             })
-            ->sum('amount');
+            ->selectRaw("SUM({$convertedAmount}) as total")
+            ->value('total') ?? '0';
     }
 
     public function getNetCashFlow(Account $account, ?string $month = null, ?string $year = null): string
@@ -417,6 +486,8 @@ class AnalyticsService
         $month = $month ?? now()->format('m');
         $year = $year ?? now()->format('Y');
         $date = Carbon::parse("$year-$month-01");
+        $convertedTransactionAmount = $this->convertedAmountExpression($account->base_currency);
+        $convertedBudgetAmount = $this->convertedAmountExpression($account->base_currency, 'budgets', 'start_date');
         
         return DB::table('budgets')
             ->leftJoin('categories', 'budgets.category_id', '=', 'categories.id')
@@ -446,11 +517,11 @@ class AnalyticsService
             ->select(
                 'budgets.id',
                 'categories.name as category',
-                'budgets.amount as budget',
-                DB::raw('COALESCE(SUM(transactions.amount), 0) as spent'),
-                DB::raw('budgets.amount - COALESCE(SUM(transactions.amount), 0) as remaining')
+                DB::raw("MAX({$convertedBudgetAmount}) as budget"),
+                DB::raw("COALESCE(SUM({$convertedTransactionAmount}), 0) as spent"),
+                DB::raw("MAX({$convertedBudgetAmount}) - COALESCE(SUM({$convertedTransactionAmount}), 0) as remaining")
             )
-            ->groupBy('budgets.id', 'categories.name', 'budgets.amount')
+            ->groupBy('budgets.id', 'categories.name')
             ->get()
             ->toArray();
     }
@@ -460,6 +531,8 @@ class AnalyticsService
         $month = $month ?? now()->format('m');
         $year = $year ?? now()->format('Y');
         $date = Carbon::parse("$year-$month-01");
+        $convertedTransactionAmount = $this->convertedAmountExpression($account->base_currency);
+        $convertedBudgetAmount = $this->convertedAmountExpression($account->base_currency, 'budgets', 'start_date');
 
         return DB::table('budgets')
             ->leftJoin('categories', 'budgets.category_id', '=', 'categories.id')
@@ -490,12 +563,12 @@ class AnalyticsService
                 'budgets.id',
                 'categories.name as category',
                 'categories.color as color',
-                'budgets.amount as budget',
-                DB::raw('COALESCE(SUM(transactions.amount), 0) as spent'),
-                DB::raw('COALESCE(SUM(transactions.amount), 0) - budgets.amount as variance')
+                DB::raw("MAX({$convertedBudgetAmount}) as budget"),
+                DB::raw("COALESCE(SUM({$convertedTransactionAmount}), 0) as spent"),
+                DB::raw("COALESCE(SUM({$convertedTransactionAmount}), 0) - MAX({$convertedBudgetAmount}) as variance")
             )
-            ->groupBy('budgets.id', 'categories.name', 'categories.color', 'budgets.amount')
-            ->orderBy(DB::raw('COALESCE(SUM(transactions.amount), 0) - budgets.amount'), 'desc')
+            ->groupBy('budgets.id', 'categories.name', 'categories.color')
+            ->orderBy(DB::raw("COALESCE(SUM({$convertedTransactionAmount}), 0) - MAX({$convertedBudgetAmount})"), 'desc')
             ->get()
             ->toArray();
     }
@@ -503,6 +576,7 @@ class AnalyticsService
     public function getTopCategories(Account $account, int $days = 30): array
     {
         $startDate = now()->subDays($days);
+        $convertedAmount = $this->convertedAmountExpression($account->base_currency);
 
         $rows = DB::table('transactions')
             ->join('categories', 'transactions.category_id', '=', 'categories.id')
@@ -513,7 +587,7 @@ class AnalyticsService
             ->select(
                 'categories.name as category',
                 'categories.color',
-                DB::raw('SUM(transactions.amount) as total')
+                DB::raw("SUM({$convertedAmount}) as total")
             )
             ->groupBy('categories.id', 'categories.name', 'categories.color')
             ->orderByDesc('total')
@@ -535,6 +609,7 @@ class AnalyticsService
     public function getTopSubcategories(Account $account, int $days = 30): array
     {
         $startDate = now()->subDays($days);
+        $convertedAmount = $this->convertedAmountExpression($account->base_currency);
 
         $rows = DB::table('transactions')
             ->join('subcategories', 'transactions.subcategory_id', '=', 'subcategories.id')
@@ -547,7 +622,7 @@ class AnalyticsService
                 'subcategories.name as subcategory',
                 'categories.name as category',
                 'categories.color',
-                DB::raw('SUM(transactions.amount) as total')
+                DB::raw("SUM({$convertedAmount}) as total")
             )
             ->groupBy('subcategories.id', 'subcategories.name', 'categories.name', 'categories.color')
             ->orderByDesc('total')
@@ -593,6 +668,7 @@ class AnalyticsService
     public function getForecast(Account $account): array
     {
         $startDate = now()->subDays(30);
+        $convertedAmount = $this->convertedAmountExpression($account->base_currency);
 
         $income = DB::table('transactions')
             ->where('account_id', $account->id)
@@ -602,7 +678,8 @@ class AnalyticsService
             ->tap(function ($query) {
                 $this->excludeOpeningBalance($query);
             })
-            ->sum('amount');
+            ->selectRaw("SUM({$convertedAmount}) as total")
+            ->value('total') ?? 0;
 
         $expenses = DB::table('transactions')
             ->where('account_id', $account->id)
@@ -612,7 +689,8 @@ class AnalyticsService
             ->tap(function ($query) {
                 $this->excludeOpeningBalance($query);
             })
-            ->sum('amount');
+            ->selectRaw("SUM({$convertedAmount}) as total")
+            ->value('total') ?? 0;
 
         $dailyIncome = DecimalMath::div($income, 30, 4);
         $dailyExpenses = DecimalMath::div($expenses, 30, 4);
@@ -652,6 +730,7 @@ class AnalyticsService
         $recentStart = now()->subDays(30);
         $baselineStart = now()->subDays(120);
         $baselineEnd = now()->subDays(30);
+        $convertedAmount = $this->convertedAmountExpression($account->base_currency);
 
         $recent = DB::table('transactions')
             ->join('categories', 'transactions.category_id', '=', 'categories.id')
@@ -663,7 +742,7 @@ class AnalyticsService
                 'categories.id as category_id',
                 'categories.name as category',
                 'categories.color as color',
-                DB::raw('SUM(transactions.amount) as total')
+                DB::raw("SUM({$convertedAmount}) as total")
             )
             ->groupBy('categories.id', 'categories.name', 'categories.color')
             ->get()
@@ -676,7 +755,7 @@ class AnalyticsService
             ->whereNull('transactions.deleted_at')
             ->select(
                 'transactions.category_id as category_id',
-                DB::raw('SUM(transactions.amount) as total')
+                DB::raw("SUM({$convertedAmount}) as total")
             )
             ->groupBy('transactions.category_id')
             ->get()
@@ -712,6 +791,7 @@ class AnalyticsService
     public function getCategoryTrends(Account $account, int $months = 6): array
     {
         $startDate = now()->subMonths($months);
+        $convertedAmount = $this->convertedAmountExpression($account->base_currency);
         
         return DB::table('transactions')
             ->join('categories', 'transactions.category_id', '=', 'categories.id')
@@ -722,7 +802,7 @@ class AnalyticsService
             ->select(
                 'categories.name as category',
                 DB::raw("to_char(transactions.date, 'YYYY-MM') as month"),
-                DB::raw('SUM(transactions.amount) as total')
+                DB::raw("SUM({$convertedAmount}) as total")
             )
             ->groupBy('categories.id', 'categories.name', DB::raw("to_char(transactions.date, 'YYYY-MM')"))
             ->orderBy(DB::raw("to_char(transactions.date, 'YYYY-MM')"))
@@ -736,12 +816,14 @@ class AnalyticsService
      */
     public function getTotalBalance(Account $account): string
     {
+        $convertedAmount = $this->convertedAmountExpression($account->base_currency);
+
         $result = DB::table('transactions')
             ->where('account_id', $account->id)
             ->whereNull('deleted_at')
             ->select(
-                DB::raw("SUM(CASE WHEN type = 'income' THEN amount ELSE 0 END) as total_income"),
-                DB::raw("SUM(CASE WHEN type = 'expense' THEN amount ELSE 0 END) as total_expenses")
+                DB::raw("SUM(CASE WHEN type = 'income' THEN {$convertedAmount} ELSE 0 END) as total_income"),
+                DB::raw("SUM(CASE WHEN type = 'expense' THEN {$convertedAmount} ELSE 0 END) as total_expenses")
             )
             ->first();
 
@@ -765,6 +847,8 @@ class AnalyticsService
             $cursor->addMonth();
         }
 
+        $convertedAmount = $this->convertedAmountExpression($account->base_currency);
+
         // Get monthly aggregates
         $monthlyData = DB::table('transactions')
             ->where('account_id', $account->id)
@@ -772,8 +856,8 @@ class AnalyticsService
             ->whereNull('deleted_at')
             ->select(
                 DB::raw("to_char(date_trunc('month', date), 'YYYY-MM') as month"),
-                DB::raw("SUM(CASE WHEN type = 'income' THEN amount ELSE 0 END) as income"),
-                DB::raw("SUM(CASE WHEN type = 'expense' THEN amount ELSE 0 END) as expenses")
+                DB::raw("SUM(CASE WHEN type = 'income' THEN {$convertedAmount} ELSE 0 END) as income"),
+                DB::raw("SUM(CASE WHEN type = 'expense' THEN {$convertedAmount} ELSE 0 END) as expenses")
             )
             ->groupBy(DB::raw("date_trunc('month', date)"))
             ->orderBy(DB::raw("date_trunc('month', date)"))
@@ -787,8 +871,8 @@ class AnalyticsService
             ->where('date', '<', $startDate)
             ->whereNull('deleted_at')
             ->select(
-                DB::raw("SUM(CASE WHEN type = 'income' THEN amount ELSE 0 END) as income"),
-                DB::raw("SUM(CASE WHEN type = 'expense' THEN amount ELSE 0 END) as expenses")
+                DB::raw("SUM(CASE WHEN type = 'income' THEN {$convertedAmount} ELSE 0 END) as income"),
+                DB::raw("SUM(CASE WHEN type = 'expense' THEN {$convertedAmount} ELSE 0 END) as expenses")
             )
             ->first();
 
@@ -849,6 +933,8 @@ class AnalyticsService
     {
         $currentMonth = now()->format('m');
         $currentYear = now()->format('Y');
+        $missingStart = now()->subDays(30)->toDateString();
+        $missingEnd = now()->toDateString();
         
         return [
             'current_month_expenses' => $this->getMonthlyExpenses($account, $currentMonth, $currentYear),
@@ -867,6 +953,7 @@ class AnalyticsService
             'total_balance' => $this->getTotalBalance($account),
             'balance_history' => $this->getBalanceHistory($account, 12),
             'current_month_savings' => $this->getCurrentMonthSavings($account),
+            'missing_rates' => $this->getMissingRateSummary($account, $missingStart, $missingEnd),
         ];
     }
 }

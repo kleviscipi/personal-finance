@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Budget;
 use App\Services\BudgetService;
+use App\Services\CurrencyService;
 use App\Support\ActiveAccount;
 use Illuminate\Http\Request;
 use Illuminate\Http\RedirectResponse;
@@ -14,7 +15,8 @@ use Inertia\Response;
 class BudgetController extends Controller
 {
     public function __construct(
-        private BudgetService $budgetService
+        private BudgetService $budgetService,
+        private CurrencyService $currencyService
     ) {}
 
     public function index(Request $request): Response|RedirectResponse
@@ -74,7 +76,7 @@ class BudgetController extends Controller
                 Rule::exists('subcategories', 'id'),
             ],
             'amount' => ['required', 'numeric', 'min:0'],
-            'currency' => ['required', Rule::in(['USD', 'EUR', 'ALL'])],
+            'currency' => ['required', Rule::in(array_keys($this->currencyService->getSupportedCurrencies()))],
             'period' => ['required', Rule::in(['monthly', 'yearly'])],
             'start_date' => ['required', 'date'],
             'end_date' => ['nullable', 'date', 'after_or_equal:start_date'],
@@ -128,7 +130,7 @@ class BudgetController extends Controller
                 Rule::exists('subcategories', 'id'),
             ],
             'amount' => ['required', 'numeric', 'min:0'],
-            'currency' => ['required', Rule::in(['USD', 'EUR', 'ALL'])],
+            'currency' => ['required', Rule::in(array_keys($this->currencyService->getSupportedCurrencies()))],
             'period' => ['required', Rule::in(['monthly', 'yearly'])],
             'start_date' => ['required', 'date'],
             'end_date' => ['nullable', 'date', 'after_or_equal:start_date'],

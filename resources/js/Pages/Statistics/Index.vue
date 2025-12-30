@@ -187,6 +187,20 @@ const formatCurrency = (amount) => {
     }).format(parseFloat(amount || 0));
 };
 
+const missingRates = computed(() => props.analytics?.missing_rates || {});
+
+const missingRateMessage = computed(() => {
+    const count = missingRates.value?.count || 0;
+    if (!count) {
+        return '';
+    }
+
+    const currencyList = missingRates.value?.currencies?.length
+        ? ` (${missingRates.value.currencies.join(', ')})`
+        : '';
+    return `Missing FX rates for ${count} transactions${currencyList}. Totals use a 1:1 fallback.`;
+});
+
 const applyFilters = () => {
     router.get(route('statistics.index'), filters, {
         preserveState: true,
@@ -234,6 +248,12 @@ const applyFilters = () => {
 
             <div class="rounded-lg border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-600">
                 Statistics exclude opening balance adjustments from income and expense totals.
+            </div>
+            <div
+                v-if="missingRateMessage"
+                class="rounded-lg border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-900"
+            >
+                {{ missingRateMessage }}
             </div>
 
             <div class="grid grid-cols-1 gap-5 md:grid-cols-3 lg:grid-cols-6">
