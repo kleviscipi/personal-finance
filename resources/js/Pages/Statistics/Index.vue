@@ -256,10 +256,25 @@ const applyFilters = () => {
                 {{ missingRateMessage }}
             </div>
 
-            <div class="grid grid-cols-1 gap-5 md:grid-cols-3 lg:grid-cols-6">
+            <div class="grid grid-cols-1 gap-5 md:grid-cols-3">
                 <div class="pf-card p-6 min-w-0">
                     <div class="flex items-center justify-between">
-                        <div class="text-sm text-slate-500">Total income</div>
+                        <div class="flex items-center gap-2 text-sm text-slate-500">
+                            <span>Total income</span>
+                            <span class="relative inline-flex items-center">
+                                <span class="group inline-flex h-5 w-5 items-center justify-center rounded-full border border-slate-200 text-slate-500">
+                                    <svg class="h-3 w-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M12 2a10 10 0 100 20 10 10 0 000-20z" />
+                                    </svg>
+                                    <span
+                                        class="pointer-events-none absolute left-1/2 top-full z-10 mt-2 w-56 -translate-x-1/2 rounded-md border border-slate-200 bg-white px-3 py-2 text-xs text-slate-700 opacity-0 shadow-lg transition group-hover:opacity-100"
+                                        role="tooltip"
+                                    >
+                                        Sum of all income transactions in the selected range.
+                                    </span>
+                                </span>
+                            </span>
+                        </div>
                         <span class="flex h-8 w-8 items-center justify-center rounded-full bg-emerald-50 text-emerald-600">
                             <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 11l5-5m0 0l5 5m-5-5v12" />
@@ -272,7 +287,22 @@ const applyFilters = () => {
                 </div>
                 <div class="pf-card p-6 min-w-0">
                     <div class="flex items-center justify-between">
-                        <div class="text-sm text-slate-500">Total expenses</div>
+                        <div class="flex items-center gap-2 text-sm text-slate-500">
+                            <span>Total expenses</span>
+                            <span class="relative inline-flex items-center">
+                                <span class="group inline-flex h-5 w-5 items-center justify-center rounded-full border border-slate-200 text-slate-500">
+                                    <svg class="h-3 w-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M12 2a10 10 0 100 20 10 10 0 000-20z" />
+                                    </svg>
+                                    <span
+                                        class="pointer-events-none absolute left-1/2 top-full z-10 mt-2 w-56 -translate-x-1/2 rounded-md border border-slate-200 bg-white px-3 py-2 text-xs text-slate-700 opacity-0 shadow-lg transition group-hover:opacity-100"
+                                        role="tooltip"
+                                    >
+                                        Sum of all expense transactions in the selected range.
+                                    </span>
+                                </span>
+                            </span>
+                        </div>
                         <span class="flex h-8 w-8 items-center justify-center rounded-full bg-rose-50 text-rose-600">
                             <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 13l-5 5m0 0l-5-5m5 5V6" />
@@ -285,7 +315,22 @@ const applyFilters = () => {
                 </div>
                 <div class="pf-card p-6 min-w-0">
                     <div class="flex items-center justify-between">
-                        <div class="text-sm text-slate-500">Total transfers</div>
+                        <div class="flex items-center gap-2 text-sm text-slate-500">
+                            <span>Total transfers</span>
+                            <span class="relative inline-flex items-center">
+                                <span class="group inline-flex h-5 w-5 items-center justify-center rounded-full border border-slate-200 text-slate-500">
+                                    <svg class="h-3 w-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M12 2a10 10 0 100 20 10 10 0 000-20z" />
+                                    </svg>
+                                    <span
+                                        class="pointer-events-none absolute left-1/2 top-full z-10 mt-2 w-56 -translate-x-1/2 rounded-md border border-slate-200 bg-white px-3 py-2 text-xs text-slate-700 opacity-0 shadow-lg transition group-hover:opacity-100"
+                                        role="tooltip"
+                                    >
+                                        Sum of all transfer transactions in the selected range.
+                                    </span>
+                                </span>
+                            </span>
+                        </div>
                         <span class="flex h-8 w-8 items-center justify-center rounded-full bg-sky-50 text-sky-600">
                             <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 7h16M4 17h16M7 10l-3-3 3-3M17 20l3-3-3-3" />
@@ -298,7 +343,22 @@ const applyFilters = () => {
                 </div>
                 <div class="pf-card p-6 min-w-0">
                     <div class="flex items-center justify-between">
-                        <div class="text-sm text-slate-500">Opening balance</div>
+                        <div class="flex items-center gap-2 text-sm text-slate-500">
+                            <span>Opening balance</span>
+                            <span class="relative inline-flex items-center">
+                                <span class="group inline-flex h-5 w-5 items-center justify-center rounded-full border border-slate-200 text-slate-500">
+                                    <svg class="h-3 w-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M12 2a10 10 0 100 20 10 10 0 000-20z" />
+                                    </svg>
+                                    <span
+                                        class="pointer-events-none absolute left-1/2 top-full z-10 mt-2 w-56 -translate-x-1/2 rounded-md border border-slate-200 bg-white px-3 py-2 text-xs text-slate-700 opacity-0 shadow-lg transition group-hover:opacity-100"
+                                        role="tooltip"
+                                    >
+                                        Sum of opening balance adjustments in the selected range.
+                                    </span>
+                                </span>
+                            </span>
+                        </div>
                         <span class="flex h-8 w-8 items-center justify-center rounded-full bg-amber-50 text-amber-600">
                             <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1" />
@@ -311,7 +371,22 @@ const applyFilters = () => {
                 </div>
                 <div class="pf-card p-6 min-w-0">
                     <div class="flex items-center justify-between">
-                        <div class="text-sm text-slate-500">Net balance</div>
+                        <div class="flex items-center gap-2 text-sm text-slate-500">
+                            <span>Net balance</span>
+                            <span class="relative inline-flex items-center">
+                                <span class="group inline-flex h-5 w-5 items-center justify-center rounded-full border border-slate-200 text-slate-500">
+                                    <svg class="h-3 w-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M12 2a10 10 0 100 20 10 10 0 000-20z" />
+                                    </svg>
+                                    <span
+                                        class="pointer-events-none absolute left-1/2 top-full z-10 mt-2 w-56 -translate-x-1/2 rounded-md border border-slate-200 bg-white px-3 py-2 text-xs text-slate-700 opacity-0 shadow-lg transition group-hover:opacity-100"
+                                        role="tooltip"
+                                    >
+                                        Total income minus expenses (opening balance excluded).
+                                    </span>
+                                </span>
+                            </span>
+                        </div>
                         <span class="flex h-8 w-8 items-center justify-center rounded-full bg-indigo-50 text-indigo-600">
                             <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 6l3 1m0 0l-3 9a5.002 5.002 0 006.001 0M6 7l3 9M6 7l6-2m6 2l3-1m-3 1l-3 9a5.002 5.002 0 006.001 0M18 7l3 9m-3-9l-6-2m0-2v2m0 16V5m0 16H9m3 0h3" />
@@ -324,7 +399,22 @@ const applyFilters = () => {
                 </div>
                 <div class="pf-card p-6 min-w-0">
                     <div class="flex items-center justify-between">
-                        <div class="text-sm text-slate-500">Net incl. opening balance</div>
+                        <div class="flex items-center gap-2 text-sm text-slate-500">
+                            <span>Net incl. opening balance</span>
+                            <span class="relative inline-flex items-center">
+                                <span class="group inline-flex h-5 w-5 items-center justify-center rounded-full border border-slate-200 text-slate-500">
+                                    <svg class="h-3 w-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M12 2a10 10 0 100 20 10 10 0 000-20z" />
+                                    </svg>
+                                    <span
+                                        class="pointer-events-none absolute left-1/2 top-full z-10 mt-2 w-56 -translate-x-1/2 rounded-md border border-slate-200 bg-white px-3 py-2 text-xs text-slate-700 opacity-0 shadow-lg transition group-hover:opacity-100"
+                                        role="tooltip"
+                                    >
+                                        Net balance plus opening balance adjustments.
+                                    </span>
+                                </span>
+                            </span>
+                        </div>
                         <span class="flex h-8 w-8 items-center justify-center rounded-full bg-teal-50 text-teal-600">
                             <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />

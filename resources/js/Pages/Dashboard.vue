@@ -323,9 +323,27 @@
 
                 <div class="pf-card overflow-hidden">
                     <div class="p-6">
-                        <h3 class="text-lg leading-6 font-medium text-gray-900 mb-4">
-                            Budget Variance
-                        </h3>
+                        <div class="mb-4 flex items-center gap-2">
+                            <h3 class="text-lg leading-6 font-medium text-gray-900">
+                                Budget Variance
+                            </h3>
+                            <span class="relative inline-flex items-center">
+                                <span
+                                    class="group inline-flex h-6 w-6 items-center justify-center rounded-full border border-slate-200 text-slate-500"
+                                    aria-label="Budget variance info"
+                                >
+                                    <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M12 2a10 10 0 100 20 10 10 0 000-20z" />
+                                    </svg>
+                                    <span
+                                        class="pointer-events-none absolute left-1/2 top-full z-10 mt-2 w-64 -translate-x-1/2 rounded-md border border-slate-200 bg-white px-3 py-2 text-xs text-slate-700 opacity-0 shadow-lg transition group-hover:opacity-100"
+                                        role="tooltip"
+                                    >
+                                        Variance = spent minus budget. Positive means overspent, negative means under budget.
+                                    </span>
+                                </span>
+                            </span>
+                        </div>
                         <div class="space-y-4">
                             <div
                                 v-for="budget in analytics.budget_variance || []"
