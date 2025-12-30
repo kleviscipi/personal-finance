@@ -23,30 +23,45 @@
                                 :href="route('dashboard')" 
                                 :class="[route().current('dashboard') ? 'border-sky-500 text-slate-900' : 'border-transparent text-slate-500 hover:border-slate-300 hover:text-slate-800', 'inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium']"
                             >
+                                <svg class="mr-2 h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h4v10H3V10zm7-6h4v16h-4V4zm7 8h4v8h-4v-8z" />
+                                </svg>
                                 Dashboard
                             </Link>
                             <Link 
                                 :href="route('transactions.index')" 
                                 :class="[route().current('transactions.*') ? 'border-sky-500 text-slate-900' : 'border-transparent text-slate-500 hover:border-slate-300 hover:text-slate-800', 'inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium']"
                             >
+                                <svg class="mr-2 h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 7h18M3 12h18M3 17h18" />
+                                </svg>
                                 Transactions
                             </Link>
                             <Link 
                                 :href="route('budgets.index')" 
                                 :class="[route().current('budgets.*') ? 'border-sky-500 text-slate-900' : 'border-transparent text-slate-500 hover:border-slate-300 hover:text-slate-800', 'inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium']"
                             >
+                                <svg class="mr-2 h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8V6m0 10v2m9-6a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                </svg>
                                 Budgets
                             </Link>
                             <Link 
                                 :href="route('categories.index')" 
                                 :class="[route().current('categories.*') ? 'border-sky-500 text-slate-900' : 'border-transparent text-slate-500 hover:border-slate-300 hover:text-slate-800', 'inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium']"
                             >
+                                <svg class="mr-2 h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16" />
+                                </svg>
                                 Categories
                             </Link>
                             <Link 
                                 :href="route('statistics.index')" 
                                 :class="[route().current('statistics.*') ? 'border-sky-500 text-slate-900' : 'border-transparent text-slate-500 hover:border-slate-300 hover:text-slate-800', 'inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium']"
                             >
+                                <svg class="mr-2 h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 3v18m4-6v6m4-12v12m4-8v8m4-14v14" />
+                                </svg>
                                 Statistics
                             </Link>
                         </div>
@@ -77,6 +92,9 @@
                                 <div class="px-4 py-2 text-xs text-gray-500">
                                     Signed in as
                                     <div class="text-sm font-medium text-gray-900">
+                                        {{ auth?.user?.name || '' }}
+                                    </div>
+                                    <div class="text-xs text-gray-500">
                                         {{ auth?.user?.email || '' }}
                                     </div>
                                 </div>
@@ -92,10 +110,30 @@
                                         </option>
                                     </select>
                                 </div>
-                                <Link :href="route('profile.edit')" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">Profile</Link>
-                                <Link :href="route('family.index')" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">Family</Link>
-                                <Link :href="route('settings')" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">Settings</Link>
-                                <Link :href="route('accounts.create')" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">New Account</Link>
+                                <Link :href="route('profile.edit')" class="flex items-center gap-2 px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
+                                    <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5.121 17.804A4 4 0 019 16h6a4 4 0 013.879 1.804M15 10a3 3 0 11-6 0 3 3 0 016 0z" />
+                                    </svg>
+                                    Profile
+                                </Link>
+                                <Link :href="route('family.index')" class="flex items-center gap-2 px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
+                                    <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a4 4 0 00-4-4h-1M9 20H4v-2a4 4 0 014-4h1m0-4a3 3 0 11-6 0 3 3 0 016 0zm8 0a3 3 0 11-6 0 3 3 0 016 0z" />
+                                    </svg>
+                                    Family
+                                </Link>
+                                <Link :href="route('settings')" class="flex items-center gap-2 px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
+                                    <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8.5a3.5 3.5 0 100 7 3.5 3.5 0 000-7zM19.4 15a7.97 7.97 0 00.1-2l2-1.2-2-3.4-2.3.7a7.9 7.9 0 00-1.7-1l-.3-2.4H11l-.3 2.4a7.9 7.9 0 00-1.7 1l-2.3-.7-2 3.4 2 1.2a7.97 7.97 0 000 2l-2 1.2 2 3.4 2.3-.7a7.9 7.9 0 001.7 1l.3 2.4h4.4l.3-2.4a7.9 7.9 0 001.7-1l2.3.7 2-3.4-2-1.2z" />
+                                    </svg>
+                                    Settings
+                                </Link>
+                                <Link :href="route('accounts.create')" class="flex items-center gap-2 px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
+                                    <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
+                                    </svg>
+                                    New Account
+                                </Link>
                                 <Link :href="route('logout')" method="post" as="button" class="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
                                     Log out
                                 </Link>
@@ -138,44 +176,65 @@
                 <div class="space-y-1 px-4 py-4">
                     <Link
                         :href="route('dashboard')"
-                        class="block rounded-md px-3 py-2 text-base font-medium text-gray-700 hover:bg-gray-100"
+                        class="flex items-center gap-2 rounded-md px-3 py-2 text-base font-medium text-gray-700 hover:bg-gray-100"
                     >
+                        <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h4v10H3V10zm7-6h4v16h-4V4zm7 8h4v8h-4v-8z" />
+                        </svg>
                         Dashboard
                     </Link>
                     <Link
                         :href="route('transactions.index')"
-                        class="block rounded-md px-3 py-2 text-base font-medium text-gray-700 hover:bg-gray-100"
+                        class="flex items-center gap-2 rounded-md px-3 py-2 text-base font-medium text-gray-700 hover:bg-gray-100"
                     >
+                        <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 7h18M3 12h18M3 17h18" />
+                        </svg>
                         Transactions
                     </Link>
                     <Link
                         :href="route('budgets.index')"
-                        class="block rounded-md px-3 py-2 text-base font-medium text-gray-700 hover:bg-gray-100"
+                        class="flex items-center gap-2 rounded-md px-3 py-2 text-base font-medium text-gray-700 hover:bg-gray-100"
                     >
+                        <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8V6m0 10v2m9-6a9 9 0 11-18 0 9 9 0 0118 0z" />
+                        </svg>
                         Budgets
                     </Link>
                     <Link
                         :href="route('categories.index')"
-                        class="block rounded-md px-3 py-2 text-base font-medium text-gray-700 hover:bg-gray-100"
+                        class="flex items-center gap-2 rounded-md px-3 py-2 text-base font-medium text-gray-700 hover:bg-gray-100"
                     >
+                        <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16" />
+                        </svg>
                         Categories
                     </Link>
                     <Link
                         :href="route('statistics.index')"
-                        class="block rounded-md px-3 py-2 text-base font-medium text-gray-700 hover:bg-gray-100"
+                        class="flex items-center gap-2 rounded-md px-3 py-2 text-base font-medium text-gray-700 hover:bg-gray-100"
                     >
+                        <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 3v18m4-6v6m4-12v12m4-8v8m4-14v14" />
+                        </svg>
                         Statistics
                     </Link>
                     <Link
                         :href="route('family.index')"
-                        class="block rounded-md px-3 py-2 text-base font-medium text-gray-700 hover:bg-gray-100"
+                        class="flex items-center gap-2 rounded-md px-3 py-2 text-base font-medium text-gray-700 hover:bg-gray-100"
                     >
+                        <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a4 4 0 00-4-4h-1M9 20H4v-2a4 4 0 014-4h1m0-4a3 3 0 11-6 0 3 3 0 016 0zm8 0a3 3 0 11-6 0 3 3 0 016 0z" />
+                        </svg>
                         Family
                     </Link>
                     <Link
                         :href="route('settings')"
-                        class="block rounded-md px-3 py-2 text-base font-medium text-gray-700 hover:bg-gray-100"
+                        class="flex items-center gap-2 rounded-md px-3 py-2 text-base font-medium text-gray-700 hover:bg-gray-100"
                     >
+                        <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8.5a3.5 3.5 0 100 7 3.5 3.5 0 000-7zM19.4 15a7.97 7.97 0 00.1-2l2-1.2-2-3.4-2.3.7a7.9 7.9 0 00-1.7-1l-.3-2.4H11l-.3 2.4a7.9 7.9 0 00-1.7 1l-2.3-.7-2 3.4 2 1.2a7.97 7.97 0 000 2l-2 1.2 2 3.4 2.3-.7a7.9 7.9 0 001.7 1l.3 2.4h4.4l.3-2.4a7.9 7.9 0 001.7-1l2.3.7 2-3.4-2-1.2z" />
+                        </svg>
                         Settings
                     </Link>
                 </div>
@@ -206,22 +265,28 @@
                         </div>
                     </div>
                     <div class="mt-4 space-y-1">
-                        <Link
-                            :href="route('profile.edit')"
-                            class="block rounded-md px-3 py-2 text-base font-medium text-gray-700 hover:bg-gray-100"
-                        >
-                            Profile
-                        </Link>
-                        <Link
-                            :href="route('accounts.create')"
-                            class="block rounded-md px-3 py-2 text-base font-medium text-gray-700 hover:bg-gray-100"
-                        >
-                            New Account
-                        </Link>
-                        <Link
-                            :href="route('logout')"
-                            method="post"
-                            as="button"
+                    <Link
+                        :href="route('profile.edit')"
+                        class="flex items-center gap-2 rounded-md px-3 py-2 text-base font-medium text-gray-700 hover:bg-gray-100"
+                    >
+                        <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5.121 17.804A4 4 0 019 16h6a4 4 0 013.879 1.804M15 10a3 3 0 11-6 0 3 3 0 016 0z" />
+                        </svg>
+                        Profile
+                    </Link>
+                    <Link
+                        :href="route('accounts.create')"
+                        class="flex items-center gap-2 rounded-md px-3 py-2 text-base font-medium text-gray-700 hover:bg-gray-100"
+                    >
+                        <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
+                        </svg>
+                        New Account
+                    </Link>
+                    <Link
+                        :href="route('logout')"
+                        method="post"
+                        as="button"
                             class="block w-full text-left rounded-md px-3 py-2 text-base font-medium text-gray-700 hover:bg-gray-100"
                         >
                             Sign out

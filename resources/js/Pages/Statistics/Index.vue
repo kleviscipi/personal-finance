@@ -237,7 +237,7 @@ const applyFilters = () => {
             </div>
 
             <div class="grid grid-cols-1 gap-5 lg:grid-cols-6">
-                <div class="pf-card p-6">
+                <div class="pf-card p-6 min-w-0">
                     <div class="flex items-center justify-between">
                         <div class="text-sm text-slate-500">Total income</div>
                         <span class="flex h-8 w-8 items-center justify-center rounded-full bg-emerald-50 text-emerald-600">
@@ -246,11 +246,11 @@ const applyFilters = () => {
                             </svg>
                         </span>
                     </div>
-                    <div class="mt-2 text-2xl font-semibold text-slate-900">
+                    <div class="mt-2 text-xl font-semibold text-slate-900 truncate">
                         {{ formatCurrency(analytics?.totals?.income || 0) }}
                     </div>
                 </div>
-                <div class="pf-card p-6">
+                <div class="pf-card p-6 min-w-0">
                     <div class="flex items-center justify-between">
                         <div class="text-sm text-slate-500">Total expenses</div>
                         <span class="flex h-8 w-8 items-center justify-center rounded-full bg-rose-50 text-rose-600">
@@ -259,11 +259,11 @@ const applyFilters = () => {
                             </svg>
                         </span>
                     </div>
-                    <div class="mt-2 text-2xl font-semibold text-slate-900">
+                    <div class="mt-2 text-xl font-semibold text-slate-900 truncate">
                         {{ formatCurrency(analytics?.totals?.expenses || 0) }}
                     </div>
                 </div>
-                <div class="pf-card p-6">
+                <div class="pf-card p-6 min-w-0">
                     <div class="flex items-center justify-between">
                         <div class="text-sm text-slate-500">Total transfers</div>
                         <span class="flex h-8 w-8 items-center justify-center rounded-full bg-sky-50 text-sky-600">
@@ -272,11 +272,11 @@ const applyFilters = () => {
                             </svg>
                         </span>
                     </div>
-                    <div class="mt-2 text-2xl font-semibold text-slate-900">
+                    <div class="mt-2 text-xl font-semibold text-slate-900 truncate">
                         {{ formatCurrency(analytics?.totals?.transfers || 0) }}
                     </div>
                 </div>
-                <div class="pf-card p-6">
+                <div class="pf-card p-6 min-w-0">
                     <div class="flex items-center justify-between">
                         <div class="text-sm text-slate-500">Opening balance</div>
                         <span class="flex h-8 w-8 items-center justify-center rounded-full bg-amber-50 text-amber-600">
@@ -285,11 +285,11 @@ const applyFilters = () => {
                             </svg>
                         </span>
                     </div>
-                    <div class="mt-2 text-2xl font-semibold text-slate-900">
+                    <div class="mt-2 text-xl font-semibold text-slate-900 truncate">
                         {{ formatCurrency(analytics?.totals?.opening_balance || 0) }}
                     </div>
                 </div>
-                <div class="pf-card p-6">
+                <div class="pf-card p-6 min-w-0">
                     <div class="flex items-center justify-between">
                         <div class="text-sm text-slate-500">Net balance</div>
                         <span class="flex h-8 w-8 items-center justify-center rounded-full bg-indigo-50 text-indigo-600">
@@ -298,11 +298,11 @@ const applyFilters = () => {
                             </svg>
                         </span>
                     </div>
-                    <div class="mt-2 text-2xl font-semibold text-slate-900">
+                    <div class="mt-2 text-xl font-semibold text-slate-900 truncate">
                         {{ formatCurrency(analytics?.totals?.net || 0) }}
                     </div>
                 </div>
-                <div class="pf-card p-6">
+                <div class="pf-card p-6 min-w-0">
                     <div class="flex items-center justify-between">
                         <div class="text-sm text-slate-500">Net incl. opening balance</div>
                         <span class="flex h-8 w-8 items-center justify-center rounded-full bg-teal-50 text-teal-600">
@@ -311,7 +311,7 @@ const applyFilters = () => {
                             </svg>
                         </span>
                     </div>
-                    <div class="mt-2 text-2xl font-semibold text-slate-900">
+                    <div class="mt-2 text-xl font-semibold text-slate-900 truncate">
                         {{ formatCurrency((analytics?.totals?.net || 0) + (analytics?.totals?.opening_balance || 0)) }}
                     </div>
                 </div>
