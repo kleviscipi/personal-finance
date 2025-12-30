@@ -59,11 +59,11 @@
                                 @click="showUserMenu = !showUserMenu"
                                 class="flex items-center gap-3 rounded-full px-2 py-1 text-sm focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-sky-500"
                             >
-                                <div class="text-left leading-tight max-w-[140px]">
+                                <div class="hidden lg:block text-left leading-tight max-w-[140px]">
                                     <div class="text-sm font-medium text-gray-900 truncate">
                                         {{ auth?.user?.name || 'Account' }}
                                     </div>
-                                    <div class="hidden lg:block text-xs text-gray-500 truncate">
+                                    <div class="text-xs text-gray-500 truncate">
                                         {{ auth?.user?.email || '' }}
                                     </div>
                                 </div>
