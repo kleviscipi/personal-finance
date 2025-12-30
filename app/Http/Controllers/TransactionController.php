@@ -64,18 +64,24 @@ class TransactionController extends Controller
             ->orderBy('name')
             ->get();
         
+        $currencyService = app(\App\Services\CurrencyService::class);
+        
         return Inertia::render('Transactions/Create', [
             'currentAccount' => $account,
             'categories' => $categories,
+            'currencies' => $currencyService->getSupportedCurrencies(),
         ]);
     }
 
     public function store(Request $request)
     {
+        $currencyService = app(\App\Services\CurrencyService::class);
+        $supportedCurrencies = implode(',', $currencyService->getSupportedCurrencyCodes());
+        
         $validated = $request->validate([
             'type' => 'required|in:expense,income,transfer',
             'amount' => 'required|numeric|min:0',
-            'currency' => 'required|in:USD,EUR,ALL',
+            'currency' => 'required|in:' . $supportedCurrencies,
             'date' => 'required|date',
             'category_id' => 'nullable|exists:categories,id',
             'subcategory_id' => 'nullable|exists:subcategories,id',
@@ -108,10 +114,13 @@ class TransactionController extends Controller
             ->orderBy('name')
             ->get();
         
+        $currencyService = app(\App\Services\CurrencyService::class);
+        
         return Inertia::render('Transactions/Edit', [
             'currentAccount' => $account,
             'transaction' => $transaction->load(['category', 'subcategory']),
             'categories' => $categories,
+            'currencies' => $currencyService->getSupportedCurrencies(),
         ]);
     }
 
@@ -119,10 +128,13 @@ class TransactionController extends Controller
     {
         $this->authorize('update', $transaction);
 
+        $currencyService = app(\App\Services\CurrencyService::class);
+        $supportedCurrencies = implode(',', $currencyService->getSupportedCurrencyCodes());
+
         $validated = $request->validate([
             'type' => 'required|in:expense,income,transfer',
             'amount' => 'required|numeric|min:0',
-            'currency' => 'required|in:USD,EUR,ALL',
+            'currency' => 'required|in:' . $supportedCurrencies,
             'date' => 'required|date',
             'category_id' => 'nullable|exists:categories,id',
             'subcategory_id' => 'nullable|exists:subcategories,id',
