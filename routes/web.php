@@ -4,6 +4,7 @@ use App\Http\Controllers\AccountController;
 use App\Http\Controllers\BudgetController;
 use App\Http\Controllers\CategoryController;
 use App\Http\Controllers\DashboardController;
+use App\Http\Controllers\ExchangeRateController;
 use App\Http\Controllers\SubcategoryController;
 use App\Http\Controllers\FamilyController;
 use App\Http\Controllers\InvitationController;
@@ -61,6 +62,11 @@ Route::middleware(['auth'])->group(function () {
     Route::get('/settings', [SettingsController::class, 'show'])->name('settings');
     Route::patch('/settings', [SettingsController::class, 'update'])->name('settings.update');
     Route::get('/statistics', [StatisticsController::class, 'index'])->name('statistics.index');
+
+    Route::get('/exchange-rates', [ExchangeRateController::class, 'index'])->name('exchange-rates.index');
+    Route::post('/exchange-rates', [ExchangeRateController::class, 'store'])->name('exchange-rates.store');
+    Route::patch('/exchange-rates/{exchangeRate}', [ExchangeRateController::class, 'update'])->name('exchange-rates.update');
+    Route::delete('/exchange-rates/{exchangeRate}', [ExchangeRateController::class, 'destroy'])->name('exchange-rates.destroy');
 
     Route::get('/family', [FamilyController::class, 'index'])->name('family.index');
     Route::post('/family', [FamilyController::class, 'store'])->name('family.store');

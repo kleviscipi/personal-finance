@@ -34,10 +34,11 @@ See [DOCKER_SETUP.md](DOCKER_SETUP.md) for detailed Docker instructions.
 - **Data Isolation**: Complete tenant isolation ready for SaaS
 
 ### Multi-Currency Support
-- EUR, USD, ALL (Albanian LEK)
+- EUR, USD, GBP, JPY, CHF, CAD, AUD, ALL (Albanian LEK)
 - Configurable base currency per account
-- Future-ready for FX conversion with historical rates
-- No hardcoded currency assumptions
+- Exchange rate management with historical rates
+- Automatic currency conversion in analytics
+- See [MULTI_CURRENCY_GUIDE.md](MULTI_CURRENCY_GUIDE.md) for detailed usage
 
 ### Financial Management
 - **Transactions**: Expense, Income, Transfer types

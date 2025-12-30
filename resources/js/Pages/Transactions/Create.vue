@@ -11,13 +11,13 @@ const props = defineProps({
     auth: Object,
     currentAccount: Object,
     categories: Array,
+    currencies: Object,
 });
 
-const currencyOptions = [
-    { code: 'USD', label: 'USD - US Dollar' },
-    { code: 'EUR', label: 'EUR - Euro' },
-    { code: 'ALL', label: 'ALL - Albanian Lek' },
-];
+const currencyOptions = Object.values(props.currencies || {}).map(c => ({
+    code: c.code,
+    label: `${c.code} - ${c.name}`
+}));
 
 const form = useForm({
     type: 'expense',
