@@ -36,11 +36,6 @@ class CategoryPolicy
      */
     public function update(User $user, Category $category): bool
     {
-        // Cannot edit system categories
-        if ($category->is_system) {
-            return false;
-        }
-
         if (!$user->accounts->contains($category->account_id)) {
             return false;
         }
