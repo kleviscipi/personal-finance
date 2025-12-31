@@ -80,6 +80,11 @@
                                         <span v-if="transaction.subcategory"> • {{ transaction.subcategory.name }}</span>
                                         <span v-if="transaction.payment_method" class="ml-2">• {{ transaction.payment_method }}</span>
                                         <span v-if="transaction.creator" class="ml-2">• by {{ transaction.creator.name || transaction.creator.email || 'Unknown' }}</span>
+                                        <span v-if="transaction.latest_history" class="ml-2">
+                                            • last {{ formatHistoryAction(transaction.latest_history.action) }}
+                                            by {{ transaction.latest_history.user?.name || transaction.latest_history.user?.email || 'Unknown' }}
+                                            on {{ formatDateTime(transaction.latest_history.created_at) }}
+                                        </span>
                                     </div>
                                 </div>
                             </div>
@@ -259,5 +264,28 @@ const formatDate = (date) => {
         day: 'numeric',
         year: 'numeric',
     });
+};
+
+const formatDateTime = (date) => {
+    return new Date(date).toLocaleString('en-US', {
+        month: 'short',
+        day: 'numeric',
+        year: 'numeric',
+        hour: 'numeric',
+        minute: '2-digit',
+    });
+};
+
+const formatHistoryAction = (action) => {
+    if (action === 'created') {
+        return 'created';
+    }
+    if (action === 'updated') {
+        return 'updated';
+    }
+    if (action === 'deleted') {
+        return 'deleted';
+    }
+    return action || 'updated';
 };
 </script>

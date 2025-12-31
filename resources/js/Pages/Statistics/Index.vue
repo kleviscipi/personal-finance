@@ -422,7 +422,17 @@ const applyFilters = () => {
                         </span>
                     </div>
                     <div class="mt-2 text-xl font-semibold text-slate-900 break-words">
-                        {{ formatCurrency((analytics?.totals?.net || 0) + (analytics?.totals?.opening_balance || 0)) }}
+                        {{ formatCurrency(analytics?.totals?.net_with_opening || 0) }}
+                    </div>
+                    <div v-if="analytics?.totals?.net_with_opening_conversions?.length" class="mt-1 text-[11px] text-slate-500">
+                        <span
+                            v-for="(conversion, index) in analytics.totals.net_with_opening_conversions"
+                            :key="conversion.currency"
+                            class="inline-flex items-center"
+                        >
+                            {{ formatCurrency(conversion.amount, conversion.currency) }}
+                            <span v-if="index < analytics.totals.net_with_opening_conversions.length - 1" class="mx-1">•</span>
+                        </span>
                     </div>
                 </div>
             </div>

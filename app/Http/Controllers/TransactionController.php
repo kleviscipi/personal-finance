@@ -24,7 +24,7 @@ class TransactionController extends Controller
             return redirect()->route('accounts.create');
         }
         
-        $query = $account->transactions()->with(['category', 'subcategory', 'creator']);
+        $query = $account->transactions()->with(['category', 'subcategory', 'creator', 'latestHistory.user']);
         
         if ($request->filled('type')) {
             $query->where('type', $request->type);
@@ -113,7 +113,13 @@ class TransactionController extends Controller
         
         return Inertia::render('Transactions/Edit', [
             'currentAccount' => $account,
-            'transaction' => $transaction->load(['category', 'subcategory']),
+            'transaction' => $transaction->load([
+                'category',
+                'subcategory',
+                'histories' => function ($query) {
+                    $query->with('user')->latest('created_at');
+                },
+            ]),
             'categories' => $categories,
         ]);
     }

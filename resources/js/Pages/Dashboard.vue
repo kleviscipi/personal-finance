@@ -126,6 +126,16 @@
                                     <dd class="text-lg font-medium text-gray-900">
                                         {{ formatCurrency(analytics.total_balance) }}
                                     </dd>
+                                    <dd v-if="analytics.total_balance_conversions?.length" class="mt-1 text-[11px] text-gray-500">
+                                        <span
+                                            v-for="(conversion, index) in analytics.total_balance_conversions"
+                                            :key="conversion.currency"
+                                            class="inline-flex items-center"
+                                        >
+                                            {{ formatCurrency(conversion.amount, conversion.currency) }}
+                                            <span v-if="index < analytics.total_balance_conversions.length - 1" class="mx-1">•</span>
+                                        </span>
+                                    </dd>
                                     <dd class="text-xs text-gray-500">
                                         Net Worth
                                     </dd>

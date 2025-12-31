@@ -99,6 +99,25 @@ const availableSubcategories = computed(() => {
     return selectedCategory.value?.subcategories || [];
 });
 
+const categoryNameById = computed(() => {
+    const map = new Map();
+    (props.categories || []).forEach((category) => {
+        map.set(Number(category.id), category.name);
+        (category.subcategories || []).forEach((subcategory) => {
+            map.set(Number(subcategory.id), subcategory.name);
+        });
+    });
+    return map;
+});
+
+const paymentMethodLabelByValue = computed(() => {
+    const map = new Map();
+    paymentOptions.forEach((option) => {
+        map.set(option.value, option.label);
+    });
+    return map;
+});
+
 watch(
     () => form.type,
     () => {
@@ -155,6 +174,137 @@ const formatAmountInput = () => {
     }
 
     form.amount = normalizeAmount(cleaned);
+};
+
+const historyFields = [
+    'type',
+    'amount',
+    'currency',
+    'date',
+    'category_id',
+    'subcategory_id',
+    'description',
+    'payment_method',
+];
+
+const historyFieldLabels = {
+    type: 'Type',
+    amount: 'Amount',
+    currency: 'Currency',
+    date: 'Date',
+    category_id: 'Category',
+    subcategory_id: 'Subcategory',
+    description: 'Description',
+    payment_method: 'Payment method',
+};
+
+const formatHistoryAction = (action) => {
+    if (action === 'created') {
+        return 'Created';
+    }
+    if (action === 'updated') {
+        return 'Updated';
+    }
+    if (action === 'deleted') {
+        return 'Deleted';
+    }
+    return action || 'Updated';
+};
+
+const formatHistoryValue = (field, value) => {
+    if (value === null || value === undefined || value === '') {
+        return '—';
+    }
+
+    if (field === 'amount') {
+        const numeric = parseFloat(value);
+        return Number.isNaN(numeric) ? String(value) : numeric.toFixed(2);
+    }
+
+    if (field === 'currency') {
+        return String(value).toUpperCase();
+    }
+
+    if (field === 'date') {
+        return new Date(value).toLocaleDateString('en-US', {
+            month: 'short',
+            day: 'numeric',
+            year: 'numeric',
+        });
+    }
+
+    if (field === 'category_id' || field === 'subcategory_id') {
+        const name = categoryNameById.value.get(Number(value));
+        return name || 'Unknown';
+    }
+
+    if (field === 'payment_method') {
+        return paymentMethodLabelByValue.value.get(value) || String(value);
+    }
+
+    if (field === 'type') {
+        if (value === 'income') {
+            return 'Income';
+        }
+        if (value === 'expense') {
+            return 'Expense';
+        }
+        if (value === 'transfer') {
+            return 'Transfer';
+        }
+    }
+
+    return String(value);
+};
+
+const formatDateTime = (value) => {
+    return new Date(value).toLocaleString('en-US', {
+        month: 'short',
+        day: 'numeric',
+        year: 'numeric',
+        hour: 'numeric',
+        minute: '2-digit',
+    });
+};
+
+const getHistoryChanges = (history) => {
+    const oldValues = history?.old_values || {};
+    const newValues = history?.new_values || {};
+
+    if (history?.action === 'updated') {
+        return historyFields
+            .filter((field) => oldValues[field] !== newValues[field])
+            .map((field) => ({
+                key: field,
+                label: historyFieldLabels[field] || field,
+                from: formatHistoryValue(field, oldValues[field]),
+                to: formatHistoryValue(field, newValues[field]),
+            }));
+    }
+
+    if (history?.action === 'created') {
+        return historyFields
+            .filter((field) => newValues[field] !== undefined)
+            .map((field) => ({
+                key: field,
+                label: historyFieldLabels[field] || field,
+                from: '—',
+                to: formatHistoryValue(field, newValues[field]),
+            }));
+    }
+
+    if (history?.action === 'deleted') {
+        return historyFields
+            .filter((field) => oldValues[field] !== undefined)
+            .map((field) => ({
+                key: field,
+                label: historyFieldLabels[field] || field,
+                from: formatHistoryValue(field, oldValues[field]),
+                to: '—',
+            }));
+    }
+
+    return [];
 };
 </script>
 
@@ -344,6 +494,41 @@ const formatAmountInput = () => {
                     </PrimaryButton>
                 </div>
             </form>
+
+            <div class="pf-card overflow-hidden">
+                <div class="px-6 py-4 border-b border-slate-200/60">
+                    <h3 class="text-base font-semibold text-gray-900">History</h3>
+                </div>
+                <div v-if="!transaction.histories || transaction.histories.length === 0" class="px-6 py-6 text-sm text-gray-500">
+                    No history recorded yet.
+                </div>
+                <ul v-else class="divide-y divide-slate-200/60">
+                    <li v-for="history in transaction.histories" :key="history.id" class="px-6 py-4">
+                        <div class="flex flex-col gap-1 sm:flex-row sm:items-start sm:justify-between">
+                            <div>
+                                <div class="text-sm font-medium text-gray-900">
+                                    {{ formatHistoryAction(history.action) }}
+                                </div>
+                                <div class="text-xs text-gray-500">
+                                    by {{ history.user?.name || history.user?.email || 'Unknown' }}
+                                    on {{ formatDateTime(history.created_at) }}
+                                </div>
+                            </div>
+                        </div>
+                        <div v-if="getHistoryChanges(history).length" class="mt-3 grid grid-cols-1 gap-2 text-xs text-gray-600 sm:grid-cols-2">
+                            <div v-for="change in getHistoryChanges(history)" :key="change.key" class="flex flex-wrap items-baseline gap-2">
+                                <span class="font-medium text-gray-700">{{ change.label }}:</span>
+                                <span class="text-gray-500">{{ change.from }}</span>
+                                <span class="text-gray-400">-&gt;</span>
+                                <span class="text-gray-700">{{ change.to }}</span>
+                            </div>
+                        </div>
+                        <div v-else class="mt-2 text-xs text-gray-500">
+                            No field changes captured.
+                        </div>
+                    </li>
+                </ul>
+            </div>
         </div>
     </AppLayout>
 </template>

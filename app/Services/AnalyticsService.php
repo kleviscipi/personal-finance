@@ -59,6 +59,73 @@ class AnalyticsService
         return strlen($currency) === 3 ? $currency : 'USD';
     }
 
+    private function getLatestExchangeRate(string $from, string $to, ?string $asOfDate = null): ?object
+    {
+        $query = DB::table('exchange_rates')
+            ->where('from_currency', $from)
+            ->where('to_currency', $to);
+
+        if ($asOfDate) {
+            $query->where('rate_date', '<=', $asOfDate);
+        }
+
+        return $query->orderBy('rate_date', 'desc')->first();
+    }
+
+    private function getConversionTargets(string $baseCurrency): array
+    {
+        $baseCurrency = $this->normalizeCurrency($baseCurrency);
+        $preferred = ['ALL', 'EUR', 'USD'];
+
+        if (in_array($baseCurrency, $preferred, true)) {
+            return array_values(array_filter($preferred, fn ($currency) => $currency !== $baseCurrency));
+        }
+
+        return array_values(array_filter(['USD', 'EUR'], fn ($currency) => $currency !== $baseCurrency));
+    }
+
+    private function getBaseCurrencyConversions(Account $account, string $baseAmount, array $targets): array
+    {
+        $baseCurrency = $this->normalizeCurrency($account->base_currency);
+        $asOfDate = now()->toDateString();
+        $conversions = [];
+
+        foreach ($targets as $target) {
+            $targetCurrency = $this->normalizeCurrency($target);
+            if ($targetCurrency === $baseCurrency) {
+                continue;
+            }
+
+            $rateRow = $this->getLatestExchangeRate($baseCurrency, $targetCurrency, $asOfDate);
+            $rate = null;
+            $rateDate = null;
+
+            if ($rateRow) {
+                $rate = $rateRow->rate;
+                $rateDate = $rateRow->rate_date;
+            } else {
+                $inverseRow = $this->getLatestExchangeRate($targetCurrency, $baseCurrency, $asOfDate);
+                if ($inverseRow && (float) $inverseRow->rate !== 0.0) {
+                    $rate = DecimalMath::div(1, $inverseRow->rate, 8);
+                    $rateDate = $inverseRow->rate_date;
+                }
+            }
+
+            if ($rate === null) {
+                continue;
+            }
+
+            $conversions[] = [
+                'currency' => $targetCurrency,
+                'amount' => DecimalMath::mul($baseAmount, $rate, 4),
+                'rate' => $rate,
+                'rate_date' => $rateDate,
+            ];
+        }
+
+        return $conversions;
+    }
+
     private function convertedAmountExpression(
         string $baseCurrency,
         string $table = 'transactions',
@@ -336,6 +403,10 @@ class AnalyticsService
             ->selectRaw("SUM({$convertedAmount}) as total")
             ->value('total') ?? 0;
 
+        $netTotal = DecimalMath::sub($totals->income ?? 0, $totals->expenses ?? 0, 4);
+        $netWithOpening = DecimalMath::add($netTotal, $openingBalance, 4);
+        $conversionTargets = $this->getConversionTargets($account->base_currency);
+
         return [
             'monthly_summary' => $monthlySummary,
             'top_categories' => $topCategories,
@@ -359,8 +430,14 @@ class AnalyticsService
                 'income' => $totals->income ?? 0,
                 'expenses' => $totals->expenses ?? 0,
                 'transfers' => $totals->transfers ?? 0,
-                'net' => DecimalMath::sub($totals->income ?? 0, $totals->expenses ?? 0, 4),
+                'net' => $netTotal,
                 'opening_balance' => $openingBalance,
+                'net_with_opening' => $netWithOpening,
+                'net_with_opening_conversions' => $this->getBaseCurrencyConversions(
+                    $account,
+                    $netWithOpening,
+                    $conversionTargets
+                ),
             ],
         ];
     }
@@ -951,6 +1028,8 @@ class AnalyticsService
         $currentYear = now()->format('Y');
         $missingStart = now()->subDays(30)->toDateString();
         $missingEnd = now()->toDateString();
+        $totalBalance = $this->getTotalBalance($account);
+        $conversionTargets = $this->getConversionTargets($account->base_currency);
         
         return [
             'current_month_expenses' => $this->getMonthlyExpenses($account, $currentMonth, $currentYear),
@@ -967,7 +1046,12 @@ class AnalyticsService
             'savings_rate' => $this->getSavingsRate($account, $currentMonth, $currentYear),
             'forecast' => $this->getForecast($account),
             'category_spikes' => $this->getCategorySpikes($account),
-            'total_balance' => $this->getTotalBalance($account),
+            'total_balance' => $totalBalance,
+            'total_balance_conversions' => $this->getBaseCurrencyConversions(
+                $account,
+                $totalBalance,
+                $conversionTargets
+            ),
             'balance_history' => $this->getBalanceHistory($account, 12),
             'current_month_savings' => $this->getCurrentMonthSavings($account),
             'missing_rates' => $this->getMissingRateSummary($account, $missingStart, $missingEnd),
