@@ -126,6 +126,25 @@ class AnalyticsService
         return $conversions;
     }
 
+    private function getOpeningBalanceTotal(Account $account): string
+    {
+        $convertedAmount = $this->convertedAmountExpression($account->base_currency);
+
+        return DB::table('transactions')
+            ->leftJoin('categories', 'transactions.category_id', '=', 'categories.id')
+            ->where('transactions.account_id', $account->id)
+            ->whereNull('transactions.deleted_at')
+            ->where(function ($query) {
+                $query->whereRaw("(transactions.metadata->>'opening_balance')::boolean = true")
+                    ->orWhere(function ($inner) {
+                        $inner->where('categories.is_system', true)
+                            ->where('categories.name', 'Opening Balance');
+                    });
+            })
+            ->selectRaw("SUM({$convertedAmount}) as total")
+            ->value('total') ?? '0';
+    }
+
     private function convertedAmountExpression(
         string $baseCurrency,
         string $table = 'transactions',
@@ -396,10 +415,17 @@ class AnalyticsService
             ->first();
 
         $openingBalance = DB::table('transactions')
-            ->where('account_id', $account->id)
-            ->whereBetween('date', [$startDate, $endDate])
-            ->whereNull('deleted_at')
-            ->whereRaw("(metadata->>'opening_balance')::boolean = true")
+            ->leftJoin('categories', 'transactions.category_id', '=', 'categories.id')
+            ->where('transactions.account_id', $account->id)
+            ->whereBetween('transactions.date', [$startDate, $endDate])
+            ->whereNull('transactions.deleted_at')
+            ->where(function ($query) {
+                $query->whereRaw("(transactions.metadata->>'opening_balance')::boolean = true")
+                    ->orWhere(function ($inner) {
+                        $inner->where('categories.is_system', true)
+                            ->where('categories.name', 'Opening Balance');
+                    });
+            })
             ->selectRaw("SUM({$convertedAmount}) as total")
             ->value('total') ?? 0;
 
@@ -1029,6 +1055,8 @@ class AnalyticsService
         $missingStart = now()->subDays(30)->toDateString();
         $missingEnd = now()->toDateString();
         $totalBalance = $this->getTotalBalance($account);
+        $openingBalanceTotal = $this->getOpeningBalanceTotal($account);
+        $netBalance = DecimalMath::sub($totalBalance, $openingBalanceTotal, 4);
         $conversionTargets = $this->getConversionTargets($account->base_currency);
         
         return [
@@ -1047,6 +1075,8 @@ class AnalyticsService
             'forecast' => $this->getForecast($account),
             'category_spikes' => $this->getCategorySpikes($account),
             'total_balance' => $totalBalance,
+            'total_balance_opening' => $openingBalanceTotal,
+            'total_balance_net' => $netBalance,
             'total_balance_conversions' => $this->getBaseCurrencyConversions(
                 $account,
                 $totalBalance,

@@ -126,6 +126,12 @@
                                     <dd class="text-lg font-medium text-gray-900">
                                         {{ formatCurrency(analytics.total_balance) }}
                                     </dd>
+                                    <dd class="mt-1 text-[11px] text-gray-500">
+                                        Opening balance {{ formatCurrency(analytics.total_balance_opening || 0) }}
+                                    </dd>
+                                    <dd class="text-[11px] text-gray-500">
+                                        Net {{ formatCurrency(analytics.total_balance_net || 0) }}
+                                    </dd>
                                     <dd v-if="analytics.total_balance_conversions?.length" class="mt-1 text-[11px] text-gray-500">
                                         <span
                                             v-for="(conversion, index) in analytics.total_balance_conversions"
