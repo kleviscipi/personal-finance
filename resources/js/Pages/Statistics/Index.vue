@@ -178,10 +178,10 @@ const shareOptions = {
     },
 };
 
-const formatCurrency = (amount) => {
+const formatCurrency = (amount, currency) => {
     return new Intl.NumberFormat('en-US', {
         style: 'currency',
-        currency: props.currentAccount?.base_currency || 'USD',
+        currency: currency || props.currentAccount?.base_currency || 'USD',
         minimumFractionDigits: 2,
         maximumFractionDigits: 2,
     }).format(parseFloat(amount || 0));
