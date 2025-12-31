@@ -46,6 +46,7 @@ const paymentOptions = [
     { value: 'card', label: 'Card' },
     { value: 'bank_transfer', label: 'Bank transfer' },
     { value: 'mobile_wallet', label: 'Mobile wallet' },
+    { value: 'opening_balance', label: 'Opening balance' },
     { value: 'other', label: 'Other' },
 ];
 

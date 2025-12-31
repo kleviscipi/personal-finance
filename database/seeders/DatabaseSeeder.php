@@ -12,6 +12,7 @@ class DatabaseSeeder extends Seeder
     public function run(): void
     {
         $this->call(AdminAccountSeeder::class);
+        $this->call(OpeningBalanceCategorySeeder::class);
         $this->call(ExchangeRateSeeder::class);
     }
 }
