@@ -336,6 +336,17 @@
                 </div>
             </div>
         </main>
+        <footer class="border-t border-slate-200/60 bg-white/60 py-4 text-center text-xs text-slate-500">
+            Powered by
+            <a
+                class="ml-1 font-medium text-slate-600 hover:text-slate-900"
+                href="https://tamburis.com"
+                target="_blank"
+                rel="noopener noreferrer"
+            >
+                Tamburis.com
+            </a>
+        </footer>
     </div>
 </template>
 
