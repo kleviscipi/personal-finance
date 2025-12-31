@@ -79,6 +79,7 @@
                                         {{ transaction.category?.name }}
                                         <span v-if="transaction.subcategory"> • {{ transaction.subcategory.name }}</span>
                                         <span v-if="transaction.payment_method" class="ml-2">• {{ transaction.payment_method }}</span>
+                                        <span v-if="transaction.creator" class="ml-2">• by {{ transaction.creator.name || transaction.creator.email || 'Unknown' }}</span>
                                     </div>
                                 </div>
                             </div>

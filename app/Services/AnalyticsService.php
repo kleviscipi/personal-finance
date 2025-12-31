@@ -473,6 +473,22 @@ class AnalyticsService
             ->value('total') ?? '0';
     }
 
+    public function getMonthlyTransactionCount(Account $account, ?string $month = null, ?string $year = null): int
+    {
+        $month = $month ?? now()->format('m');
+        $year = $year ?? now()->format('Y');
+
+        return (int) DB::table('transactions')
+            ->where('account_id', $account->id)
+            ->whereYear('date', $year)
+            ->whereMonth('date', $month)
+            ->whereNull('deleted_at')
+            ->tap(function ($query) {
+                $this->excludeOpeningBalance($query);
+            })
+            ->count();
+    }
+
     public function getNetCashFlow(Account $account, ?string $month = null, ?string $year = null): string
     {
         $income = $this->getMonthlyIncome($account, $month, $year);
@@ -939,6 +955,7 @@ class AnalyticsService
         return [
             'current_month_expenses' => $this->getMonthlyExpenses($account, $currentMonth, $currentYear),
             'current_month_income' => $this->getMonthlyIncome($account, $currentMonth, $currentYear),
+            'current_month_transaction_count' => $this->getMonthlyTransactionCount($account, $currentMonth, $currentYear),
             'net_cash_flow' => $this->getNetCashFlow($account, $currentMonth, $currentYear),
             'expenses_by_category' => $this->getMonthlyExpensesByCategory($account, $currentMonth, $currentYear),
             'budget_usage' => $this->getBudgetUsage($account, $currentMonth, $currentYear),

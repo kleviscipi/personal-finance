@@ -28,7 +28,7 @@
             </div>
 
             <!-- Stats Cards -->
-            <div class="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-5">
+            <div class="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3">
                 <!-- Income Card -->
                 <div class="pf-card overflow-hidden">
                     <div class="p-5">
@@ -153,6 +153,31 @@
                                     </dt>
                                     <dd class="text-lg font-medium text-gray-900">
                                         {{ analytics.budget_usage?.length || 0 }}
+                                    </dd>
+                                </dl>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Monthly Transactions Card -->
+                <div class="pf-card overflow-hidden">
+                    <div class="p-5">
+                        <div class="flex items-center">
+                            <div class="flex-shrink-0">
+                                <div class="rounded-md bg-sky-500 p-3">
+                                    <svg class="h-6 w-6 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                                    </svg>
+                                </div>
+                            </div>
+                            <div class="ml-5 w-0 flex-1">
+                                <dl>
+                                    <dt class="text-sm font-medium text-gray-500 truncate">
+                                        Monthly Transactions
+                                    </dt>
+                                    <dd class="text-lg font-medium text-gray-900">
+                                        {{ analytics.current_month_transaction_count || 0 }}
                                     </dd>
                                 </dl>
                             </div>
