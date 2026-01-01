@@ -6,43 +6,95 @@ struct LoginView: View {
     @State private var password = ""
 
     var body: some View {
-        VStack(spacing: 16) {
-            Text(AppConfig.appDisplayName)
-                .font(.largeTitle.bold())
+        ZStack {
+            LinearGradient(
+                colors: [Color(red: 0.16, green: 0.22, blue: 0.34), Color(red: 0.08, green: 0.11, blue: 0.18)],
+                startPoint: .topLeading,
+                endPoint: .bottomTrailing
+            )
+            .ignoresSafeArea()
 
-            VStack(alignment: .leading, spacing: 12) {
-                TextField("Email", text: $email)
-                    .keyboardType(.emailAddress)
-                    .textInputAutocapitalization(.never)
-                    .autocorrectionDisabled()
-                    .textFieldStyle(.roundedBorder)
+            VStack(spacing: 24) {
+                LogoMark()
 
-                SecureField("Password", text: $password)
-                    .textFieldStyle(.roundedBorder)
-            }
-
-            if let errorMessage = appState.errorMessage {
-                Text(errorMessage)
-                    .foregroundStyle(.red)
-                    .font(.footnote)
-            }
-
-            Button {
-                Task {
-                    await appState.login(email: email, password: password)
+                VStack(spacing: 6) {
+                    Text(AppConfig.appDisplayName)
+                        .font(.system(size: 28, weight: .semibold, design: .rounded))
+                        .foregroundStyle(.white)
+                    Text("Sign in to continue")
+                        .font(.subheadline)
+                        .foregroundStyle(.white.opacity(0.7))
                 }
-            } label: {
-                if appState.isLoading {
-                    ProgressView()
-                        .frame(maxWidth: .infinity)
-                } else {
-                    Text("Sign In")
-                        .frame(maxWidth: .infinity)
+
+                VStack(spacing: 16) {
+                    VStack(alignment: .leading, spacing: 12) {
+                        TextField("Email", text: $email)
+                            .keyboardType(.emailAddress)
+                            .textInputAutocapitalization(.never)
+                            .autocorrectionDisabled()
+                            .textFieldStyle(.plain)
+                            .padding(.horizontal, 14)
+                            .padding(.vertical, 12)
+                            .background(Color(.secondarySystemBackground))
+                            .clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
+
+                        SecureField("Password", text: $password)
+                            .textFieldStyle(.plain)
+                            .padding(.horizontal, 14)
+                            .padding(.vertical, 12)
+                            .background(Color(.secondarySystemBackground))
+                            .clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
+                    }
+
+                    if let errorMessage = appState.errorMessage {
+                        Text(errorMessage)
+                            .foregroundStyle(.red)
+                            .font(.footnote)
+                    }
+
+                    Button {
+                        Task {
+                            await appState.login(email: email, password: password)
+                        }
+                    } label: {
+                        if appState.isLoading {
+                            ProgressView()
+                                .frame(maxWidth: .infinity)
+                        } else {
+                            Text("Sign In")
+                                .frame(maxWidth: .infinity)
+                        }
+                    }
+                    .buttonStyle(.borderedProminent)
+                    .tint(Color(red: 0.32, green: 0.62, blue: 0.96))
+                    .disabled(appState.isLoading || email.isEmpty || password.isEmpty)
                 }
+                .padding(20)
+                .background(Color(.systemBackground))
+                .clipShape(RoundedRectangle(cornerRadius: 20, style: .continuous))
+                .shadow(color: Color.black.opacity(0.25), radius: 20, x: 0, y: 12)
+                .padding(.horizontal, 24)
             }
-            .buttonStyle(.borderedProminent)
-            .disabled(appState.isLoading || email.isEmpty || password.isEmpty)
+            .padding(.vertical, 32)
         }
-        .padding(24)
+    }
+}
+
+private struct LogoMark: View {
+    var body: some View {
+        ZStack {
+            Circle()
+                .fill(Color.white.opacity(0.15))
+                .frame(width: 84, height: 84)
+                .overlay(
+                    Circle()
+                        .stroke(Color.white.opacity(0.3), lineWidth: 1)
+                )
+
+            Image("Logo")
+                .resizable()
+                .scaledToFit()
+                .frame(width: 46, height: 46)
+        }
     }
 }

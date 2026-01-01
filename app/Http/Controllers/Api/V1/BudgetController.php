@@ -74,7 +74,7 @@ class BudgetController extends ApiController
             'end_date' => ['nullable', 'date', 'after_or_equal:start_date'],
         ]);
 
-        $validated['user_id'] = $validated['user_id'] ?: null;
+        $validated['user_id'] = $validated['user_id'] ?? null;
         $this->authorizeBudgetScope($account, $request->user(), $validated['user_id']);
 
         $budget = $this->budgetService->createBudget($account, $validated);
@@ -110,7 +110,7 @@ class BudgetController extends ApiController
             'end_date' => ['nullable', 'date', 'after_or_equal:start_date'],
         ]);
 
-        $validated['user_id'] = $validated['user_id'] ?: null;
+        $validated['user_id'] = $validated['user_id'] ?? null;
         $this->authorizeBudgetScope($account, $request->user(), $validated['user_id']);
 
         $budget = $this->budgetService->updateBudget($budget, $validated);
