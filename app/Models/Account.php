@@ -45,6 +45,16 @@ class Account extends Model
         return $this->hasMany(Budget::class);
     }
 
+    public function savingsGoals(): HasMany
+    {
+        return $this->hasMany(SavingsGoal::class);
+    }
+
+    public function tags(): HasMany
+    {
+        return $this->hasMany(Tag::class);
+    }
+
     public function settings(): HasOne
     {
         return $this->hasOne(AccountSettings::class);

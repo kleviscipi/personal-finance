@@ -4,6 +4,7 @@ import AppLayout from '@/Layouts/AppLayout.vue';
 import InputError from '@/Components/InputError.vue';
 import InputLabel from '@/Components/InputLabel.vue';
 import PrimaryButton from '@/Components/PrimaryButton.vue';
+import TagInput from '@/Components/TagInput.vue';
 import TextInput from '@/Components/TextInput.vue';
 import { Head, Link, useForm } from '@inertiajs/vue3';
 
@@ -12,6 +13,7 @@ const props = defineProps({
     currentAccount: Object,
     categories: Array,
     currencies: Object,
+    tags: Array,
 });
 
 const currencyOptions = computed(() => {
@@ -38,6 +40,9 @@ const form = useForm({
     subcategory_id: '',
     description: '',
     payment_method: 'cash',
+    tag_ids: [],
+    tag_names: '',
+    tag_list: [],
 });
 
 const paymentOptions = [
@@ -89,7 +94,42 @@ watch(
 );
 
 const submit = () => {
+    const { tagIds, tagNames, tagList } = parseTagList(form.tag_list, props.tags || []);
+    form.tag_ids = tagIds;
+    form.tag_names = tagNames.join(', ');
+    form.tag_list = tagList;
     form.post(route('transactions.store'));
+};
+
+const parseTagList = (values, tags) => {
+    const normalized = (values || [])
+        .map((name) => (name || '').toString().trim())
+        .filter((name) => name);
+
+    const tagMap = new Map(
+        (tags || []).map((tag) => [tag.name.toLowerCase(), tag]),
+    );
+
+    const tagIds = [];
+    const tagNames = [];
+    normalized.forEach((name) => {
+        const match = tagMap.get(name.toLowerCase());
+        if (match) {
+            tagIds.push(match.id);
+        } else {
+            tagNames.push(name);
+        }
+    });
+
+    const uniqueIds = Array.from(new Set(tagIds));
+    const uniqueNames = Array.from(new Set(tagNames));
+    const tagList = Array.from(new Set(normalized));
+
+    return {
+        tagIds: uniqueIds,
+        tagNames: uniqueNames,
+        tagList,
+    };
 };
 
 const formatAmountInput = () => {
@@ -282,6 +322,21 @@ const formatAmountInput = () => {
                                 class="mt-2"
                                 :message="form.errors.subcategory_id"
                             />
+                        </div>
+                    </div>
+
+                    <div class="grid grid-cols-1 gap-6 lg:grid-cols-6">
+                        <div class="lg:col-span-6">
+                            <InputLabel for="tag_list" value="Tags" />
+                            <TagInput
+                                v-model="form.tag_list"
+                                :suggestions="tags"
+                                placeholder="Type and press Enter to add tags"
+                            />
+                            <p class="mt-2 text-xs text-gray-500">
+                                Start typing to see suggestions. Press Enter or comma to add new tags.
+                            </p>
+                            <InputError class="mt-2" :message="form.errors.tag_ids || form.errors.tag_names" />
                         </div>
                     </div>
                 </div>

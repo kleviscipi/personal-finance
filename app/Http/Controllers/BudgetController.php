@@ -36,7 +36,12 @@ class BudgetController extends Controller
                     ->orWhere('user_id', $user->id);
             })
             ->latest('start_date')
-            ->get();
+            ->get()
+            ->map(function (Budget $budget) {
+                $progress = $this->budgetService->calculateBudgetProgress($budget);
+                $budget->setAttribute('progress', $progress);
+                return $budget;
+            });
 
         return Inertia::render('Budgets/Index', [
             'budgets' => $budgets,

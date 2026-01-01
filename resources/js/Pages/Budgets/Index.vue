@@ -126,6 +126,27 @@ const deleteMessage = computed(() => {
                                     {{ budget.user ? `Personal: ${budget.user.name || budget.user.email || budget.user.id}` : 'Account-wide' }}
                                 </span>
                             </div>
+                            <div v-if="budget.progress" class="mt-3">
+                                <div class="flex items-center justify-between text-xs text-gray-500">
+                                    <span>
+                                        {{ formatAmount(budget.progress.spent, budget.currency) }}
+                                        /
+                                        {{ formatAmount(budget.progress.budget_amount, budget.currency) }}
+                                    </span>
+                                    <span>{{ Math.min(100, parseFloat(budget.progress.percentage || 0)).toFixed(0) }}%</span>
+                                </div>
+                                <div class="mt-2 h-2 w-full overflow-hidden rounded-full bg-gray-200">
+                                    <div
+                                        class="h-2 rounded-full"
+                                        :class="parseFloat(budget.progress.spent) > parseFloat(budget.progress.budget_amount)
+                                            ? 'bg-red-500'
+                                            : parseFloat(budget.progress.spent) > parseFloat(budget.progress.budget_amount) * 0.8
+                                                ? 'bg-yellow-500'
+                                                : 'bg-green-500'"
+                                        :style="{ width: Math.min(100, parseFloat(budget.progress.percentage || 0)) + '%' }"
+                                    ></div>
+                                </div>
+                            </div>
                         </div>
                         <div class="flex items-center gap-3">
                             <span class="text-sm font-semibold text-gray-900">

@@ -12,6 +12,7 @@ use App\Http\Controllers\SettingsController;
 use App\Http\Controllers\StatisticsController;
 use App\Http\Controllers\TransactionController;
 use App\Http\Controllers\ProfileController;
+use App\Http\Controllers\SavingsGoalController;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
 
@@ -43,6 +44,7 @@ Route::middleware(['auth'])->group(function () {
     
     Route::resource('transactions', TransactionController::class);
     Route::resource('budgets', BudgetController::class);
+    Route::resource('savings-goals', SavingsGoalController::class);
     Route::patch('/categories/reorder', [CategoryController::class, 'reorder'])
         ->name('categories.reorder');
     Route::resource('categories', CategoryController::class);

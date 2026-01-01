@@ -113,6 +113,12 @@
                                     </svg>
                                     Budgets
                                 </Link>
+                                <Link :href="route('savings-goals.index')" class="flex items-center gap-2 px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
+                                    <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-2.21 0-4 1.79-4 4 0 2.21 1.79 4 4 4s4-1.79 4-4c0-2.21-1.79-4-4-4zm0-6v2m0 16v2m10-10h-2m-16 0H2m14.95-6.95-1.41 1.41M8.46 15.54l-1.41 1.41m0-11.32 1.41 1.41m8.48 8.48 1.41 1.41" />
+                                    </svg>
+                                    Goals
+                                </Link>
                                 <Link :href="route('family.index')" class="flex items-center gap-2 px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
                                     <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a4 4 0 00-4-4h-1M9 20H4v-2a4 4 0 014-4h1m0-4a3 3 0 11-6 0 3 3 0 016 0zm8 0a3 3 0 11-6 0 3 3 0 016 0z" />

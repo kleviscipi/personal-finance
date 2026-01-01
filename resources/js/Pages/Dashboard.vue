@@ -529,6 +529,78 @@
                 </div>
             </div>
 
+            <!-- Savings Goals -->
+            <div class="pf-card overflow-hidden">
+                <div class="p-6">
+                    <div class="flex items-center justify-between">
+                        <div>
+                            <h3 class="text-lg leading-6 font-medium text-gray-900">
+                                Savings Goals
+                            </h3>
+                            <p class="text-sm text-gray-500">
+                                Quick progress snapshot of your top goals.
+                            </p>
+                        </div>
+                        <Link
+                            :href="route('savings-goals.index')"
+                            class="text-sm font-medium text-sky-600 hover:text-sky-700"
+                        >
+                            View all
+                        </Link>
+                    </div>
+
+                    <div v-if="!savingsGoals || savingsGoals.length === 0" class="py-8 text-center text-sm text-gray-500">
+                        <p>No savings goals yet.</p>
+                        <Link :href="route('savings-goals.create')" class="text-sky-600 hover:text-sky-500 text-sm mt-2 inline-block">
+                            Create your first goal
+                        </Link>
+                    </div>
+
+                    <div v-else class="mt-6 space-y-4">
+                        <div
+                            v-for="goal in savingsGoals"
+                            :key="goal.id"
+                            class="rounded-lg border border-slate-200 bg-white p-4 shadow-sm"
+                        >
+                            <div class="flex items-center justify-between">
+                                <div>
+                                    <div class="text-sm font-semibold text-slate-900">
+                                        {{ goal.name }}
+                                    </div>
+                                    <div class="text-xs text-slate-500">
+                                        Target {{ formatDate(goal.target_date) }}
+                                        <span v-if="goal.tracking_mode === 'category' && goal.category" class="ml-2">
+                                            • {{ goal.category.name }}
+                                        </span>
+                                        <span v-if="goal.tracking_mode === 'subcategory' && goal.subcategory" class="ml-2">
+                                            • {{ goal.subcategory.name }}
+                                        </span>
+                                        <span class="ml-2 text-slate-400">
+                                            • {{ goal.user ? `Personal: ${goal.user.name || goal.user.email || goal.user.id}` : 'Account-wide' }}
+                                        </span>
+                                    </div>
+                                </div>
+                                <div class="text-right text-xs text-slate-500">
+                                    {{ formatCurrency(goal.progress?.current_amount, goal.currency) }}
+                                    <span class="text-slate-400">/</span>
+                                    {{ formatCurrency(goal.target_amount, goal.currency) }}
+                                </div>
+                            </div>
+                            <div class="mt-3 h-2 w-full overflow-hidden rounded-full bg-slate-100">
+                                <div
+                                    class="h-2 rounded-full bg-gradient-to-r from-sky-500 to-sky-400"
+                                    :style="{ width: Math.min(100, goal.progress?.percentage || 0) + '%' }"
+                                ></div>
+                            </div>
+                            <div class="mt-2 flex items-center justify-between text-xs text-slate-500">
+                                <span>{{ Math.max(0, goal.progress?.percentage || 0).toFixed(0) }}% complete</span>
+                                <span>{{ formatCurrency(goal.progress?.remaining, goal.currency) }} remaining</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
             <!-- Recent Transactions -->
             <div class="pf-card overflow-hidden">
                 <div class="px-4 py-5 sm:px-6 flex items-center justify-between">
@@ -619,6 +691,7 @@ const props = defineProps({
     currentAccount: Object,
     analytics: Object,
     recentTransactions: Array,
+    savingsGoals: Array,
 });
 
 const expenseChartData = computed(() => {

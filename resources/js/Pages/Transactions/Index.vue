@@ -20,8 +20,37 @@
             </div>
 
             <!-- Filters -->
-            <div class="pf-card p-4">
-                <div class="grid grid-cols-1 gap-4 sm:grid-cols-4">
+            <div class="pf-card p-4 space-y-4">
+                <div class="flex items-center justify-between">
+                    <button
+                        type="button"
+                        class="inline-flex items-center gap-2 text-sm font-medium text-slate-600 hover:text-slate-900"
+                        @click="showAdvanced = !showAdvanced"
+                    >
+                        <span>Advanced filters</span>
+                        <svg
+                            class="h-4 w-4 transition-transform"
+                            :class="showAdvanced ? 'rotate-180' : ''"
+                            fill="none"
+                            viewBox="0 0 24 24"
+                            stroke="currentColor"
+                        >
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+                        </svg>
+                    </button>
+                </div>
+
+                <div class="grid grid-cols-1 gap-4 md:grid-cols-3 lg:grid-cols-6">
+                    <div class="lg:col-span-2">
+                        <label class="block text-sm font-medium text-gray-700">Search</label>
+                        <input
+                            type="text"
+                            v-model="filters.q"
+                            @keyup.enter="applyFilters"
+                            class="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
+                            placeholder="Description, category, user..."
+                        >
+                    </div>
                     <div>
                         <label class="block text-sm font-medium text-gray-700">Type</label>
                         <select v-model="filters.type" @change="applyFilters" class="mt-1 block w-full pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm rounded-md">
@@ -40,6 +69,36 @@
                             </option>
                         </select>
                     </div>
+                </div>
+
+                <div v-show="showAdvanced" class="grid grid-cols-1 gap-4 md:grid-cols-3 lg:grid-cols-6">
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700">Subcategory</label>
+                        <select v-model="filters.subcategory_id" @change="applyFilters" class="mt-1 block w-full pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm rounded-md" :disabled="!availableSubcategories.length">
+                            <option value="">All Subcategories</option>
+                            <option v-for="subcategory in availableSubcategories" :key="subcategory.id" :value="subcategory.id">
+                                {{ subcategory.name }}
+                            </option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700">Payment method</label>
+                        <select v-model="filters.payment_method" @change="applyFilters" class="mt-1 block w-full pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm rounded-md">
+                            <option value="">All Methods</option>
+                            <option v-for="option in paymentOptions" :key="option.value" :value="option.value">
+                                {{ option.label }}
+                            </option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700">Created by</label>
+                        <select v-model="filters.created_by" @change="applyFilters" class="mt-1 block w-full pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm rounded-md">
+                            <option value="">Any user</option>
+                            <option v-for="user in accountUsers || []" :key="user.id" :value="user.id">
+                                {{ user.name || user.email || user.id }}
+                            </option>
+                        </select>
+                    </div>
                     <div>
                         <label class="block text-sm font-medium text-gray-700">From Date</label>
                         <input type="date" v-model="filters.date_from" @change="applyFilters" class="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm">
@@ -48,6 +107,45 @@
                         <label class="block text-sm font-medium text-gray-700">To Date</label>
                         <input type="date" v-model="filters.date_to" @change="applyFilters" class="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm">
                     </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700">Min amount</label>
+                        <input type="number" step="0.01" v-model="filters.amount_min" @change="applyFilters" class="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700">Max amount</label>
+                        <input type="number" step="0.01" v-model="filters.amount_max" @change="applyFilters" class="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm">
+                    </div>
+                    <div class="lg:col-span-2">
+                        <label class="block text-sm font-medium text-gray-700">Tags</label>
+                        <TagInput
+                            v-model="filters.tag_list"
+                            :suggestions="tags"
+                            placeholder="Filter by tags"
+                        />
+                    </div>
+                </div>
+
+                <div class="flex justify-end gap-2">
+                    <button
+                        type="button"
+                        class="inline-flex items-center gap-2 rounded-md border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 shadow-sm hover:bg-gray-50"
+                        @click="resetFilters"
+                    >
+                        <svg class="h-4 w-4 text-gray-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12a9 9 0 111.64 5.64L3 21v-4m0-5h4" />
+                        </svg>
+                        Reset
+                    </button>
+                    <button
+                        type="button"
+                        class="inline-flex items-center gap-2 rounded-md border border-transparent bg-indigo-600 px-4 py-2 text-sm font-medium text-white shadow-sm hover:bg-indigo-700"
+                        @click="applyFilters"
+                    >
+                        <svg class="h-4 w-4 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+                        </svg>
+                        Apply
+                    </button>
                 </div>
             </div>
 
@@ -84,6 +182,15 @@
                                             • last {{ formatHistoryAction(transaction.latest_history.action) }}
                                             by {{ transaction.latest_history.user?.name || transaction.latest_history.user?.email || 'Unknown' }}
                                             on {{ formatDateTime(transaction.latest_history.created_at) }}
+                                        </span>
+                                    </div>
+                                    <div v-if="transaction.tags && transaction.tags.length" class="mt-2 flex flex-wrap gap-2">
+                                        <span
+                                            v-for="tag in transaction.tags"
+                                            :key="tag.id"
+                                            class="inline-flex items-center rounded-full bg-slate-100 px-2.5 py-0.5 text-xs font-medium text-slate-600"
+                                        >
+                                            {{ tag.name }}
                                         </span>
                                     </div>
                                 </div>
@@ -192,31 +299,133 @@
 </template>
 
 <script setup>
-import { computed, ref } from 'vue';
+import { computed, ref, watch } from 'vue';
 import { Head, Link, router } from '@inertiajs/vue3';
 import AppLayout from '../../Layouts/AppLayout.vue';
 import ConfirmDialog from '@/Components/ConfirmDialog.vue';
+import TagInput from '@/Components/TagInput.vue';
 
 const props = defineProps({
     auth: Object,
     currentAccount: Object,
     transactions: Object,
     categories: Array,
+    tags: Array,
+    accountUsers: Array,
     filters: Object,
 });
 
+const normalizeArrayFilter = (value) => {
+    if (Array.isArray(value)) {
+        return value;
+    }
+    if (value === null || value === undefined || value === '') {
+        return [];
+    }
+    return [value];
+};
+
+const tagNameById = computed(() => {
+    const map = new Map();
+    (props.tags || []).forEach((tag) => {
+        map.set(Number(tag.id), tag.name);
+    });
+    return map;
+});
+
+const resolveTagListFromIds = (values) => {
+    return normalizeArrayFilter(values)
+        .map((id) => tagNameById.value.get(Number(id)))
+        .filter((name) => name);
+};
+
 const filters = ref({
+    q: props.filters?.q || '',
     type: props.filters?.type || '',
     category_id: props.filters?.category_id || '',
+    subcategory_id: props.filters?.subcategory_id || '',
     date_from: props.filters?.date_from || '',
     date_to: props.filters?.date_to || '',
+    amount_min: props.filters?.amount_min || '',
+    amount_max: props.filters?.amount_max || '',
+    payment_method: props.filters?.payment_method || '',
+    created_by: props.filters?.created_by || '',
+    tag_ids: normalizeArrayFilter(props.filters?.tag_ids),
+    tag_list: resolveTagListFromIds(props.filters?.tag_ids),
+});
+
+const showAdvanced = ref(false);
+
+const paymentOptions = [
+    { value: 'cash', label: 'Cash' },
+    { value: 'card', label: 'Card' },
+    { value: 'bank_transfer', label: 'Bank transfer' },
+    { value: 'mobile_wallet', label: 'Mobile wallet' },
+    { value: 'opening_balance', label: 'Opening balance' },
+    { value: 'other', label: 'Other' },
+];
+
+const availableSubcategories = computed(() => {
+    const categoryId = Number(filters.value.category_id || 0);
+    if (!categoryId) {
+        return [];
+    }
+    const category = (props.categories || []).find((item) => item.id === categoryId);
+    return category?.subcategories || [];
 });
 
 const applyFilters = () => {
-    router.get(route('transactions.index'), filters.value, {
+    const tagIds = (filters.value.tag_list || [])
+        .map((name) =>
+            (props.tags || []).find(
+                (tag) => tag.name.toLowerCase() === name.toLowerCase(),
+            )?.id,
+        )
+        .filter((id) => id !== undefined && id !== null);
+
+    router.get(route('transactions.index'), {
+        ...filters.value,
+        tag_ids: tagIds,
+    }, {
         preserveState: true,
         replace: true,
     });
+};
+
+watch(
+    () => filters.value.category_id,
+    () => {
+        if (!availableSubcategories.value.length) {
+            filters.value.subcategory_id = '';
+            return;
+        }
+
+        const subcategoryId = Number(filters.value.subcategory_id || 0);
+        const exists = availableSubcategories.value.some(
+            (subcategory) => subcategory.id === subcategoryId,
+        );
+        if (!exists) {
+            filters.value.subcategory_id = '';
+        }
+    },
+);
+
+const resetFilters = () => {
+    filters.value = {
+        q: '',
+        type: '',
+        category_id: '',
+        subcategory_id: '',
+        date_from: '',
+        date_to: '',
+        amount_min: '',
+        amount_max: '',
+        payment_method: '',
+        created_by: '',
+        tag_ids: [],
+        tag_list: [],
+    };
+    applyFilters();
 };
 
 const confirmingDelete = ref(false);

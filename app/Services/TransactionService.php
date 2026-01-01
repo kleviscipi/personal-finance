@@ -4,6 +4,7 @@ namespace App\Services;
 
 use App\Models\Account;
 use App\Models\Category;
+use App\Models\Tag;
 use App\Models\Transaction;
 use App\Models\TransactionHistory;
 use App\Models\User;
@@ -60,6 +61,7 @@ class TransactionService
                 'metadata' => $data['metadata'] ?? null,
             ]);
 
+            $this->syncTags($transaction, $account, $data);
             $this->createHistory($transaction, $user, 'created', null, $transaction->toArray());
 
             return $transaction;
@@ -73,6 +75,7 @@ class TransactionService
 
             $data = $this->applyOpeningBalanceMetadata($transaction, $data);
             $transaction->update($data);
+            $this->syncTags($transaction, $transaction->account, $data);
             
             $this->createHistory($transaction, $user, 'updated', $oldValues, $transaction->toArray());
 
@@ -98,5 +101,47 @@ class TransactionService
             'old_values' => $oldValues,
             'new_values' => $newValues,
         ]);
+    }
+
+    private function syncTags(Transaction $transaction, Account $account, array $data): void
+    {
+        if (!array_key_exists('tag_ids', $data) && !array_key_exists('tag_names', $data)) {
+            return;
+        }
+
+        $tagIds = array_filter($data['tag_ids'] ?? [], static fn ($id) => $id !== null && $id !== '');
+        $tagIds = array_map('intval', $tagIds);
+
+        $tagNames = $data['tag_names'] ?? [];
+        if (!is_array($tagNames)) {
+            $tagNames = [];
+        }
+
+        $normalizedNames = collect($tagNames)
+            ->map(fn ($name) => trim((string) $name))
+            ->filter()
+            ->unique()
+            ->values();
+
+        if ($normalizedNames->isNotEmpty()) {
+            $existingTags = Tag::where('account_id', $account->id)
+                ->whereIn('name', $normalizedNames)
+                ->get()
+                ->keyBy('name');
+
+            foreach ($normalizedNames as $name) {
+                $tag = $existingTags->get($name);
+                if (!$tag) {
+                    $tag = Tag::create([
+                        'account_id' => $account->id,
+                        'name' => $name,
+                    ]);
+                }
+                $tagIds[] = $tag->id;
+            }
+        }
+
+        $tagIds = array_values(array_unique($tagIds));
+        $transaction->tags()->sync($tagIds);
     }
 }
