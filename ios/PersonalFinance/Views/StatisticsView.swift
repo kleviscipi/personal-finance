@@ -25,6 +25,9 @@ struct StatisticsView: View {
                                     .font(.caption)
                                     .foregroundStyle(.secondary)
                             }
+                            .cardStyle()
+                            .listRowSeparator(.hidden)
+                            .listRowBackground(Color.clear)
                         }
                     }
                 }
@@ -47,6 +50,7 @@ struct StatisticsView: View {
             .task {
                 await loadStatistics()
             }
+            .listStyle(.plain)
             .alert("Error", isPresented: Binding(
                 get: { errorMessage != nil },
                 set: { if !$0 { errorMessage = nil } }

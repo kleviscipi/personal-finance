@@ -31,8 +31,17 @@ struct NewTransactionView: View {
                     TextField("Amount", text: $amount)
                         .keyboardType(.decimalPad)
 
-                    TextField("Currency", text: $currency)
-                        .textInputAutocapitalization(.characters)
+                    if appState.currencies.isEmpty {
+                        TextField("Currency", text: $currency)
+                            .textInputAutocapitalization(.characters)
+                    } else {
+                        Picker("Currency", selection: $currency) {
+                            ForEach(appState.currencies) { currencyInfo in
+                                Text("\(currencyInfo.code) • \(currencyInfo.name)")
+                                    .tag(currencyInfo.code)
+                            }
+                        }
+                    }
 
                     DatePicker("Date", selection: $date, displayedComponents: .date)
                 }
@@ -43,6 +52,9 @@ struct NewTransactionView: View {
                         ForEach(categories) { category in
                             Text(category.name).tag(Int?.some(category.id))
                         }
+                    }
+                    .onChange(of: selectedCategoryId) { _ in
+                        selectedSubcategoryId = nil
                     }
 
                     if let category = selectedCategory,
@@ -85,6 +97,7 @@ struct NewTransactionView: View {
             }
             .task {
                 await loadCategories()
+                await appState.fetchCurrencies()
                 if currency.isEmpty {
                     currency = appState.activeAccount?.baseCurrency ?? "USD"
                 }

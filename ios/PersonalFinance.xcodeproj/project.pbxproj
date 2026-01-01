@@ -42,6 +42,8 @@
 		BCB2222222222222222222222 /* NewBudgetView.swift in Sources */ = {isa = PBXBuildFile; fileRef = ACB2222222222222222222222 /* NewBudgetView.swift */; };
 		BCB3333333333333333333333 /* NewCategoryView.swift in Sources */ = {isa = PBXBuildFile; fileRef = ACB3333333333333333333333 /* NewCategoryView.swift */; };
 		BCB4444444444444444444444 /* NewSubcategoryView.swift in Sources */ = {isa = PBXBuildFile; fileRef = ACB4444444444444444444444 /* NewSubcategoryView.swift */; };
+		BCB5555555555555555555555 /* CurrencyInfo.swift in Sources */ = {isa = PBXBuildFile; fileRef = ACB5555555555555555555555 /* CurrencyInfo.swift */; };
+		BCB6666666666666666666666 /* ModernStyle.swift in Sources */ = {isa = PBXBuildFile; fileRef = ACB6666666666666666666666 /* ModernStyle.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -82,6 +84,8 @@
 		ACB2222222222222222222222 /* NewBudgetView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NewBudgetView.swift; sourceTree = "<group>"; };
 		ACB3333333333333333333333 /* NewCategoryView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NewCategoryView.swift; sourceTree = "<group>"; };
 		ACB4444444444444444444444 /* NewSubcategoryView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NewSubcategoryView.swift; sourceTree = "<group>"; };
+		ACB5555555555555555555555 /* CurrencyInfo.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CurrencyInfo.swift; sourceTree = "<group>"; };
+		ACB6666666666666666666666 /* ModernStyle.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ModernStyle.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -121,6 +125,7 @@
 				AC3333333333333333333333 /* Budget.swift */,
 				AC4444444444444444444444 /* DashboardModels.swift */,
 				AC5555555555555555555555 /* StatisticsModels.swift */,
+				ACB5555555555555555555555 /* CurrencyInfo.swift */,
 			);
 			path = Models;
 			sourceTree = "<group>";
@@ -157,6 +162,7 @@
 				ACB2222222222222222222222 /* NewBudgetView.swift */,
 				ACB3333333333333333333333 /* NewCategoryView.swift */,
 				ACB4444444444444444444444 /* NewSubcategoryView.swift */,
+				ACB6666666666666666666666 /* ModernStyle.swift */,
 			);
 			path = Views;
 			sourceTree = "<group>";
@@ -297,6 +303,8 @@
 				BCB2222222222222222222222 /* NewBudgetView.swift in Sources */,
 				BCB3333333333333333333333 /* NewCategoryView.swift in Sources */,
 				BCB4444444444444444444444 /* NewSubcategoryView.swift in Sources */,
+				BCB5555555555555555555555 /* CurrencyInfo.swift in Sources */,
+				BCB6666666666666666666666 /* ModernStyle.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

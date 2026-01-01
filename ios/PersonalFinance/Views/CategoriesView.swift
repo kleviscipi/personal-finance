@@ -12,7 +12,22 @@ struct CategoriesView: View {
         NavigationStack {
             List {
                 ForEach(categories) { category in
-                    Section {
+                    VStack(alignment: .leading, spacing: 8) {
+                        HStack {
+                            Circle()
+                                .fill(Color(hex: category.color ?? "") ?? Color.gray.opacity(0.3))
+                                .frame(width: 10, height: 10)
+                            Text(category.name)
+                                .font(.headline)
+                            Spacer()
+                            Button {
+                                selectedCategoryForSub = category
+                            } label: {
+                                Image(systemName: "plus")
+                            }
+                            .buttonStyle(.borderless)
+                        }
+
                         if let subs = category.subcategories, !subs.isEmpty {
                             ForEach(subs) { sub in
                                 Text(sub.name)
@@ -24,18 +39,10 @@ struct CategoriesView: View {
                                 .font(.subheadline)
                                 .foregroundStyle(.secondary)
                         }
-                    } header: {
-                        HStack {
-                            Text(category.name)
-                            Spacer()
-                            Button {
-                                selectedCategoryForSub = category
-                            } label: {
-                                Image(systemName: "plus")
-                            }
-                            .buttonStyle(.borderless)
-                        }
                     }
+                    .cardStyle()
+                    .listRowSeparator(.hidden)
+                    .listRowBackground(Color.clear)
                 }
             }
             .overlay {
@@ -63,6 +70,7 @@ struct CategoriesView: View {
             .task {
                 await loadCategories()
             }
+            .listStyle(.plain)
             .sheet(isPresented: $showingNewCategory) {
                 NewCategoryView { newCategory in
                     categories.insert(newCategory, at: 0)

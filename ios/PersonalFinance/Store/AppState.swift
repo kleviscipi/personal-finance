@@ -6,6 +6,7 @@ final class AppState: ObservableObject {
     @Published var user: User?
     @Published var accounts: [Account] = []
     @Published var activeAccount: Account?
+    @Published var currencies: [CurrencyInfo] = []
     @Published var isLoading = false
     @Published var errorMessage: String?
 
@@ -56,6 +57,8 @@ final class AppState: ObservableObject {
             if activeAccount == nil {
                 activeAccount = accounts.first(where: { $0.isActive }) ?? accounts.first
             }
+
+            await fetchCurrencies()
         } catch {
             errorMessage = error.localizedDescription
         }
@@ -95,6 +98,17 @@ final class AppState: ObservableObject {
         )
 
         return response.data
+    }
+
+    func fetchCurrencies() async {
+        guard currencies.isEmpty else { return }
+
+        do {
+            let response: APICollectionResponse<CurrencyInfo> = try await client.request("meta/currencies")
+            currencies = response.data
+        } catch {
+            errorMessage = error.localizedDescription
+        }
     }
 
     func fetchDashboard() async throws -> DashboardPayload {

@@ -20,7 +20,7 @@ struct DashboardView: View {
                                 .font(.headline)
                             ForEach(transactions.prefix(5)) { transaction in
                                 TransactionRow(transaction: transaction)
-                                Divider()
+                                    .cardStyle()
                             }
                         }
                     }
@@ -31,6 +31,7 @@ struct DashboardView: View {
                                 .font(.headline)
                             ForEach(goals) { goal in
                                 SavingsGoalRow(goal: goal)
+                                    .cardStyle()
                             }
                         }
                     }
@@ -110,9 +111,7 @@ private struct SummaryCard: View {
                 .font(.title3.bold())
         }
         .frame(maxWidth: .infinity, alignment: .leading)
-        .padding(12)
-        .background(Color(.secondarySystemBackground))
-        .clipShape(RoundedRectangle(cornerRadius: 12))
+        .cardStyle()
     }
 }
 

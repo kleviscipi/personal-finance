@@ -12,6 +12,9 @@ struct BudgetsView: View {
             List {
                 ForEach(budgets) { budget in
                     BudgetRow(budget: budget)
+                        .cardStyle()
+                        .listRowSeparator(.hidden)
+                        .listRowBackground(Color.clear)
                 }
             }
             .overlay {
@@ -39,6 +42,7 @@ struct BudgetsView: View {
             .task {
                 await loadBudgets()
             }
+            .listStyle(.plain)
             .sheet(isPresented: $showingNewBudget) {
                 NewBudgetView { newBudget in
                     budgets.insert(newBudget, at: 0)
@@ -73,8 +77,13 @@ private struct BudgetRow: View {
 
     var body: some View {
         VStack(alignment: .leading, spacing: 4) {
-            Text(budget.category?.name ?? "General Budget")
-                .font(.headline)
+            HStack {
+                Circle()
+                    .fill(Color(hex: budget.category?.color ?? "") ?? Color.gray.opacity(0.3))
+                    .frame(width: 10, height: 10)
+                Text(budget.category?.name ?? "General Budget")
+                    .font(.headline)
+            }
             Text("\(budget.amount.raw) \(budget.currency)")
                 .font(.subheadline)
                 .foregroundStyle(.secondary)

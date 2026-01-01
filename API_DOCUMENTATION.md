@@ -49,6 +49,8 @@ GET    /transactions/{transactionId}
 PATCH  /transactions/{transactionId}
 DELETE /transactions/{transactionId}
 
+GET    /meta/currencies
+
 GET    /dashboard
 GET    /statistics
 

@@ -5,6 +5,9 @@ struct TransactionRow: View {
 
     var body: some View {
         HStack {
+            Circle()
+                .fill(Color(hex: transaction.category?.color ?? "") ?? Color.gray.opacity(0.3))
+                .frame(width: 10, height: 10)
             VStack(alignment: .leading, spacing: 4) {
                 Text(transaction.category?.name ?? "Uncategorized")
                     .font(.headline)

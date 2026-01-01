@@ -11,6 +11,9 @@ struct TransactionsView: View {
         NavigationStack {
             List(transactions) { transaction in
                 TransactionRow(transaction: transaction)
+                    .cardStyle()
+                    .listRowSeparator(.hidden)
+                    .listRowBackground(Color.clear)
             }
             .overlay {
                 if isLoading {
@@ -37,6 +40,7 @@ struct TransactionsView: View {
             .task {
                 await loadTransactions()
             }
+            .listStyle(.plain)
             .sheet(isPresented: $showingNewTransaction) {
                 NewTransactionView { newTransaction in
                     transactions.insert(newTransaction, at: 0)
