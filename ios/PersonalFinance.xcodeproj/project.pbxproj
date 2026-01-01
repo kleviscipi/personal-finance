@@ -1,0 +1,386 @@
+// !$*UTF8*$!
+{
+	archiveVersion = 1;
+	classes = {
+	};
+	objectVersion = 60;
+	objects = {
+
+/* Begin PBXBuildFile section */
+		BA1111111111111111111111 /* AppConfig.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA1111111111111111111111 /* AppConfig.swift */; };
+		BA2222222222222222222222 /* PersonalFinanceApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA2222222222222222222222 /* PersonalFinanceApp.swift */; };
+		BA3333333333333333333333 /* RootView.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA3333333333333333333333 /* RootView.swift */; };
+		BA4444444444444444444444 /* APIClient.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA4444444444444444444444 /* APIClient.swift */; };
+		BA5555555555555555555555 /* APIError.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA5555555555555555555555 /* APIError.swift */; };
+		BA6666666666666666666666 /* APIResponses.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA6666666666666666666666 /* APIResponses.swift */; };
+		BA7777777777777777777777 /* AuthModels.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA7777777777777777777777 /* AuthModels.swift */; };
+		BA8888888888888888888888 /* User.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA8888888888888888888888 /* User.swift */; };
+		BA9999999999999999999999 /* Account.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA9999999999999999999999 /* Account.swift */; };
+		BABBBBBBBBBBBBBBBBBBBBBB /* Category.swift in Sources */ = {isa = PBXBuildFile; fileRef = AABBBBBBBBBBBBBBBBBBBBBB /* Category.swift */; };
+		BACCCCCCCCCCCCCCCCCCCCCC /* Subcategory.swift in Sources */ = {isa = PBXBuildFile; fileRef = AACCCCCCCCCCCCCCCCCCCCCC /* Subcategory.swift */; };
+		BADDDDDDDDDDDDDDDDDDDDDD /* Tag.swift in Sources */ = {isa = PBXBuildFile; fileRef = AADDDDDDDDDDDDDDDDDDDDDD /* Tag.swift */; };
+		BAEEEEEEEEEEEEEEEEEEEEEE /* Transaction.swift in Sources */ = {isa = PBXBuildFile; fileRef = AAEEEEEEEEEEEEEEEEEEEEEE /* Transaction.swift */; };
+		BAFFFFFFFFFFFFFFFFFFFFFF /* JSONValue.swift in Sources */ = {isa = PBXBuildFile; fileRef = AAFFFFFFFFFFFFFFFFFFFFFF /* JSONValue.swift */; };
+		BB1111111111111111111111 /* AppState.swift in Sources */ = {isa = PBXBuildFile; fileRef = AB1111111111111111111111 /* AppState.swift */; };
+		BB2222222222222222222222 /* LoginView.swift in Sources */ = {isa = PBXBuildFile; fileRef = AB2222222222222222222222 /* LoginView.swift */; };
+		BB3333333333333333333333 /* AccountPickerView.swift in Sources */ = {isa = PBXBuildFile; fileRef = AB3333333333333333333333 /* AccountPickerView.swift */; };
+		BB4444444444444444444444 /* TransactionsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = AB4444444444444444444444 /* TransactionsView.swift */; };
+		BB5555555555555555555555 /* TransactionRow.swift in Sources */ = {isa = PBXBuildFile; fileRef = AB5555555555555555555555 /* TransactionRow.swift */; };
+		BB6666666666666666666666 /* MainTabView.swift in Sources */ = {isa = PBXBuildFile; fileRef = AB6666666666666666666666 /* MainTabView.swift */; };
+		BB7777777777777777777777 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = AB7777777777777777777777 /* Assets.xcassets */; };
+		BC1111111111111111111111 /* MoneyValue.swift in Sources */ = {isa = PBXBuildFile; fileRef = AC1111111111111111111111 /* MoneyValue.swift */; };
+		BC2222222222222222222222 /* SavingsGoal.swift in Sources */ = {isa = PBXBuildFile; fileRef = AC2222222222222222222222 /* SavingsGoal.swift */; };
+		BC3333333333333333333333 /* Budget.swift in Sources */ = {isa = PBXBuildFile; fileRef = AC3333333333333333333333 /* Budget.swift */; };
+		BC4444444444444444444444 /* DashboardModels.swift in Sources */ = {isa = PBXBuildFile; fileRef = AC4444444444444444444444 /* DashboardModels.swift */; };
+		BC5555555555555555555555 /* StatisticsModels.swift in Sources */ = {isa = PBXBuildFile; fileRef = AC5555555555555555555555 /* StatisticsModels.swift */; };
+		BC6666666666666666666666 /* DateFormatter+API.swift in Sources */ = {isa = PBXBuildFile; fileRef = AC6666666666666666666666 /* DateFormatter+API.swift */; };
+		BC7777777777777777777777 /* DashboardView.swift in Sources */ = {isa = PBXBuildFile; fileRef = AC7777777777777777777777 /* DashboardView.swift */; };
+		BC8888888888888888888888 /* BudgetsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = AC8888888888888888888888 /* BudgetsView.swift */; };
+		BC9999999999999999999999 /* CategoriesView.swift in Sources */ = {isa = PBXBuildFile; fileRef = AC9999999999999999999999 /* CategoriesView.swift */; };
+		BCAAAAAAAAAAAAAAAAAAAAAAAA /* StatisticsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = ACAAAAAAAAAAAAAAAAAAAAAAAA /* StatisticsView.swift */; };
+		BCB1111111111111111111111 /* NewTransactionView.swift in Sources */ = {isa = PBXBuildFile; fileRef = ACB1111111111111111111111 /* NewTransactionView.swift */; };
+		BCB2222222222222222222222 /* NewBudgetView.swift in Sources */ = {isa = PBXBuildFile; fileRef = ACB2222222222222222222222 /* NewBudgetView.swift */; };
+		BCB3333333333333333333333 /* NewCategoryView.swift in Sources */ = {isa = PBXBuildFile; fileRef = ACB3333333333333333333333 /* NewCategoryView.swift */; };
+		BCB4444444444444444444444 /* NewSubcategoryView.swift in Sources */ = {isa = PBXBuildFile; fileRef = ACB4444444444444444444444 /* NewSubcategoryView.swift */; };
+/* End PBXBuildFile section */
+
+/* Begin PBXFileReference section */
+		AA1111111111111111111111 /* AppConfig.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppConfig.swift; sourceTree = "<group>"; };
+		AA2222222222222222222222 /* PersonalFinanceApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PersonalFinanceApp.swift; sourceTree = "<group>"; };
+		AA3333333333333333333333 /* RootView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RootView.swift; sourceTree = "<group>"; };
+		AA4444444444444444444444 /* APIClient.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = APIClient.swift; sourceTree = "<group>"; };
+		AA5555555555555555555555 /* APIError.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = APIError.swift; sourceTree = "<group>"; };
+		AA6666666666666666666666 /* APIResponses.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = APIResponses.swift; sourceTree = "<group>"; };
+		AA7777777777777777777777 /* AuthModels.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AuthModels.swift; sourceTree = "<group>"; };
+		AA8888888888888888888888 /* User.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = User.swift; sourceTree = "<group>"; };
+		AA9999999999999999999999 /* Account.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Account.swift; sourceTree = "<group>"; };
+		AABBBBBBBBBBBBBBBBBBBBBB /* Category.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Category.swift; sourceTree = "<group>"; };
+		AACCCCCCCCCCCCCCCCCCCCCC /* Subcategory.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Subcategory.swift; sourceTree = "<group>"; };
+		AADDDDDDDDDDDDDDDDDDDDDD /* Tag.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Tag.swift; sourceTree = "<group>"; };
+		AAEEEEEEEEEEEEEEEEEEEEEE /* Transaction.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Transaction.swift; sourceTree = "<group>"; };
+		AAFFFFFFFFFFFFFFFFFFFFFF /* JSONValue.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = JSONValue.swift; sourceTree = "<group>"; };
+		AB1111111111111111111111 /* AppState.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppState.swift; sourceTree = "<group>"; };
+		AB2222222222222222222222 /* LoginView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LoginView.swift; sourceTree = "<group>"; };
+		AB3333333333333333333333 /* AccountPickerView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AccountPickerView.swift; sourceTree = "<group>"; };
+		AB4444444444444444444444 /* TransactionsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TransactionsView.swift; sourceTree = "<group>"; };
+		AB5555555555555555555555 /* TransactionRow.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TransactionRow.swift; sourceTree = "<group>"; };
+		AB6666666666666666666666 /* MainTabView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MainTabView.swift; sourceTree = "<group>"; };
+		AB7777777777777777777777 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
+		AB8888888888888888888888 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
+		AB9999999999999999999999 /* PersonalFinance.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; path = PersonalFinance.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		AC1111111111111111111111 /* MoneyValue.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MoneyValue.swift; sourceTree = "<group>"; };
+		AC2222222222222222222222 /* SavingsGoal.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SavingsGoal.swift; sourceTree = "<group>"; };
+		AC3333333333333333333333 /* Budget.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Budget.swift; sourceTree = "<group>"; };
+		AC4444444444444444444444 /* DashboardModels.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DashboardModels.swift; sourceTree = "<group>"; };
+		AC5555555555555555555555 /* StatisticsModels.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StatisticsModels.swift; sourceTree = "<group>"; };
+		AC6666666666666666666666 /* DateFormatter+API.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "DateFormatter+API.swift"; sourceTree = "<group>"; };
+		AC7777777777777777777777 /* DashboardView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DashboardView.swift; sourceTree = "<group>"; };
+		AC8888888888888888888888 /* BudgetsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BudgetsView.swift; sourceTree = "<group>"; };
+		AC9999999999999999999999 /* CategoriesView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CategoriesView.swift; sourceTree = "<group>"; };
+		ACAAAAAAAAAAAAAAAAAAAAAAAA /* StatisticsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StatisticsView.swift; sourceTree = "<group>"; };
+		ACB1111111111111111111111 /* NewTransactionView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NewTransactionView.swift; sourceTree = "<group>"; };
+		ACB2222222222222222222222 /* NewBudgetView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NewBudgetView.swift; sourceTree = "<group>"; };
+		ACB3333333333333333333333 /* NewCategoryView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NewCategoryView.swift; sourceTree = "<group>"; };
+		ACB4444444444444444444444 /* NewSubcategoryView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NewSubcategoryView.swift; sourceTree = "<group>"; };
+/* End PBXFileReference section */
+
+/* Begin PBXFrameworksBuildPhase section */
+		C3D4E5F60718293A4B5C6D7E /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXFrameworksBuildPhase section */
+
+/* Begin PBXGroup section */
+		A2B30415263748596A7B8C9D /* Networking */ = {
+			isa = PBXGroup;
+			children = (
+				AA4444444444444444444444 /* APIClient.swift */,
+				AA5555555555555555555555 /* APIError.swift */,
+			);
+			path = Networking;
+			sourceTree = "<group>";
+		};
+		B2C30415263748596A7B8C9E /* Models */ = {
+			isa = PBXGroup;
+			children = (
+				AA6666666666666666666666 /* APIResponses.swift */,
+				AA7777777777777777777777 /* AuthModels.swift */,
+				AA8888888888888888888888 /* User.swift */,
+				AA9999999999999999999999 /* Account.swift */,
+				AABBBBBBBBBBBBBBBBBBBBBB /* Category.swift */,
+				AACCCCCCCCCCCCCCCCCCCCCC /* Subcategory.swift */,
+				AADDDDDDDDDDDDDDDDDDDDDD /* Tag.swift */,
+				AAEEEEEEEEEEEEEEEEEEEEEE /* Transaction.swift */,
+				AAFFFFFFFFFFFFFFFFFFFFFF /* JSONValue.swift */,
+				AC1111111111111111111111 /* MoneyValue.swift */,
+				AC2222222222222222222222 /* SavingsGoal.swift */,
+				AC3333333333333333333333 /* Budget.swift */,
+				AC4444444444444444444444 /* DashboardModels.swift */,
+				AC5555555555555555555555 /* StatisticsModels.swift */,
+			);
+			path = Models;
+			sourceTree = "<group>";
+		};
+		C2D30415263748596A7B8C9F /* Store */ = {
+			isa = PBXGroup;
+			children = (
+				AB1111111111111111111111 /* AppState.swift */,
+			);
+			path = Store;
+			sourceTree = "<group>";
+		};
+		D1E2F30415263748495A6B7C = {
+			isa = PBXGroup;
+			children = (
+				F1A2031425364758697A8B9C /* PersonalFinance */,
+				E1F2031425364748596A7B8C /* Products */,
+			);
+			sourceTree = "<group>";
+		};
+		D2E30415263748596A7B8CA1 /* Views */ = {
+			isa = PBXGroup;
+			children = (
+				AB2222222222222222222222 /* LoginView.swift */,
+				AB3333333333333333333333 /* AccountPickerView.swift */,
+				AB4444444444444444444444 /* TransactionsView.swift */,
+				AB5555555555555555555555 /* TransactionRow.swift */,
+				AB6666666666666666666666 /* MainTabView.swift */,
+				AC7777777777777777777777 /* DashboardView.swift */,
+				AC8888888888888888888888 /* BudgetsView.swift */,
+				AC9999999999999999999999 /* CategoriesView.swift */,
+				ACAAAAAAAAAAAAAAAAAAAAAAAA /* StatisticsView.swift */,
+				ACB1111111111111111111111 /* NewTransactionView.swift */,
+				ACB2222222222222222222222 /* NewBudgetView.swift */,
+				ACB3333333333333333333333 /* NewCategoryView.swift */,
+				ACB4444444444444444444444 /* NewSubcategoryView.swift */,
+			);
+			path = Views;
+			sourceTree = "<group>";
+		};
+		E1F2031425364748596A7B8C /* Products */ = {
+			isa = PBXGroup;
+			children = (
+				AB9999999999999999999999 /* PersonalFinance.app */,
+			);
+			name = Products;
+			sourceTree = "<group>";
+		};
+		E2F30415263748596A7B8CA2 /* Supporting */ = {
+			isa = PBXGroup;
+			children = (
+				AB7777777777777777777777 /* Assets.xcassets */,
+				AB8888888888888888888888 /* Info.plist */,
+				AC6666666666666666666666 /* DateFormatter+API.swift */,
+			);
+			path = Supporting;
+			sourceTree = "<group>";
+		};
+		F1A2031425364758697A8B9C /* PersonalFinance */ = {
+			isa = PBXGroup;
+			children = (
+				AA1111111111111111111111 /* AppConfig.swift */,
+				AA2222222222222222222222 /* PersonalFinanceApp.swift */,
+				AA3333333333333333333333 /* RootView.swift */,
+				A2B30415263748596A7B8C9D /* Networking */,
+				B2C30415263748596A7B8C9E /* Models */,
+				C2D30415263748596A7B8C9F /* Store */,
+				D2E30415263748596A7B8CA1 /* Views */,
+				E2F30415263748596A7B8CA2 /* Supporting */,
+			);
+			path = PersonalFinance;
+			sourceTree = "<group>";
+		};
+/* End PBXGroup section */
+
+/* Begin PBXNativeTarget section */
+		B1C2D3E4F5061728394A5B6C /* PersonalFinance */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = E3F405162738495A6B7C8D9E /* Build configuration list for PBXNativeTarget "PersonalFinance" */;
+			buildPhases = (
+				A3B4C5D6E7F8091A2B3C4D5E /* Sources */,
+				C3D4E5F60718293A4B5C6D7E /* Frameworks */,
+				B3C4D5E6F708192A3B4C5D6E /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			name = PersonalFinance;
+			productName = PersonalFinance;
+			productReference = AB9999999999999999999999 /* PersonalFinance.app */;
+			productType = "com.apple.product-type.application";
+		};
+/* End PBXNativeTarget section */
+
+/* Begin PBXProject section */
+		A1B2C3D4E5F60718293A4B5C /* Project object */ = {
+			isa = PBXProject;
+			attributes = {
+				BuildIndependentTargetsInParallel = 1;
+				LastSwiftUpdateCheck = 1500;
+				LastUpgradeCheck = 1500;
+				TargetAttributes = {
+					B1C2D3E4F5061728394A5B6C = {
+						CreatedOnToolsVersion = 15.0;
+					};
+				};
+			};
+			buildConfigurationList = D3E4F5061728394A5B6C7D8E /* Build configuration list for PBXProject "PersonalFinance" */;
+			compatibilityVersion = "Xcode 15.0";
+			developmentRegion = en;
+			hasScannedForEncodings = 0;
+			knownRegions = (
+				en,
+				Base,
+			);
+			mainGroup = D1E2F30415263748495A6B7C;
+			productRefGroup = E1F2031425364748596A7B8C /* Products */;
+			projectDirPath = "";
+			projectRoot = "";
+			targets = (
+				B1C2D3E4F5061728394A5B6C /* PersonalFinance */,
+			);
+		};
+/* End PBXProject section */
+
+/* Begin PBXResourcesBuildPhase section */
+		B3C4D5E6F708192A3B4C5D6E /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				BB7777777777777777777777 /* Assets.xcassets in Resources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXResourcesBuildPhase section */
+
+/* Begin PBXSourcesBuildPhase section */
+		A3B4C5D6E7F8091A2B3C4D5E /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				BA1111111111111111111111 /* AppConfig.swift in Sources */,
+				BA2222222222222222222222 /* PersonalFinanceApp.swift in Sources */,
+				BA3333333333333333333333 /* RootView.swift in Sources */,
+				BA4444444444444444444444 /* APIClient.swift in Sources */,
+				BA5555555555555555555555 /* APIError.swift in Sources */,
+				BA6666666666666666666666 /* APIResponses.swift in Sources */,
+				BA7777777777777777777777 /* AuthModels.swift in Sources */,
+				BA8888888888888888888888 /* User.swift in Sources */,
+				BA9999999999999999999999 /* Account.swift in Sources */,
+				BABBBBBBBBBBBBBBBBBBBBBB /* Category.swift in Sources */,
+				BACCCCCCCCCCCCCCCCCCCCCC /* Subcategory.swift in Sources */,
+				BADDDDDDDDDDDDDDDDDDDDDD /* Tag.swift in Sources */,
+				BAEEEEEEEEEEEEEEEEEEEEEE /* Transaction.swift in Sources */,
+				BAFFFFFFFFFFFFFFFFFFFFFF /* JSONValue.swift in Sources */,
+				BB1111111111111111111111 /* AppState.swift in Sources */,
+				BB2222222222222222222222 /* LoginView.swift in Sources */,
+				BB3333333333333333333333 /* AccountPickerView.swift in Sources */,
+				BB4444444444444444444444 /* TransactionsView.swift in Sources */,
+				BB5555555555555555555555 /* TransactionRow.swift in Sources */,
+				BB6666666666666666666666 /* MainTabView.swift in Sources */,
+				BC1111111111111111111111 /* MoneyValue.swift in Sources */,
+				BC2222222222222222222222 /* SavingsGoal.swift in Sources */,
+				BC3333333333333333333333 /* Budget.swift in Sources */,
+				BC4444444444444444444444 /* DashboardModels.swift in Sources */,
+				BC5555555555555555555555 /* StatisticsModels.swift in Sources */,
+				BC6666666666666666666666 /* DateFormatter+API.swift in Sources */,
+				BC7777777777777777777777 /* DashboardView.swift in Sources */,
+				BC8888888888888888888888 /* BudgetsView.swift in Sources */,
+				BC9999999999999999999999 /* CategoriesView.swift in Sources */,
+				BCAAAAAAAAAAAAAAAAAAAAAAAA /* StatisticsView.swift in Sources */,
+				BCB1111111111111111111111 /* NewTransactionView.swift in Sources */,
+				BCB2222222222222222222222 /* NewBudgetView.swift in Sources */,
+				BCB3333333333333333333333 /* NewCategoryView.swift in Sources */,
+				BCB4444444444444444444444 /* NewSubcategoryView.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXSourcesBuildPhase section */
+
+/* Begin XCBuildConfiguration section */
+		A4B5061728394A5B6C7D8E9F /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CLANG_ANALYZER_LOCALIZABILITY_NONLOCALIZED = YES;
+				CURRENT_PROJECT_VERSION = 1;
+				MARKETING_VERSION = 1.0;
+			};
+			name = Release;
+		};
+		B4C5061728394A5B6C7D8E90 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = 97SV872WY5;
+				INFOPLIST_FILE = PersonalFinance/Supporting/Info.plist;
+				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.tamburis.personalfinance;
+				PRODUCT_NAME = PersonalFinance;
+				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
+				SUPPORTS_MACCATALYST = NO;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Debug;
+		};
+		C4D5061728394A5B6C7D8E91 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = 97SV872WY5;
+				INFOPLIST_FILE = PersonalFinance/Supporting/Info.plist;
+				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.tamburis.personalfinance;
+				PRODUCT_NAME = PersonalFinance;
+				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
+				SUPPORTS_MACCATALYST = NO;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Release;
+		};
+		F3A405162738495A6B7C8D9F /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CLANG_ANALYZER_LOCALIZABILITY_NONLOCALIZED = YES;
+				CURRENT_PROJECT_VERSION = 1;
+				MARKETING_VERSION = 1.0;
+			};
+			name = Debug;
+		};
+/* End XCBuildConfiguration section */
+
+/* Begin XCConfigurationList section */
+		D3E4F5061728394A5B6C7D8E /* Build configuration list for PBXProject "PersonalFinance" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				F3A405162738495A6B7C8D9F /* Debug */,
+				A4B5061728394A5B6C7D8E9F /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Debug;
+		};
+		E3F405162738495A6B7C8D9E /* Build configuration list for PBXNativeTarget "PersonalFinance" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				B4C5061728394A5B6C7D8E90 /* Debug */,
+				C4D5061728394A5B6C7D8E91 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Debug;
+		};
+/* End XCConfigurationList section */
+	};
+	rootObject = A1B2C3D4E5F60718293A4B5C /* Project object */;
+}

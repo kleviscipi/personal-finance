@@ -4,6 +4,67 @@
 
 This document outlines the RESTful API structure for the Personal Finance application. While the current implementation uses Inertia.js for the frontend, this API structure provides a foundation for future API-based integrations.
 
+## Implemented Mobile API (v1)
+
+These endpoints are now available for the native iOS client and use Sanctum bearer tokens.
+
+### Base URL
+```
+/api/v1
+```
+
+### Authentication
+```
+POST /auth/register
+POST /auth/login
+POST /auth/logout
+GET  /auth/me
+```
+
+### Account Scoping
+For account-scoped resources (categories, transactions, budgets, savings goals), pass the active account via either:
+- `X-Account-Id: {id}` header, or
+- `account_id` query/body parameter
+
+### Core Resources
+```
+GET    /accounts
+POST   /accounts
+GET    /accounts/{accountId}
+PATCH  /accounts/{accountId}
+DELETE /accounts/{accountId}
+
+GET    /categories
+POST   /categories
+GET    /categories/{categoryId}
+PATCH  /categories/{categoryId}
+DELETE /categories/{categoryId}
+POST   /categories/{categoryId}/subcategories
+PATCH  /categories/{categoryId}/subcategories/{subcategoryId}
+DELETE /categories/{categoryId}/subcategories/{subcategoryId}
+
+GET    /transactions
+POST   /transactions
+GET    /transactions/{transactionId}
+PATCH  /transactions/{transactionId}
+DELETE /transactions/{transactionId}
+
+GET    /dashboard
+GET    /statistics
+
+GET    /budgets
+POST   /budgets
+GET    /budgets/{budgetId}
+PATCH  /budgets/{budgetId}
+DELETE /budgets/{budgetId}
+
+GET    /savings-goals
+POST   /savings-goals
+GET    /savings-goals/{savingsGoalId}
+PATCH  /savings-goals/{savingsGoalId}
+DELETE /savings-goals/{savingsGoalId}
+```
+
 ## Authentication
 
 All API requests require authentication. The application uses Laravel's built-in session-based authentication for web requests and can be extended to support token-based authentication (Laravel Sanctum) for API clients.
