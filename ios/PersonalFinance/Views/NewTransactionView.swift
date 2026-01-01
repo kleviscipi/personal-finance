@@ -11,7 +11,7 @@ struct NewTransactionView: View {
     @State private var currency = ""
     @State private var date = Date()
     @State private var description = ""
-    @State private var paymentMethod = ""
+    @State private var paymentMethod = "cash"
     @State private var categories: [Category] = []
     @State private var selectedCategoryId: Int?
     @State private var selectedSubcategoryId: Int?
@@ -31,15 +31,10 @@ struct NewTransactionView: View {
                     TextField("Amount", text: $amount)
                         .keyboardType(.decimalPad)
 
-                    if appState.currencies.isEmpty {
-                        TextField("Currency", text: $currency)
-                            .textInputAutocapitalization(.characters)
-                    } else {
-                        Picker("Currency", selection: $currency) {
-                            ForEach(appState.currencies) { currencyInfo in
-                                Text("\(currencyInfo.code) • \(currencyInfo.name)")
-                                    .tag(currencyInfo.code)
-                            }
+                    Picker("Currency", selection: $currency) {
+                        ForEach(appState.availableCurrencies) { currencyInfo in
+                            Text("\(currencyInfo.code) • \(currencyInfo.name)")
+                                .tag(currencyInfo.code)
                         }
                     }
 
@@ -70,7 +65,11 @@ struct NewTransactionView: View {
 
                 Section("Notes") {
                     TextField("Description", text: $description)
-                    TextField("Payment Method", text: $paymentMethod)
+                    Picker("Payment Method", selection: $paymentMethod) {
+                        ForEach(paymentOptions) { option in
+                            Text(option.label).tag(option.value)
+                        }
+                    }
                 }
 
                 if let errorMessage {
@@ -99,7 +98,7 @@ struct NewTransactionView: View {
                 await loadCategories()
                 await appState.fetchCurrencies()
                 if currency.isEmpty {
-                    currency = appState.activeAccount?.baseCurrency ?? "USD"
+                    currency = appState.activeAccount?.baseCurrency ?? appState.availableCurrencies.first?.code ?? "USD"
                 }
             }
         }
@@ -146,4 +145,20 @@ struct NewTransactionView: View {
             errorMessage = error.localizedDescription
         }
     }
+
+    private let paymentOptions: [PaymentOption] = [
+        PaymentOption(value: "cash", label: "Cash"),
+        PaymentOption(value: "card", label: "Card"),
+        PaymentOption(value: "bank_transfer", label: "Bank transfer"),
+        PaymentOption(value: "mobile_wallet", label: "Mobile wallet"),
+        PaymentOption(value: "opening_balance", label: "Opening balance"),
+        PaymentOption(value: "other", label: "Other"),
+    ]
+}
+
+private struct PaymentOption: Identifiable {
+    let value: String
+    let label: String
+
+    var id: String { value }
 }

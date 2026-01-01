@@ -25,15 +25,10 @@ struct NewBudgetView: View {
                     TextField("Amount", text: $amount)
                         .keyboardType(.decimalPad)
 
-                    if appState.currencies.isEmpty {
-                        TextField("Currency", text: $currency)
-                            .textInputAutocapitalization(.characters)
-                    } else {
-                        Picker("Currency", selection: $currency) {
-                            ForEach(appState.currencies) { currencyInfo in
-                                Text("\(currencyInfo.code) • \(currencyInfo.name)")
-                                    .tag(currencyInfo.code)
-                            }
+                    Picker("Currency", selection: $currency) {
+                        ForEach(appState.availableCurrencies) { currencyInfo in
+                            Text("\(currencyInfo.code) • \(currencyInfo.name)")
+                                .tag(currencyInfo.code)
                         }
                     }
 
@@ -98,7 +93,7 @@ struct NewBudgetView: View {
                 await loadCategories()
                 await appState.fetchCurrencies()
                 if currency.isEmpty {
-                    currency = appState.activeAccount?.baseCurrency ?? "USD"
+                    currency = appState.activeAccount?.baseCurrency ?? appState.availableCurrencies.first?.code ?? "USD"
                 }
             }
         }

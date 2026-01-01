@@ -13,6 +13,11 @@ final class AppState: ObservableObject {
     let client: APIClient
 
     private let tokenKey = "pf.api.token"
+    private let defaultCurrencies = [
+        CurrencyInfo(name: "US Dollar", symbol: "$", code: "USD"),
+        CurrencyInfo(name: "Euro", symbol: "EUR", code: "EUR"),
+        CurrencyInfo(name: "Albanian Lek", symbol: "L", code: "ALL"),
+    ]
 
     init(client: APIClient = APIClient(baseURL: AppConfig.apiBaseURL)) {
         self.client = client
@@ -85,6 +90,10 @@ final class AppState: ObservableObject {
 
     func selectAccount(_ account: Account) {
         activeAccount = account
+    }
+
+    var availableCurrencies: [CurrencyInfo] {
+        currencies.isEmpty ? defaultCurrencies : currencies
     }
 
     func fetchTransactions() async throws -> [Transaction] {
