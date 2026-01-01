@@ -2,7 +2,9 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Account;
 use App\Models\Budget;
+use App\Models\User;
 use App\Services\BudgetService;
 use App\Services\CurrencyService;
 use App\Support\ActiveAccount;
@@ -26,8 +28,13 @@ class BudgetController extends Controller
             return redirect()->route('accounts.create');
         }
 
-        $budgets = Budget::with(['category', 'subcategory'])
+        $user = $request->user();
+        $budgets = Budget::with(['category', 'subcategory', 'user'])
             ->where('account_id', $account->id)
+            ->where(function ($query) use ($user) {
+                $query->whereNull('user_id')
+                    ->orWhere('user_id', $user->id);
+            })
             ->latest('start_date')
             ->get();
 
@@ -51,9 +58,15 @@ class BudgetController extends Controller
             ->orderBy('order')
             ->orderBy('name')
             ->get();
+        $accountUsers = $account->users()
+            ->select('users.id', 'users.name', 'users.email')
+            ->orderBy('name')
+            ->get();
 
         return Inertia::render('Budgets/Create', [
             'categories' => $categories,
+            'accountUsers' => $accountUsers,
+            'currentUserId' => $request->user()->id,
         ]);
     }
 
@@ -75,12 +88,19 @@ class BudgetController extends Controller
                 'nullable',
                 Rule::exists('subcategories', 'id'),
             ],
+            'user_id' => [
+                'nullable',
+                Rule::exists('account_user', 'user_id')->where(fn ($query) => $query->where('account_id', $account?->id)),
+            ],
             'amount' => ['required', 'numeric', 'min:0'],
             'currency' => ['required', Rule::in(array_keys($this->currencyService->getSupportedCurrencies()))],
             'period' => ['required', Rule::in(['monthly', 'yearly'])],
             'start_date' => ['required', 'date'],
             'end_date' => ['nullable', 'date', 'after_or_equal:start_date'],
         ]);
+
+        $validated['user_id'] = $validated['user_id'] ?: null;
+        $this->authorizeBudgetScope($account, $request->user(), $validated['user_id']);
 
         $this->budgetService->createBudget($account, $validated);
 
@@ -104,10 +124,16 @@ class BudgetController extends Controller
             ->orderBy('order')
             ->orderBy('name')
             ->get();
+        $accountUsers = $account->users()
+            ->select('users.id', 'users.name', 'users.email')
+            ->orderBy('name')
+            ->get();
 
         return Inertia::render('Budgets/Edit', [
             'budget' => $budget->load(['category', 'subcategory']),
             'categories' => $categories,
+            'accountUsers' => $accountUsers,
+            'currentUserId' => $request->user()->id,
         ]);
     }
 
@@ -129,12 +155,19 @@ class BudgetController extends Controller
                 'nullable',
                 Rule::exists('subcategories', 'id'),
             ],
+            'user_id' => [
+                'nullable',
+                Rule::exists('account_user', 'user_id')->where(fn ($query) => $query->where('account_id', $account?->id)),
+            ],
             'amount' => ['required', 'numeric', 'min:0'],
             'currency' => ['required', Rule::in(array_keys($this->currencyService->getSupportedCurrencies()))],
             'period' => ['required', Rule::in(['monthly', 'yearly'])],
             'start_date' => ['required', 'date'],
             'end_date' => ['nullable', 'date', 'after_or_equal:start_date'],
         ]);
+
+        $validated['user_id'] = $validated['user_id'] ?: null;
+        $this->authorizeBudgetScope($account, $request->user(), $validated['user_id']);
 
         $this->budgetService->updateBudget($budget, $validated);
 
@@ -152,5 +185,22 @@ class BudgetController extends Controller
         return redirect()
             ->route('budgets.index')
             ->with('message', 'Budget deleted successfully.');
+    }
+
+    private function authorizeBudgetScope(Account $account, User $user, ?int $userId): void
+    {
+        if ($userId === null || $userId === $user->id) {
+            return;
+        }
+
+        $pivot = $account->users()
+            ->where('users.id', $user->id)
+            ->first()
+            ?->pivot;
+
+        $isAccountManager = $pivot && in_array($pivot->role, ['owner', 'admin'], true);
+        if (!$isAccountManager) {
+            abort(403);
+        }
     }
 }

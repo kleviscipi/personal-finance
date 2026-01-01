@@ -45,6 +45,12 @@ class BudgetPolicy
             ->first()
             ->pivot;
 
+        $isAccountManager = in_array($pivot->role, ['owner', 'admin']);
+
+        if ($budget->user_id && $budget->user_id !== $user->id && !$isAccountManager) {
+            return false;
+        }
+
         return in_array($pivot->role, ['owner', 'admin', 'member']) && $pivot->is_active;
     }
 

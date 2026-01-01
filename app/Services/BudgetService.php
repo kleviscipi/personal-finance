@@ -18,6 +18,7 @@ class BudgetService
     {
         return Budget::create([
             'account_id' => $account->id,
+            'user_id' => $data['user_id'] ?? null,
             'category_id' => $data['category_id'] ?? null,
             'subcategory_id' => $data['subcategory_id'] ?? null,
             'amount' => $data['amount'],
@@ -47,6 +48,9 @@ class BudgetService
         $spent = DB::table('transactions')
             ->where('account_id', $budget->account_id)
             ->where('type', 'expense')
+            ->when($budget->user_id, function ($query) use ($budget) {
+                return $query->where('created_by', $budget->user_id);
+            })
             ->when($budget->category_id, function ($query) use ($budget) {
                 return $query->where('category_id', $budget->category_id);
             })

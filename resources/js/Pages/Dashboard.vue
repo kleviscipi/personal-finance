@@ -225,7 +225,16 @@
                         <div class="space-y-4">
                             <div v-for="budget in analytics.budget_usage?.slice(0, 5)" :key="budget.id" class="relative">
                                 <div class="flex items-center justify-between mb-1">
-                                    <span class="text-sm font-medium text-gray-700">{{ budget.category }}</span>
+                                    <span class="text-sm font-medium text-gray-700">
+                                        {{ budget.category || 'All categories' }}
+                                        <span class="ml-2 text-xs text-gray-400">
+                                            {{
+                                                budget.user_id
+                                                    ? `Personal: ${budget.user_name || budget.user_email || budget.user_id}`
+                                                    : 'Account-wide'
+                                            }}
+                                        </span>
+                                    </span>
                                     <span class="text-sm text-gray-500">{{ formatCurrency(budget.spent) }} / {{ formatCurrency(budget.budget) }}</span>
                                 </div>
                                 <div class="overflow-hidden h-2 text-xs flex rounded bg-gray-200">
@@ -397,7 +406,14 @@
                                         :style="{ backgroundColor: budget.color || '#6b7280' }"
                                     ></span>
                                     <span class="text-sm text-gray-700">
-                                        {{ budget.category || 'Budget' }}
+                                        {{ budget.category || 'All categories' }}
+                                        <span class="ml-2 text-xs text-gray-400">
+                                            {{
+                                                budget.user_id
+                                                    ? `Personal: ${budget.user_name || budget.user_email || budget.user_id}`
+                                                    : 'Account-wide'
+                                            }}
+                                        </span>
                                     </span>
                                 </div>
                                 <div

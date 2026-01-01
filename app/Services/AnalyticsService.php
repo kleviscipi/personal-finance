@@ -3,6 +3,7 @@
 namespace App\Services;
 
 use App\Models\Account;
+use App\Models\User;
 use App\Support\DecimalMath;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\DB;
@@ -600,7 +601,7 @@ class AnalyticsService
         return DecimalMath::sub($income, $expenses, 4);
     }
 
-    public function getBudgetUsage(Account $account, ?string $month = null, ?string $year = null): array
+    public function getBudgetUsage(Account $account, ?string $month = null, ?string $year = null, ?User $user = null): array
     {
         $month = $month ?? now()->format('m');
         $year = $year ?? now()->format('Y');
@@ -610,6 +611,7 @@ class AnalyticsService
         
         return DB::table('budgets')
             ->leftJoin('categories', 'budgets.category_id', '=', 'categories.id')
+            ->leftJoin('users', 'budgets.user_id', '=', 'users.id')
             ->leftJoin('transactions', function ($join) use ($date) {
                 $join->on('transactions.account_id', '=', 'budgets.account_id')
                     ->whereYear('transactions.date', $date->year)
@@ -624,8 +626,20 @@ class AnalyticsService
                         $query->whereNull('budgets.subcategory_id')
                             ->orWhereColumn('transactions.subcategory_id', 'budgets.subcategory_id');
                     });
+                $join->where(function ($query) {
+                    $query->whereNull('budgets.user_id')
+                        ->orWhereColumn('transactions.created_by', 'budgets.user_id');
+                });
             })
             ->where('budgets.account_id', $account->id)
+            ->where(function ($query) use ($user) {
+                if ($user) {
+                    $query->whereNull('budgets.user_id')
+                        ->orWhere('budgets.user_id', $user->id);
+                    return;
+                }
+                $query->whereNull('budgets.user_id');
+            })
             ->where('budgets.period', 'monthly')
             ->where('budgets.start_date', '<=', $date)
             ->where(function ($query) use ($date) {
@@ -635,17 +649,20 @@ class AnalyticsService
             ->whereNull('budgets.deleted_at')
             ->select(
                 'budgets.id',
+                'budgets.user_id',
                 'categories.name as category',
+                'users.name as user_name',
+                'users.email as user_email',
                 DB::raw("MAX({$convertedBudgetAmount}) as budget"),
                 DB::raw("COALESCE(SUM({$convertedTransactionAmount}), 0) as spent"),
                 DB::raw("MAX({$convertedBudgetAmount}) - COALESCE(SUM({$convertedTransactionAmount}), 0) as remaining")
             )
-            ->groupBy('budgets.id', 'categories.name')
+            ->groupBy('budgets.id', 'budgets.user_id', 'categories.name', 'users.name', 'users.email')
             ->get()
             ->toArray();
     }
 
-    public function getBudgetVariance(Account $account, ?string $month = null, ?string $year = null): array
+    public function getBudgetVariance(Account $account, ?string $month = null, ?string $year = null, ?User $user = null): array
     {
         $month = $month ?? now()->format('m');
         $year = $year ?? now()->format('Y');
@@ -655,6 +672,7 @@ class AnalyticsService
 
         return DB::table('budgets')
             ->leftJoin('categories', 'budgets.category_id', '=', 'categories.id')
+            ->leftJoin('users', 'budgets.user_id', '=', 'users.id')
             ->leftJoin('transactions', function ($join) use ($date) {
                 $join->on('transactions.account_id', '=', 'budgets.account_id')
                     ->whereYear('transactions.date', $date->year)
@@ -669,8 +687,20 @@ class AnalyticsService
                         $query->whereNull('budgets.subcategory_id')
                             ->orWhereColumn('transactions.subcategory_id', 'budgets.subcategory_id');
                     });
+                $join->where(function ($query) {
+                    $query->whereNull('budgets.user_id')
+                        ->orWhereColumn('transactions.created_by', 'budgets.user_id');
+                });
             })
             ->where('budgets.account_id', $account->id)
+            ->where(function ($query) use ($user) {
+                if ($user) {
+                    $query->whereNull('budgets.user_id')
+                        ->orWhere('budgets.user_id', $user->id);
+                    return;
+                }
+                $query->whereNull('budgets.user_id');
+            })
             ->where('budgets.period', 'monthly')
             ->where('budgets.start_date', '<=', $date)
             ->where(function ($query) use ($date) {
@@ -680,13 +710,16 @@ class AnalyticsService
             ->whereNull('budgets.deleted_at')
             ->select(
                 'budgets.id',
+                'budgets.user_id',
                 'categories.name as category',
                 'categories.color as color',
+                'users.name as user_name',
+                'users.email as user_email',
                 DB::raw("MAX({$convertedBudgetAmount}) as budget"),
                 DB::raw("COALESCE(SUM({$convertedTransactionAmount}), 0) as spent"),
                 DB::raw("COALESCE(SUM({$convertedTransactionAmount}), 0) - MAX({$convertedBudgetAmount}) as variance")
             )
-            ->groupBy('budgets.id', 'categories.name', 'categories.color')
+            ->groupBy('budgets.id', 'budgets.user_id', 'categories.name', 'categories.color', 'users.name', 'users.email')
             ->orderBy(DB::raw("COALESCE(SUM({$convertedTransactionAmount}), 0) - MAX({$convertedBudgetAmount})"), 'desc')
             ->get()
             ->toArray();
@@ -1048,7 +1081,7 @@ class AnalyticsService
         ];
     }
 
-    public function getDashboardData(Account $account): array
+    public function getDashboardData(Account $account, User $user): array
     {
         $currentMonth = now()->format('m');
         $currentYear = now()->format('Y');
@@ -1065,8 +1098,8 @@ class AnalyticsService
             'current_month_transaction_count' => $this->getMonthlyTransactionCount($account, $currentMonth, $currentYear),
             'net_cash_flow' => $this->getNetCashFlow($account, $currentMonth, $currentYear),
             'expenses_by_category' => $this->getMonthlyExpensesByCategory($account, $currentMonth, $currentYear),
-            'budget_usage' => $this->getBudgetUsage($account, $currentMonth, $currentYear),
-            'budget_variance' => $this->getBudgetVariance($account, $currentMonth, $currentYear),
+            'budget_usage' => $this->getBudgetUsage($account, $currentMonth, $currentYear, $user),
+            'budget_variance' => $this->getBudgetVariance($account, $currentMonth, $currentYear, $user),
             'category_trends' => $this->getCategoryTrends($account, 6),
             'monthly_summary' => $this->getMonthlySummary($account, 12),
             'top_categories' => $this->getTopCategories($account, 30),

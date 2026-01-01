@@ -12,6 +12,8 @@ const props = defineProps({
     currentAccount: Object,
     categories: Array,
     currencies: Object,
+    accountUsers: Array,
+    currentUserId: Number,
 });
 
 const currencyOptions = computed(() => {
@@ -30,6 +32,7 @@ const currencyOptions = computed(() => {
 });
 
 const form = useForm({
+    user_id: '',
     category_id: '',
     subcategory_id: '',
     amount: '',
@@ -92,6 +95,16 @@ const formatAmountInput = () => {
 
     form.amount = numeric.toFixed(2);
 };
+
+const formatUserLabel = (user) => {
+    if (!user) {
+        return '';
+    }
+    if (props.currentUserId && user.id === props.currentUserId) {
+        return `You (${user.name || user.email || user.id})`;
+    }
+    return user.name || user.email || `User ${user.id}`;
+};
 </script>
 
 <template>
@@ -118,6 +131,30 @@ const formatAmountInput = () => {
 
             <form @submit.prevent="submit" class="pf-card">
                 <div class="px-6 py-6 space-y-6">
+                    <div class="grid grid-cols-1 gap-6 sm:grid-cols-2">
+                        <div>
+                            <InputLabel for="user_id" value="Applies to" />
+                            <select
+                                id="user_id"
+                                v-model="form.user_id"
+                                class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
+                            >
+                                <option value="">Account (all users)</option>
+                                <option
+                                    v-for="user in accountUsers || []"
+                                    :key="user.id"
+                                    :value="user.id"
+                                >
+                                    {{ formatUserLabel(user) }}
+                                </option>
+                            </select>
+                            <p class="mt-2 text-xs text-gray-500">
+                                Account-wide budgets track everyone. Personal budgets track a single user.
+                            </p>
+                            <InputError class="mt-2" :message="form.errors.user_id" />
+                        </div>
+                    </div>
+
                     <div class="grid grid-cols-1 gap-6 sm:grid-cols-2">
                         <div>
                             <InputLabel for="category_id" value="Category" />

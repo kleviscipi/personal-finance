@@ -22,7 +22,7 @@ class DashboardController extends Controller
             return redirect()->route('accounts.create');
         }
 
-        $analytics = $this->analyticsService->getDashboardData($account);
+        $analytics = $this->analyticsService->getDashboardData($account, $request->user());
         
         $recentTransactions = $account->transactions()
             ->with(['category', 'subcategory'])

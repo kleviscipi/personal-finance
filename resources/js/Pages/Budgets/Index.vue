@@ -112,7 +112,7 @@ const deleteMessage = computed(() => {
                     >
                         <div>
                             <div class="text-sm font-medium text-gray-900">
-                                {{ budget.category?.name || 'Overall Budget' }}
+                                {{ budget.category?.name || 'All categories' }}
                                 <span v-if="budget.subcategory" class="text-gray-500">
                                     • {{ budget.subcategory.name }}
                                 </span>
@@ -121,6 +121,9 @@ const deleteMessage = computed(() => {
                                 {{ budget.period }} • {{ formatDate(budget.start_date) }}
                                 <span v-if="budget.end_date">
                                     – {{ formatDate(budget.end_date) }}
+                                </span>
+                                <span class="ml-2 text-xs text-gray-400">
+                                    {{ budget.user ? `Personal: ${budget.user.name || budget.user.email || budget.user.id}` : 'Account-wide' }}
                                 </span>
                             </div>
                         </div>

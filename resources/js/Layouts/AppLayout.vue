@@ -60,7 +60,7 @@
 
                     <!-- User Menu -->
                     <div class="hidden sm:ml-6 sm:flex sm:items-center">
-                        <div class="ml-3 relative">
+                        <div ref="userMenuRef" class="ml-3 relative">
                             <button
                                 @click="showUserMenu = !showUserMenu"
                                 class="flex items-center gap-3 rounded-full px-2 py-1 text-sm focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-sky-500"
@@ -351,7 +351,7 @@
 </template>
 
 <script setup>
-import { computed, ref } from 'vue';
+import { computed, onMounted, onUnmounted, ref } from 'vue';
 import { Link, router, usePage } from '@inertiajs/vue3';
 
 const props = defineProps({
@@ -367,6 +367,7 @@ const activeAccountId = computed(() => page.props.activeAccount?.id || null);
 
 const showUserMenu = ref(false);
 const showMobileMenu = ref(false);
+const userMenuRef = ref(null);
 
 const userInitial = computed(() => {
     const name = props.auth?.user?.name;
@@ -383,4 +384,22 @@ const switchAccount = (event) => {
     }
     router.post(route('accounts.active'), { account_id: accountId }, { preserveScroll: true });
 };
+
+const handleDocumentClick = (event) => {
+    if (!showUserMenu.value) {
+        return;
+    }
+    const target = event.target;
+    if (userMenuRef.value && !userMenuRef.value.contains(target)) {
+        showUserMenu.value = false;
+    }
+};
+
+onMounted(() => {
+    document.addEventListener('click', handleDocumentClick);
+});
+
+onUnmounted(() => {
+    document.removeEventListener('click', handleDocumentClick);
+});
 </script>
