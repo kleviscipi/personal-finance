@@ -31,11 +31,8 @@ struct EditBudgetView: View {
         _selectedCategoryId = State(initialValue: budget.category?.id)
         _selectedSubcategoryId = State(initialValue: budget.subcategory?.id)
         
-        let formatter = ISO8601DateFormatter()
-        formatter.formatOptions = [.withFullDate, .withDashSeparatorInDate]
-        
-        _startDate = State(initialValue: formatter.date(from: budget.startDate) ?? Date())
-        _endDate = State(initialValue: budget.endDate.flatMap { formatter.date(from: $0) } ?? Date())
+        _startDate = State(initialValue: budget.startDate.toDate() ?? Date())
+        _endDate = State(initialValue: budget.endDate?.toDate() ?? Date())
     }
     
     var body: some View {
@@ -145,17 +142,14 @@ struct EditBudgetView: View {
         defer { isLoading = false }
         
         do {
-            let formatter = ISO8601DateFormatter()
-            formatter.formatOptions = [.withFullDate, .withDashSeparatorInDate]
-            
             let request = UpdateBudgetRequest(
                 categoryId: selectedCategoryId,
                 subcategoryId: selectedSubcategoryId,
                 amount: Double(amount) ?? 0,
                 currency: currency,
                 period: period,
-                startDate: formatter.string(from: startDate),
-                endDate: period == "custom" ? formatter.string(from: endDate) : nil
+                startDate: startDate.toAPIDateString(),
+                endDate: period == "custom" ? endDate.toAPIDateString() : nil
             )
             
             let updated = try await appState.updateBudget(budget.id, request: request)

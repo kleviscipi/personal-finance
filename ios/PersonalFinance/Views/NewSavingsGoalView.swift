@@ -154,17 +154,14 @@ struct NewSavingsGoalView: View {
         defer { isLoading = false }
         
         do {
-            let formatter = ISO8601DateFormatter()
-            formatter.formatOptions = [.withFullDate, .withDashSeparatorInDate]
-            
             let request = CreateSavingsGoalRequest(
                 name: name,
                 targetAmount: Double(targetAmount) ?? 0,
                 initialAmount: initialAmount.isEmpty ? nil : Double(initialAmount),
                 currency: currency,
                 trackingMode: trackingMode,
-                startDate: formatter.string(from: startDate),
-                targetDate: formatter.string(from: targetDate),
+                startDate: startDate.toAPIDateString(),
+                targetDate: targetDate.toAPIDateString(),
                 categoryId: trackingMode == "category" || trackingMode == "subcategory" ? selectedCategoryId : nil,
                 subcategoryId: trackingMode == "subcategory" ? selectedSubcategoryId : nil
             )

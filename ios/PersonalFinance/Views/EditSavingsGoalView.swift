@@ -38,11 +38,8 @@ struct EditSavingsGoalView: View {
         _currency = State(initialValue: goal.currency)
         _trackingMode = State(initialValue: goal.trackingMode)
         
-        let formatter = ISO8601DateFormatter()
-        formatter.formatOptions = [.withFullDate, .withDashSeparatorInDate]
-        
-        _startDate = State(initialValue: formatter.date(from: goal.startDate) ?? Date())
-        _targetDate = State(initialValue: formatter.date(from: goal.targetDate) ?? Date())
+        _startDate = State(initialValue: goal.startDate.toDate() ?? Date())
+        _targetDate = State(initialValue: goal.targetDate.toDate() ?? Date())
     }
     
     var body: some View {
@@ -164,17 +161,14 @@ struct EditSavingsGoalView: View {
         defer { isLoading = false }
         
         do {
-            let formatter = ISO8601DateFormatter()
-            formatter.formatOptions = [.withFullDate, .withDashSeparatorInDate]
-            
             let request = UpdateSavingsGoalRequest(
                 name: name,
                 targetAmount: Double(targetAmount) ?? 0,
                 initialAmount: initialAmount.isEmpty ? nil : Double(initialAmount),
                 currency: currency,
                 trackingMode: trackingMode,
-                startDate: formatter.string(from: startDate),
-                targetDate: formatter.string(from: targetDate),
+                startDate: startDate.toAPIDateString(),
+                targetDate: targetDate.toAPIDateString(),
                 categoryId: trackingMode == "category" || trackingMode == "subcategory" ? selectedCategoryId : nil,
                 subcategoryId: trackingMode == "subcategory" ? selectedSubcategoryId : nil
             )

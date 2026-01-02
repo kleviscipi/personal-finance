@@ -127,7 +127,7 @@ struct ProfileView: View {
     }
     
     private var isProfileValid: Bool {
-        !name.isEmpty && !email.isEmpty && email.contains("@")
+        !name.isEmpty && !email.isEmpty && ValidationUtils.isValidEmail(email)
     }
     
     private var isPasswordValid: Bool {

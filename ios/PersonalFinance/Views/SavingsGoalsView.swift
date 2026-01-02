@@ -201,16 +201,7 @@ private struct SavingsGoalRow: View {
     }
     
     private func formatDate(_ dateString: String) -> String {
-        let formatter = ISO8601DateFormatter()
-        formatter.formatOptions = [.withFullDate, .withDashSeparatorInDate]
-        
-        guard let date = formatter.date(from: dateString) else {
-            return dateString
-        }
-        
-        let displayFormatter = DateFormatter()
-        displayFormatter.dateStyle = .medium
-        return displayFormatter.string(from: date)
+        return dateString.toDate()?.toDisplayString() ?? dateString
     }
     
     private func trackingModeLabel(_ mode: String) -> String {

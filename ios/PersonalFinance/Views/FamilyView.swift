@@ -172,7 +172,7 @@ struct FamilyView: View {
     }
     
     private var isInviteValid: Bool {
-        !inviteEmail.isEmpty && inviteEmail.contains("@")
+        !inviteEmail.isEmpty && ValidationUtils.isValidEmail(inviteEmail)
     }
     
     private func roleColor(_ role: String) -> Color {

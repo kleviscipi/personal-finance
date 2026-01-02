@@ -35,9 +35,7 @@ struct EditTransactionView: View {
         _selectedCategoryId = State(initialValue: transaction.category?.id)
         _selectedSubcategoryId = State(initialValue: transaction.subcategory?.id)
         
-        let formatter = ISO8601DateFormatter()
-        formatter.formatOptions = [.withFullDate, .withDashSeparatorInDate]
-        _date = State(initialValue: formatter.date(from: transaction.date) ?? Date())
+        _date = State(initialValue: transaction.date.toDate() ?? Date())
     }
     
     var body: some View {
@@ -149,14 +147,11 @@ struct EditTransactionView: View {
         defer { isLoading = false }
         
         do {
-            let formatter = ISO8601DateFormatter()
-            formatter.formatOptions = [.withFullDate, .withDashSeparatorInDate]
-            
             let request = UpdateTransactionRequest(
                 type: type,
                 amount: Double(amount) ?? 0,
                 currency: currency,
-                date: formatter.string(from: date),
+                date: date.toAPIDateString(),
                 categoryId: selectedCategoryId,
                 subcategoryId: selectedSubcategoryId,
                 description: description.isEmpty ? nil : description,
