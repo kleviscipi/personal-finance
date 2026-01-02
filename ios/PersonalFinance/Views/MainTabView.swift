@@ -45,23 +45,93 @@ struct MainTabView: View {
 
 struct SettingsView: View {
     @EnvironmentObject private var appState: AppState
+    @State private var showingProfile = false
+    @State private var showingFamily = false
+    @State private var showingAccountPicker = false
+    @State private var showingCreateAccount = false
 
     var body: some View {
         NavigationStack {
             Form {
                 if let user = appState.user {
                     Section("Account") {
-                        Text(user.name)
-                        Text(user.email)
-                            .foregroundStyle(.secondary)
+                        HStack {
+                            Text("Name")
+                            Spacer()
+                            Text(user.name)
+                                .foregroundStyle(.secondary)
+                        }
+                        HStack {
+                            Text("Email")
+                            Spacer()
+                            Text(user.email)
+                                .foregroundStyle(.secondary)
+                        }
+                        
+                        Button {
+                            showingProfile = true
+                        } label: {
+                            HStack {
+                                Text("Edit Profile")
+                                Spacer()
+                                Image(systemName: "chevron.right")
+                                    .foregroundStyle(.secondary)
+                                    .font(.caption)
+                            }
+                        }
                     }
                 }
 
                 if let account = appState.activeAccount {
                     Section("Active Account") {
-                        Text(account.name)
-                        Text(account.baseCurrency)
-                            .foregroundStyle(.secondary)
+                        HStack {
+                            Text("Name")
+                            Spacer()
+                            Text(account.name)
+                                .foregroundStyle(.secondary)
+                        }
+                        HStack {
+                            Text("Currency")
+                            Spacer()
+                            Text(account.baseCurrency)
+                                .foregroundStyle(.secondary)
+                        }
+                        
+                        Button {
+                            showingAccountPicker = true
+                        } label: {
+                            HStack {
+                                Text("Switch Account")
+                                Spacer()
+                                Image(systemName: "chevron.right")
+                                    .foregroundStyle(.secondary)
+                                    .font(.caption)
+                            }
+                        }
+                        
+                        Button {
+                            showingCreateAccount = true
+                        } label: {
+                            HStack {
+                                Text("Create New Account")
+                                Spacer()
+                                Image(systemName: "chevron.right")
+                                    .foregroundStyle(.secondary)
+                                    .font(.caption)
+                            }
+                        }
+                        
+                        Button {
+                            showingFamily = true
+                        } label: {
+                            HStack {
+                                Text("Family & Members")
+                                Spacer()
+                                Image(systemName: "chevron.right")
+                                    .foregroundStyle(.secondary)
+                                    .font(.caption)
+                            }
+                        }
                     }
                 }
 
@@ -72,6 +142,49 @@ struct SettingsView: View {
                 }
             }
             .navigationTitle("Settings")
+            .sheet(isPresented: $showingProfile) {
+                ProfileView()
+            }
+            .sheet(isPresented: $showingFamily) {
+                FamilyView()
+            }
+            .sheet(isPresented: $showingAccountPicker) {
+                NavigationStack {
+                    List(appState.accounts) { account in
+                        Button {
+                            appState.selectAccount(account)
+                            showingAccountPicker = false
+                        } label: {
+                            HStack {
+                                VStack(alignment: .leading, spacing: 4) {
+                                    Text(account.name)
+                                        .font(.headline)
+                                    Text(account.baseCurrency)
+                                        .font(.subheadline)
+                                        .foregroundStyle(.secondary)
+                                }
+                                Spacer()
+                                if account.id == appState.activeAccount?.id {
+                                    Image(systemName: "checkmark")
+                                        .foregroundColor(.blue)
+                                }
+                            }
+                        }
+                    }
+                    .navigationTitle("Switch Account")
+                    .navigationBarTitleDisplayMode(.inline)
+                    .toolbar {
+                        ToolbarItem(placement: .cancellationAction) {
+                            Button("Cancel") {
+                                showingAccountPicker = false
+                            }
+                        }
+                    }
+                }
+            }
+            .sheet(isPresented: $showingCreateAccount) {
+                CreateAccountView()
+            }
         }
     }
 }

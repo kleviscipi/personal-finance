@@ -47,6 +47,21 @@ final class AppState: ObservableObject {
             errorMessage = error.localizedDescription
         }
     }
+    
+    func register(name: String, email: String, password: String) async throws {
+        let request = RegisterRequest(name: name, email: email, password: password, passwordConfirmation: password, deviceName: "ios")
+        let response: APIResponse<AuthPayload> = try await client.request(
+            "auth/register",
+            method: "POST",
+            body: request
+        )
+
+        token = response.data.token
+        client.token = response.data.token
+        UserDefaults.standard.set(response.data.token, forKey: tokenKey)
+        user = response.data.user
+        await fetchMe()
+    }
 
     func fetchMe() async {
         guard token != nil else { return }
@@ -399,12 +414,117 @@ final class AppState: ObservableObject {
             accountId: accountId
         )
     }
+    
+    func updateProfile(name: String, email: String) async throws {
+        let request = UpdateProfileRequest(name: name, email: email)
+        let response: APIResponse<User> = try await client.request(
+            "profile",
+            method: "PATCH",
+            body: request
+        )
+        user = response.data
+    }
+    
+    func updatePassword(currentPassword: String, newPassword: String) async throws {
+        let request = UpdatePasswordRequest(
+            currentPassword: currentPassword,
+            password: newPassword,
+            passwordConfirmation: newPassword
+        )
+        try await client.requestVoid(
+            "profile/password",
+            method: "PATCH",
+            body: request
+        )
+    }
+    
+    func deleteAccount() async throws {
+        try await client.requestVoid(
+            "profile",
+            method: "DELETE"
+        )
+        
+        // Clear app state after deletion
+        token = nil
+        user = nil
+        accounts = []
+        activeAccount = nil
+        client.token = nil
+        UserDefaults.standard.removeObject(forKey: tokenKey)
+    }
+    
+    func fetchFamilyMembers() async throws -> [FamilyMember] {
+        guard let accountId = activeAccount?.id else {
+            return []
+        }
+
+        let response: APICollectionResponse<FamilyMember> = try await client.request(
+            "family",
+            accountId: accountId
+        )
+
+        return response.data
+    }
+    
+    func inviteFamilyMember(email: String, role: String) async throws {
+        guard let accountId = activeAccount?.id else {
+            throw APIError.server("No active account.")
+        }
+
+        let request = InviteMemberRequest(email: email, role: role)
+        try await client.requestVoid(
+            "family",
+            method: "POST",
+            body: request,
+            accountId: accountId
+        )
+    }
+    
+    func removeFamilyMember(_ userId: Int) async throws {
+        guard let accountId = activeAccount?.id else {
+            throw APIError.server("No active account.")
+        }
+
+        try await client.requestVoid(
+            "family/\(userId)",
+            method: "DELETE",
+            accountId: accountId
+        )
+    }
+    
+    func createAccount(name: String, currency: String) async throws {
+        let request = CreateAccountRequest(name: name, baseCurrency: currency)
+        let response: APIResponse<Account> = try await client.request(
+            "accounts",
+            method: "POST",
+            body: request
+        )
+        
+        // Refresh accounts list
+        await fetchMe()
+        
+        // Set the new account as active
+        activeAccount = response.data
+    }
 }
 
 private struct LoginRequest: Encodable {
     let email: String
     let password: String
     let deviceName: String
+}
+
+struct RegisterRequest: Encodable {
+    let name: String
+    let email: String
+    let password: String
+    let passwordConfirmation: String
+    let deviceName: String
+}
+
+struct CreateAccountRequest: Encodable {
+    let name: String
+    let baseCurrency: String
 }
 
 struct CreateTransactionRequest: Encodable {
@@ -497,4 +617,15 @@ struct UpdateCategoryRequest: Encodable {
 struct UpdateSubcategoryRequest: Encodable {
     let name: String
     let order: Int?
+}
+
+struct UpdateProfileRequest: Encodable {
+    let name: String
+    let email: String
+}
+
+struct UpdatePasswordRequest: Encodable {
+    let currentPassword: String
+    let password: String
+    let passwordConfirmation: String
 }
