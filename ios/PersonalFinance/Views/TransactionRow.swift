@@ -16,13 +16,13 @@ struct TransactionRow: View {
                         .font(.subheadline)
                         .foregroundStyle(.secondary)
                 }
-                Text(transaction.date)
+                Text(formatDate(transaction.date))
                     .font(.caption)
                     .foregroundStyle(.secondary)
             }
             Spacer()
             VStack(alignment: .trailing, spacing: 4) {
-                Text("\(transaction.amount) \(transaction.currency)")
+                Text(formatAmount(transaction.amount, currency: transaction.currency))
                     .font(.headline)
                 Text(transaction.type.capitalized)
                     .font(.caption)
@@ -30,5 +30,27 @@ struct TransactionRow: View {
             }
         }
         .padding(.vertical, 4)
+    }
+
+    private func formatAmount(_ amount: String, currency: String) -> String {
+        let formatter = NumberFormatter()
+        formatter.numberStyle = .currency
+        formatter.currencyCode = currency
+        formatter.minimumFractionDigits = 2
+        formatter.maximumFractionDigits = 2
+        let value = Double(amount) ?? 0
+        return formatter.string(from: NSNumber(value: value)) ?? "\(amount) \(currency)"
+    }
+
+    private func formatDate(_ value: String) -> String {
+        let iso = ISO8601DateFormatter()
+        iso.formatOptions = [.withInternetDateTime, .withFractionalSeconds]
+        let plain = ISO8601DateFormatter()
+        if let date = iso.date(from: value) ?? plain.date(from: value) {
+            let formatter = DateFormatter()
+            formatter.dateStyle = .medium
+            return formatter.string(from: date)
+        }
+        return value
     }
 }

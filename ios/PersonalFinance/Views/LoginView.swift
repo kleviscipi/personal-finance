@@ -94,19 +94,10 @@ struct LoginView: View {
 
 private struct LogoMark: View {
     var body: some View {
-        ZStack {
-            Circle()
-                .fill(Color.white.opacity(0.15))
-                .frame(width: 84, height: 84)
-                .overlay(
-                    Circle()
-                        .stroke(Color.white.opacity(0.3), lineWidth: 1)
-                )
-
-            Image("Logo")
-                .resizable()
-                .scaledToFit()
-                .frame(width: 46, height: 46)
-        }
+        Image("Logo")
+            .resizable()
+            .scaledToFit()
+            .frame(width: 72, height: 72)
+            .clipShape(RoundedRectangle(cornerRadius: 16, style: .continuous))
     }
 }

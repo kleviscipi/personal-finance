@@ -137,16 +137,26 @@ private struct BudgetRow: View {
                 Text(budget.category?.name ?? "General Budget")
                     .font(.headline)
             }
-            Text("\(budget.amount.raw) \(budget.currency)")
+            Text(formatAmount(budget.amount.raw, currency: budget.currency))
                 .font(.subheadline)
                 .foregroundStyle(.secondary)
             if let progress = budget.progress {
                 ProgressView(value: progress.percentage / 100)
-                Text("Spent: \(progress.spent.raw)")
+                Text("Spent: \(formatAmount(progress.spent.raw, currency: budget.currency))")
                     .font(.caption)
                     .foregroundStyle(.secondary)
             }
         }
         .padding(.vertical, 4)
+    }
+
+    private func formatAmount(_ amount: String, currency: String) -> String {
+        let formatter = NumberFormatter()
+        formatter.numberStyle = .currency
+        formatter.currencyCode = currency
+        formatter.minimumFractionDigits = 2
+        formatter.maximumFractionDigits = 2
+        let value = Double(amount) ?? 0
+        return formatter.string(from: NSNumber(value: value)) ?? "\(amount) \(currency)"
     }
 }

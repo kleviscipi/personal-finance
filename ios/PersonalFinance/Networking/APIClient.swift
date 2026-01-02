@@ -55,6 +55,9 @@ final class APIClient {
         do {
             return try decoder.decode(T.self, from: data)
         } catch {
+            let raw = String(data: data, encoding: .utf8) ?? ""
+            print("API decode error:", error.localizedDescription)
+            print("API raw response:", raw)
             throw APIError.decoding(error.localizedDescription)
         }
     }

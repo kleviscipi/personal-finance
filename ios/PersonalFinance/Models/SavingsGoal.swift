@@ -6,9 +6,9 @@ struct SavingsGoal: Decodable, Identifiable, Hashable {
     let targetAmount: MoneyValue
     let initialAmount: MoneyValue?
     let currency: String
-    let trackingMode: String
-    let startDate: String
-    let targetDate: String
+    let trackingMode: String?
+    let startDate: String?
+    let targetDate: String?
     let progress: SavingsGoalProgress?
 }
 
