@@ -19,4 +19,8 @@ struct MoneyValue: Decodable, Hashable {
             self.raw = "0"
         }
     }
+
+    var doubleValue: Double {
+        Double(raw) ?? 0
+    }
 }

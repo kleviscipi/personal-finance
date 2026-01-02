@@ -30,6 +30,12 @@ struct NewTransactionView: View {
 
                     TextField("Amount", text: $amount)
                         .keyboardType(.decimalPad)
+                        .onChange(of: amount) { newValue in
+                            let normalized = normalizeAmountInput(newValue)
+                            if normalized != newValue {
+                                amount = normalized
+                            }
+                        }
 
                     Picker("Currency", selection: $currency) {
                         ForEach(appState.availableCurrencies) { currencyInfo in
@@ -88,8 +94,14 @@ struct NewTransactionView: View {
                     }
                 }
                 ToolbarItem(placement: .topBarTrailing) {
-                    Button("Save") {
+                    Button {
                         Task { await saveTransaction() }
+                    } label: {
+                        if isLoading {
+                            ProgressView()
+                        } else {
+                            Text("Save")
+                        }
                     }
                     .disabled(isLoading || amount.isEmpty || currency.isEmpty)
                 }
@@ -99,6 +111,17 @@ struct NewTransactionView: View {
                 await appState.fetchCurrencies()
                 if currency.isEmpty {
                     currency = appState.activeAccount?.baseCurrency ?? appState.availableCurrencies.first?.code ?? "USD"
+                }
+            }
+            .overlay {
+                if isLoading {
+                    ZStack {
+                        Color.black.opacity(0.2).ignoresSafeArea()
+                        ProgressView("Saving...")
+                            .padding(16)
+                            .background(Color(.systemBackground))
+                            .clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
+                    }
                 }
             }
         }
@@ -118,7 +141,7 @@ struct NewTransactionView: View {
     }
 
     private func saveTransaction() async {
-        guard let amountValue = Double(amount) else {
+        guard let amountValue = parseAmount(amount) else {
             errorMessage = "Enter a valid amount."
             return
         }
@@ -144,6 +167,33 @@ struct NewTransactionView: View {
         } catch {
             errorMessage = error.localizedDescription
         }
+    }
+
+    private func normalizeAmountInput(_ value: String) -> String {
+        let replaced = value.replacingOccurrences(of: ",", with: ".")
+        let filtered = replaced.filter { $0.isNumber || $0 == "." }
+        var result = ""
+        var dotSeen = false
+        for char in filtered {
+            if char == "." {
+                if dotSeen { continue }
+                dotSeen = true
+            }
+            result.append(char)
+        }
+        return result
+    }
+
+    private func parseAmount(_ value: String) -> Double? {
+        let normalized = normalizeAmountInput(value)
+        if let direct = Double(normalized) {
+            return direct
+        }
+
+        let formatter = NumberFormatter()
+        formatter.locale = Locale.current
+        formatter.numberStyle = .decimal
+        return formatter.number(from: value)?.doubleValue
     }
 
     private let paymentOptions: [PaymentOption] = [
