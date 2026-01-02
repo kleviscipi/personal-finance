@@ -19,6 +19,11 @@ struct MainTabView: View {
                 .tabItem {
                     Label("Budgets", systemImage: "chart.pie")
                 }
+            
+            SavingsGoalsView()
+                .tabItem {
+                    Label("Goals", systemImage: "target")
+                }
 
             CategoriesView()
                 .tabItem {

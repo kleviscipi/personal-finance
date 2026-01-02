@@ -236,6 +236,169 @@ final class AppState: ObservableObject {
 
         return response.data
     }
+    
+    func fetchSavingsGoals() async throws -> [SavingsGoal] {
+        guard let accountId = activeAccount?.id else {
+            return []
+        }
+
+        let response: APICollectionResponse<SavingsGoal> = try await client.request(
+            "savings-goals",
+            accountId: accountId
+        )
+
+        return response.data
+    }
+    
+    func createSavingsGoal(_ request: CreateSavingsGoalRequest) async throws -> SavingsGoal {
+        guard let accountId = activeAccount?.id else {
+            throw APIError.server("No active account.")
+        }
+
+        let response: APIResponse<SavingsGoal> = try await client.request(
+            "savings-goals",
+            method: "POST",
+            body: request,
+            accountId: accountId
+        )
+
+        return response.data
+    }
+    
+    func updateSavingsGoal(_ id: Int, request: UpdateSavingsGoalRequest) async throws -> SavingsGoal {
+        guard let accountId = activeAccount?.id else {
+            throw APIError.server("No active account.")
+        }
+
+        let response: APIResponse<SavingsGoal> = try await client.request(
+            "savings-goals/\(id)",
+            method: "PATCH",
+            body: request,
+            accountId: accountId
+        )
+
+        return response.data
+    }
+    
+    func deleteSavingsGoal(_ id: Int) async throws {
+        guard let accountId = activeAccount?.id else {
+            throw APIError.server("No active account.")
+        }
+
+        try await client.requestVoid(
+            "savings-goals/\(id)",
+            method: "DELETE",
+            accountId: accountId
+        )
+    }
+    
+    func updateTransaction(_ id: Int, request: UpdateTransactionRequest) async throws -> Transaction {
+        guard let accountId = activeAccount?.id else {
+            throw APIError.server("No active account.")
+        }
+
+        let response: APIResponse<Transaction> = try await client.request(
+            "transactions/\(id)",
+            method: "PATCH",
+            body: request,
+            accountId: accountId
+        )
+
+        return response.data
+    }
+    
+    func deleteTransaction(_ id: Int) async throws {
+        guard let accountId = activeAccount?.id else {
+            throw APIError.server("No active account.")
+        }
+
+        try await client.requestVoid(
+            "transactions/\(id)",
+            method: "DELETE",
+            accountId: accountId
+        )
+    }
+    
+    func updateBudget(_ id: Int, request: UpdateBudgetRequest) async throws -> Budget {
+        guard let accountId = activeAccount?.id else {
+            throw APIError.server("No active account.")
+        }
+
+        let response: APIResponse<Budget> = try await client.request(
+            "budgets/\(id)",
+            method: "PATCH",
+            body: request,
+            accountId: accountId
+        )
+
+        return response.data
+    }
+    
+    func deleteBudget(_ id: Int) async throws {
+        guard let accountId = activeAccount?.id else {
+            throw APIError.server("No active account.")
+        }
+
+        try await client.requestVoid(
+            "budgets/\(id)",
+            method: "DELETE",
+            accountId: accountId
+        )
+    }
+    
+    func updateCategory(_ id: Int, request: UpdateCategoryRequest) async throws -> Category {
+        guard let accountId = activeAccount?.id else {
+            throw APIError.server("No active account.")
+        }
+
+        let response: APIResponse<Category> = try await client.request(
+            "categories/\(id)",
+            method: "PATCH",
+            body: request,
+            accountId: accountId
+        )
+
+        return response.data
+    }
+    
+    func deleteCategory(_ id: Int) async throws {
+        guard let accountId = activeAccount?.id else {
+            throw APIError.server("No active account.")
+        }
+
+        try await client.requestVoid(
+            "categories/\(id)",
+            method: "DELETE",
+            accountId: accountId
+        )
+    }
+    
+    func updateSubcategory(categoryId: Int, subcategoryId: Int, request: UpdateSubcategoryRequest) async throws -> Subcategory {
+        guard let accountId = activeAccount?.id else {
+            throw APIError.server("No active account.")
+        }
+
+        let response: APIResponse<Subcategory> = try await client.request(
+            "categories/\(categoryId)/subcategories/\(subcategoryId)",
+            method: "PATCH",
+            body: request,
+            accountId: accountId
+        )
+
+        return response.data
+    }
+    
+    func deleteSubcategory(categoryId: Int, subcategoryId: Int) async throws {
+        guard let accountId = activeAccount?.id else {
+            throw APIError.server("No active account.")
+        }
+
+        try await client.requestVoid(
+            "categories/\(categoryId)/subcategories/\(subcategoryId)",
+            method: "DELETE",
+            accountId: accountId
+        )
+    }
 }
 
 private struct LoginRequest: Encodable {
@@ -274,6 +437,64 @@ struct CreateCategoryRequest: Encodable {
 }
 
 struct CreateSubcategoryRequest: Encodable {
+    let name: String
+    let order: Int?
+}
+
+struct CreateSavingsGoalRequest: Encodable {
+    let name: String
+    let targetAmount: Double
+    let initialAmount: Double?
+    let currency: String
+    let trackingMode: String
+    let startDate: String
+    let targetDate: String
+    let categoryId: Int?
+    let subcategoryId: Int?
+}
+
+struct UpdateSavingsGoalRequest: Encodable {
+    let name: String
+    let targetAmount: Double
+    let initialAmount: Double?
+    let currency: String
+    let trackingMode: String
+    let startDate: String
+    let targetDate: String
+    let categoryId: Int?
+    let subcategoryId: Int?
+}
+
+struct UpdateTransactionRequest: Encodable {
+    let type: String
+    let amount: Double
+    let currency: String
+    let date: String
+    let categoryId: Int?
+    let subcategoryId: Int?
+    let description: String?
+    let paymentMethod: String?
+}
+
+struct UpdateBudgetRequest: Encodable {
+    let categoryId: Int?
+    let subcategoryId: Int?
+    let amount: Double
+    let currency: String
+    let period: String
+    let startDate: String
+    let endDate: String?
+}
+
+struct UpdateCategoryRequest: Encodable {
+    let name: String
+    let type: String
+    let icon: String?
+    let color: String?
+    let order: Int?
+}
+
+struct UpdateSubcategoryRequest: Encodable {
     let name: String
     let order: Int?
 }
