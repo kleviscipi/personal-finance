@@ -6,6 +6,9 @@ struct BudgetsView: View {
     @State private var isLoading = false
     @State private var errorMessage: String?
     @State private var showingNewBudget = false
+    @State private var selectedBudget: Budget?
+    @State private var budgetToDelete: Budget?
+    @State private var showingDeleteAlert = false
 
     var body: some View {
         NavigationStack {
@@ -15,11 +18,32 @@ struct BudgetsView: View {
                         .cardStyle()
                         .listRowSeparator(.hidden)
                         .listRowBackground(Color.clear)
+                        .swipeActions(edge: .trailing, allowsFullSwipe: false) {
+                            Button(role: .destructive) {
+                                budgetToDelete = budget
+                                showingDeleteAlert = true
+                            } label: {
+                                Label("Delete", systemImage: "trash")
+                            }
+                            
+                            Button {
+                                selectedBudget = budget
+                            } label: {
+                                Label("Edit", systemImage: "pencil")
+                            }
+                            .tint(.blue)
+                        }
                 }
             }
             .overlay {
                 if isLoading {
                     ProgressView("Loading budgets...")
+                } else if budgets.isEmpty {
+                    ContentUnavailableView(
+                        "No Budgets",
+                        systemImage: "chart.pie",
+                        description: Text("Create a budget to track your spending")
+                    )
                 }
             }
             .navigationTitle("Budgets")
@@ -48,6 +72,25 @@ struct BudgetsView: View {
                     budgets.insert(newBudget, at: 0)
                 }
             }
+            .sheet(item: $selectedBudget) { budget in
+                EditBudgetView(budget: budget) { updated in
+                    if let index = budgets.firstIndex(where: { $0.id == budget.id }) {
+                        budgets[index] = updated
+                    }
+                }
+            }
+            .alert("Delete Budget", isPresented: $showingDeleteAlert, presenting: budgetToDelete) { budget in
+                Button("Cancel", role: .cancel) {
+                    budgetToDelete = nil
+                }
+                Button("Delete", role: .destructive) {
+                    Task {
+                        await deleteBudget(budget)
+                    }
+                }
+            } message: { budget in
+                Text("Are you sure you want to delete this budget? This action cannot be undone.")
+            }
             .alert("Error", isPresented: Binding(
                 get: { errorMessage != nil },
                 set: { if !$0 { errorMessage = nil } }
@@ -66,6 +109,16 @@ struct BudgetsView: View {
 
         do {
             budgets = try await appState.fetchBudgets()
+        } catch {
+            errorMessage = error.localizedDescription
+        }
+    }
+    
+    private func deleteBudget(_ budget: Budget) async {
+        do {
+            try await appState.deleteBudget(budget.id)
+            budgets.removeAll { $0.id == budget.id }
+            budgetToDelete = nil
         } catch {
             errorMessage = error.localizedDescription
         }
