@@ -30,9 +30,9 @@ struct NewTransactionView: View {
 
                     TextField("Amount", text: $amount)
                         .keyboardType(.decimalPad)
-                        .onChange(of: amount) { newValue in
-                            let normalized = normalizeAmountInput(newValue)
-                            if normalized != newValue {
+                        .onChange(of: amount) {
+                            let normalized = normalizeAmountInput(amount)
+                            if normalized != amount {
                                 amount = normalized
                             }
                         }
@@ -54,7 +54,7 @@ struct NewTransactionView: View {
                             Text(category.name).tag(Int?.some(category.id))
                         }
                     }
-                    .onChange(of: selectedCategoryId) { _ in
+                    .onChange(of: selectedCategoryId) {
                         selectedSubcategoryId = nil
                     }
 

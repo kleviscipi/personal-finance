@@ -6,7 +6,6 @@ struct BudgetsView: View {
     @State private var isLoading = false
     @State private var errorMessage: String?
     @State private var showingNewBudget = false
-    @State private var selectedBudget: Budget?
     @State private var budgetToDelete: Budget?
     @State private var showingDeleteAlert = false
 
@@ -14,25 +13,7 @@ struct BudgetsView: View {
         NavigationStack {
             List {
                 ForEach(budgets) { budget in
-                    BudgetRow(budget: budget)
-                        .cardStyle()
-                        .listRowSeparator(.hidden)
-                        .listRowBackground(Color.clear)
-                        .swipeActions(edge: .trailing, allowsFullSwipe: false) {
-                            Button(role: .destructive) {
-                                budgetToDelete = budget
-                                showingDeleteAlert = true
-                            } label: {
-                                Label("Delete", systemImage: "trash")
-                            }
-                            
-                            Button {
-                                selectedBudget = budget
-                            } label: {
-                                Label("Edit", systemImage: "pencil")
-                            }
-                            .tint(.blue)
-                        }
+                    budgetRow(for: budget)
                 }
             }
             .overlay {
@@ -72,13 +53,6 @@ struct BudgetsView: View {
                     budgets.insert(newBudget, at: 0)
                 }
             }
-            .sheet(item: $selectedBudget) { budget in
-                EditBudgetView(budget: budget) { updated in
-                    if let index = budgets.firstIndex(where: { $0.id == budget.id }) {
-                        budgets[index] = updated
-                    }
-                }
-            }
             .alert("Delete Budget", isPresented: $showingDeleteAlert, presenting: budgetToDelete) { budget in
                 Button("Cancel", role: .cancel) {
                     budgetToDelete = nil
@@ -100,6 +74,22 @@ struct BudgetsView: View {
                 Text(errorMessage ?? "")
             }
         }
+    }
+
+    @ViewBuilder
+    private func budgetRow(for budget: Budget) -> some View {
+        BudgetRow(budget: budget)
+            .cardStyle()
+            .listRowSeparator(.hidden)
+            .listRowBackground(Color.clear)
+            .swipeActions(edge: .trailing, allowsFullSwipe: false) {
+                Button(role: .destructive) {
+                    budgetToDelete = budget
+                    showingDeleteAlert = true
+                } label: {
+                    Label("Delete", systemImage: "trash")
+                }
+            }
     }
 
     private func loadBudgets() async {

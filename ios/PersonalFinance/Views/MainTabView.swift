@@ -20,11 +20,6 @@ struct MainTabView: View {
                     Label("Budgets", systemImage: "chart.pie")
                 }
             
-            SavingsGoalsView()
-                .tabItem {
-                    Label("Goals", systemImage: "target")
-                }
-
             CategoriesView()
                 .tabItem {
                     Label("Categories", systemImage: "folder")
@@ -45,10 +40,7 @@ struct MainTabView: View {
 
 struct SettingsView: View {
     @EnvironmentObject private var appState: AppState
-    @State private var showingProfile = false
-    @State private var showingFamily = false
     @State private var showingAccountPicker = false
-    @State private var showingCreateAccount = false
 
     var body: some View {
         NavigationStack {
@@ -68,17 +60,6 @@ struct SettingsView: View {
                                 .foregroundStyle(.secondary)
                         }
                         
-                        Button {
-                            showingProfile = true
-                        } label: {
-                            HStack {
-                                Text("Edit Profile")
-                                Spacer()
-                                Image(systemName: "chevron.right")
-                                    .foregroundStyle(.secondary)
-                                    .font(.caption)
-                            }
-                        }
                     }
                 }
 
@@ -109,29 +90,6 @@ struct SettingsView: View {
                             }
                         }
                         
-                        Button {
-                            showingCreateAccount = true
-                        } label: {
-                            HStack {
-                                Text("Create New Account")
-                                Spacer()
-                                Image(systemName: "chevron.right")
-                                    .foregroundStyle(.secondary)
-                                    .font(.caption)
-                            }
-                        }
-                        
-                        Button {
-                            showingFamily = true
-                        } label: {
-                            HStack {
-                                Text("Family & Members")
-                                Spacer()
-                                Image(systemName: "chevron.right")
-                                    .foregroundStyle(.secondary)
-                                    .font(.caption)
-                            }
-                        }
                     }
                 }
 
@@ -142,12 +100,6 @@ struct SettingsView: View {
                 }
             }
             .navigationTitle("Settings")
-            .sheet(isPresented: $showingProfile) {
-                ProfileView()
-            }
-            .sheet(isPresented: $showingFamily) {
-                FamilyView()
-            }
             .sheet(isPresented: $showingAccountPicker) {
                 NavigationStack {
                     List(appState.accounts) { account in
@@ -181,9 +133,6 @@ struct SettingsView: View {
                         }
                     }
                 }
-            }
-            .sheet(isPresented: $showingCreateAccount) {
-                CreateAccountView()
             }
         }
     }

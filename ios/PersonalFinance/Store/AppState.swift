@@ -453,45 +453,6 @@ final class AppState: ObservableObject {
         UserDefaults.standard.removeObject(forKey: tokenKey)
     }
     
-    func fetchFamilyMembers() async throws -> [FamilyMember] {
-        guard let accountId = activeAccount?.id else {
-            return []
-        }
-
-        let response: APICollectionResponse<FamilyMember> = try await client.request(
-            "family",
-            accountId: accountId
-        )
-
-        return response.data
-    }
-    
-    func inviteFamilyMember(email: String, role: String) async throws {
-        guard let accountId = activeAccount?.id else {
-            throw APIError.server("No active account.")
-        }
-
-        let request = InviteMemberRequest(email: email, role: role)
-        try await client.requestVoid(
-            "family",
-            method: "POST",
-            body: request,
-            accountId: accountId
-        )
-    }
-    
-    func removeFamilyMember(_ userId: Int) async throws {
-        guard let accountId = activeAccount?.id else {
-            throw APIError.server("No active account.")
-        }
-
-        try await client.requestVoid(
-            "family/\(userId)",
-            method: "DELETE",
-            accountId: accountId
-        )
-    }
-    
     func createAccount(name: String, currency: String) async throws {
         let request = CreateAccountRequest(name: name, baseCurrency: currency)
         let response: APIResponse<Account> = try await client.request(

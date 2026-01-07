@@ -6,32 +6,13 @@ struct TransactionsView: View {
     @State private var isLoading = false
     @State private var errorMessage: String?
     @State private var showingNewTransaction = false
-    @State private var selectedTransaction: Transaction?
     @State private var transactionToDelete: Transaction?
     @State private var showingDeleteAlert = false
 
     var body: some View {
         NavigationStack {
             List(transactions) { transaction in
-                TransactionRow(transaction: transaction)
-                    .cardStyle()
-                    .listRowSeparator(.hidden)
-                    .listRowBackground(Color.clear)
-                    .swipeActions(edge: .trailing, allowsFullSwipe: false) {
-                        Button(role: .destructive) {
-                            transactionToDelete = transaction
-                            showingDeleteAlert = true
-                        } label: {
-                            Label("Delete", systemImage: "trash")
-                        }
-                        
-                        Button {
-                            selectedTransaction = transaction
-                        } label: {
-                            Label("Edit", systemImage: "pencil")
-                        }
-                        .tint(.blue)
-                    }
+                transactionRow(for: transaction)
             }
             .overlay {
                 if isLoading {
@@ -70,13 +51,6 @@ struct TransactionsView: View {
                     transactions.insert(newTransaction, at: 0)
                 }
             }
-            .sheet(item: $selectedTransaction) { transaction in
-                EditTransactionView(transaction: transaction) { updated in
-                    if let index = transactions.firstIndex(where: { $0.id == transaction.id }) {
-                        transactions[index] = updated
-                    }
-                }
-            }
             .alert("Delete Transaction", isPresented: $showingDeleteAlert, presenting: transactionToDelete) { transaction in
                 Button("Cancel", role: .cancel) {
                     transactionToDelete = nil
@@ -98,6 +72,22 @@ struct TransactionsView: View {
                 Text(errorMessage ?? "")
             }
         }
+    }
+
+    @ViewBuilder
+    private func transactionRow(for transaction: Transaction) -> some View {
+        TransactionRow(transaction: transaction)
+            .cardStyle()
+            .listRowSeparator(.hidden)
+            .listRowBackground(Color.clear)
+            .swipeActions(edge: .trailing, allowsFullSwipe: false) {
+                Button(role: .destructive) {
+                    transactionToDelete = transaction
+                    showingDeleteAlert = true
+                } label: {
+                    Label("Delete", systemImage: "trash")
+                }
+            }
     }
 
     private func loadTransactions() async {

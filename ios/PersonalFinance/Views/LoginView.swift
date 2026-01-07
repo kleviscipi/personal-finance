@@ -70,13 +70,6 @@ struct LoginView: View {
                     .tint(Color(red: 0.32, green: 0.62, blue: 0.96))
                     .disabled(appState.isLoading || email.isEmpty || password.isEmpty)
                     
-                    Button {
-                        showingRegister = true
-                    } label: {
-                        Text("Don't have an account? Register")
-                            .font(.footnote)
-                            .foregroundStyle(.blue)
-                    }
                 }
                 .padding(20)
                 .background(Color(.systemBackground))
@@ -85,9 +78,6 @@ struct LoginView: View {
                 .padding(.horizontal, 24)
             }
             .padding(.vertical, 32)
-        }
-        .sheet(isPresented: $showingRegister) {
-            RegisterView()
         }
     }
 }

@@ -7,10 +7,8 @@ struct CategoriesView: View {
     @State private var errorMessage: String?
     @State private var showingNewCategory = false
     @State private var selectedCategoryForSub: Category?
-    @State private var selectedCategory: Category?
     @State private var categoryToDelete: Category?
     @State private var showingDeleteCategoryAlert = false
-    @State private var selectedSubcategory: (Category, Subcategory)?
     @State private var subcategoryToDelete: (Category, Subcategory)?
     @State private var showingDeleteSubcategoryAlert = false
 
@@ -18,72 +16,7 @@ struct CategoriesView: View {
         NavigationStack {
             List {
                 ForEach(categories) { category in
-                    VStack(alignment: .leading, spacing: 8) {
-                        HStack {
-                            Circle()
-                                .fill(Color(hex: category.color ?? "") ?? Color.gray.opacity(0.3))
-                                .frame(width: 10, height: 10)
-                            Text(category.name)
-                                .font(.headline)
-                            Spacer()
-                            Button {
-                                selectedCategoryForSub = category
-                            } label: {
-                                Image(systemName: "plus")
-                            }
-                            .buttonStyle(.borderless)
-                        }
-                        .swipeActions(edge: .trailing, allowsFullSwipe: false) {
-                            if !category.isSystem {
-                                Button(role: .destructive) {
-                                    categoryToDelete = category
-                                    showingDeleteCategoryAlert = true
-                                } label: {
-                                    Label("Delete", systemImage: "trash")
-                                }
-                            }
-                            
-                            Button {
-                                selectedCategory = category
-                            } label: {
-                                Label("Edit", systemImage: "pencil")
-                            }
-                            .tint(.blue)
-                        }
-
-                        if let subs = category.subcategories, !subs.isEmpty {
-                            ForEach(subs) { sub in
-                                HStack {
-                                    Text(sub.name)
-                                        .font(.subheadline)
-                                        .foregroundStyle(.secondary)
-                                    Spacer()
-                                }
-                                .swipeActions(edge: .trailing, allowsFullSwipe: false) {
-                                    Button(role: .destructive) {
-                                        subcategoryToDelete = (category, sub)
-                                        showingDeleteSubcategoryAlert = true
-                                    } label: {
-                                        Label("Delete", systemImage: "trash")
-                                    }
-                                    
-                                    Button {
-                                        selectedSubcategory = (category, sub)
-                                    } label: {
-                                        Label("Edit", systemImage: "pencil")
-                                    }
-                                    .tint(.blue)
-                                }
-                            }
-                        } else {
-                            Text("No subcategories")
-                                .font(.subheadline)
-                                .foregroundStyle(.secondary)
-                        }
-                    }
-                    .cardStyle()
-                    .listRowSeparator(.hidden)
-                    .listRowBackground(Color.clear)
+                    categoryRow(for: category)
                 }
             }
             .overlay {
@@ -123,13 +56,6 @@ struct CategoriesView: View {
                     categories.insert(newCategory, at: 0)
                 }
             }
-            .sheet(item: $selectedCategory) { category in
-                EditCategoryView(category: category) { updated in
-                    if let index = categories.firstIndex(where: { $0.id == category.id }) {
-                        categories[index] = updated
-                    }
-                }
-            }
             .sheet(item: $selectedCategoryForSub) { category in
                 NewSubcategoryView(category: category) { subcategory in
                     if let index = categories.firstIndex(where: { $0.id == category.id }) {
@@ -148,32 +74,6 @@ struct CategoriesView: View {
                             subcategories: subs
                         )
                         categories[index] = updated
-                    }
-                }
-            }
-            .sheet(item: Binding(
-                get: { selectedSubcategory.map { SubcategoryWrapper(category: $0.0, subcategory: $0.1) } },
-                set: { selectedSubcategory = $0.map { ($0.category, $0.subcategory) } }
-            )) { wrapper in
-                EditSubcategoryView(category: wrapper.category, subcategory: wrapper.subcategory) { updated in
-                    if let catIndex = categories.firstIndex(where: { $0.id == wrapper.category.id }) {
-                        var cat = categories[catIndex]
-                        if var subs = cat.subcategories,
-                           let subIndex = subs.firstIndex(where: { $0.id == wrapper.subcategory.id }) {
-                            subs[subIndex] = updated
-                            cat = Category(
-                                id: cat.id,
-                                accountId: cat.accountId,
-                                name: cat.name,
-                                icon: cat.icon,
-                                color: cat.color,
-                                type: cat.type,
-                                isSystem: cat.isSystem,
-                                order: cat.order,
-                                subcategories: subs
-                            )
-                            categories[catIndex] = cat
-                        }
                     }
                 }
             }
@@ -210,6 +110,62 @@ struct CategoriesView: View {
                 Text(errorMessage ?? "")
             }
         }
+    }
+
+    @ViewBuilder
+    private func categoryRow(for category: Category) -> some View {
+        VStack(alignment: .leading, spacing: 8) {
+            HStack {
+                Circle()
+                    .fill(Color(hex: category.color ?? "") ?? Color.gray.opacity(0.3))
+                    .frame(width: 10, height: 10)
+                Text(category.name)
+                    .font(.headline)
+                Spacer()
+                Button {
+                    selectedCategoryForSub = category
+                } label: {
+                    Image(systemName: "plus")
+                }
+                .buttonStyle(.borderless)
+            }
+            .swipeActions(edge: .trailing, allowsFullSwipe: false) {
+                if !category.isSystem {
+                    Button(role: .destructive) {
+                        categoryToDelete = category
+                        showingDeleteCategoryAlert = true
+                    } label: {
+                        Label("Delete", systemImage: "trash")
+                    }
+                }
+            }
+
+            if let subs = category.subcategories, !subs.isEmpty {
+                ForEach(subs) { sub in
+                    HStack {
+                        Text(sub.name)
+                            .font(.subheadline)
+                            .foregroundStyle(.secondary)
+                        Spacer()
+                    }
+                    .swipeActions(edge: .trailing, allowsFullSwipe: false) {
+                        Button(role: .destructive) {
+                            subcategoryToDelete = (category, sub)
+                            showingDeleteSubcategoryAlert = true
+                        } label: {
+                            Label("Delete", systemImage: "trash")
+                        }
+                    }
+                }
+            } else {
+                Text("No subcategories")
+                    .font(.subheadline)
+                    .foregroundStyle(.secondary)
+            }
+        }
+        .cardStyle()
+        .listRowSeparator(.hidden)
+        .listRowBackground(Color.clear)
     }
 
     private func loadCategories() async {
@@ -259,10 +215,4 @@ struct CategoriesView: View {
             errorMessage = error.localizedDescription
         }
     }
-}
-
-private struct SubcategoryWrapper: Identifiable {
-    let id = UUID()
-    let category: Category
-    let subcategory: Subcategory
 }

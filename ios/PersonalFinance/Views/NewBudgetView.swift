@@ -52,7 +52,7 @@ struct NewBudgetView: View {
                             Text(category.name).tag(Int?.some(category.id))
                         }
                     }
-                    .onChange(of: selectedCategoryId) { _ in
+                    .onChange(of: selectedCategoryId) {
                         selectedSubcategoryId = nil
                     }
 
