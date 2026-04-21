@@ -18,19 +18,12 @@ class CategorySeeder extends Seeder
      */
     public function run(?int $accountId = null): void
     {
-        if ($accountId) {
-            // Seed for specific account
-            $account = Account::find($accountId);
-            if ($account) {
-                $this->seedCategoriesForAccount($account);
-            }
-        } else {
-            // Seed for all accounts
-            $accounts = Account::all();
-            
-            foreach ($accounts as $account) {
-                $this->seedCategoriesForAccount($account);
-            }
+        $accounts = $accountId
+            ? Account::query()->whereKey($accountId)->get()
+            : Account::query()->get();
+
+        foreach ($accounts as $account) {
+            $this->seedCategoriesForAccount($account);
         }
     }
     
@@ -39,24 +32,40 @@ class CategorySeeder extends Seeder
         $defaultCategories = $this->getDefaultCategories();
         
         foreach ($defaultCategories as $categoryData) {
-            $category = Category::create([
+            $category = Category::withTrashed()->firstOrNew([
                 'account_id' => $account->id,
                 'name' => $categoryData['name'],
+                'type' => $categoryData['type'],
+            ]);
+
+            if ($category->exists && $category->trashed()) {
+                $category->restore();
+            }
+
+            $category->fill([
                 'icon' => $categoryData['icon'] ?? null,
                 'color' => $categoryData['color'] ?? null,
-                'type' => $categoryData['type'],
                 'is_system' => true,
                 'order' => $categoryData['order'],
             ]);
+            $category->save();
             
             if (isset($categoryData['subcategories'])) {
                 foreach ($categoryData['subcategories'] as $index => $subName) {
-                    Subcategory::create([
+                    $subcategory = Subcategory::withTrashed()->firstOrNew([
                         'category_id' => $category->id,
                         'name' => $subName,
+                    ]);
+
+                    if ($subcategory->exists && $subcategory->trashed()) {
+                        $subcategory->restore();
+                    }
+
+                    $subcategory->fill([
                         'is_system' => true,
                         'order' => $index,
                     ]);
+                    $subcategory->save();
                 }
             }
         }

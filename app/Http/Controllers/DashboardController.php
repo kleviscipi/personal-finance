@@ -6,6 +6,7 @@ use App\Models\SavingsGoal;
 use App\Services\AnalyticsService;
 use App\Services\SavingsGoalService;
 use App\Support\ActiveAccount;
+use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 
@@ -25,7 +26,9 @@ class DashboardController extends Controller
             return redirect()->route('accounts.create');
         }
 
-        $analytics = $this->analyticsService->getDashboardData($account, $request->user());
+        $referenceMonth = $this->resolveReferenceMonth($request);
+
+        $analytics = $this->analyticsService->getDashboardData($account, $request->user(), $referenceMonth);
 
         $savingsGoals = SavingsGoal::with(['category', 'subcategory', 'user'])
             ->where('account_id', $account->id)
@@ -55,6 +58,10 @@ class DashboardController extends Controller
         
         $recentTransactions = $account->transactions()
             ->with(['category', 'subcategory'])
+            ->whereBetween('date', [
+                $referenceMonth->copy()->startOfMonth()->toDateString(),
+                $referenceMonth->copy()->endOfMonth()->toDateString(),
+            ])
             ->latest('date')
             ->take(10)
             ->get();
@@ -64,6 +71,45 @@ class DashboardController extends Controller
             'analytics' => $analytics,
             'recentTransactions' => $recentTransactions,
             'savingsGoals' => $savingsGoals,
+            'selectedMonth' => $this->buildSelectedMonthData($referenceMonth),
         ]);
+    }
+
+    private function resolveReferenceMonth(Request $request): Carbon
+    {
+        $currentMonth = now()->startOfMonth();
+        $month = (string) $request->query('month', '');
+
+        if ($month === '' || preg_match('/^\d{4}-(0[1-9]|1[0-2])$/', $month) !== 1) {
+            return $currentMonth;
+        }
+
+        try {
+            $referenceMonth = Carbon::createFromFormat('Y-m', $month)->startOfMonth();
+        } catch (\Throwable) {
+            return $currentMonth;
+        }
+
+        if ($referenceMonth->greaterThan($currentMonth)) {
+            return $currentMonth;
+        }
+
+        return $referenceMonth;
+    }
+
+    private function buildSelectedMonthData(Carbon $referenceMonth): array
+    {
+        $currentMonth = now()->startOfMonth();
+
+        return [
+            'value' => $referenceMonth->format('Y-m'),
+            'label' => $referenceMonth->format('F Y'),
+            'short_label' => $referenceMonth->format('M Y'),
+            'previous' => $referenceMonth->copy()->subMonthNoOverflow()->format('Y-m'),
+            'next' => $referenceMonth->copy()->addMonthNoOverflow()->format('Y-m'),
+            'current' => $currentMonth->format('Y-m'),
+            'is_current' => $referenceMonth->equalTo($currentMonth),
+            'can_go_next' => $referenceMonth->lessThan($currentMonth),
+        ];
     }
 }

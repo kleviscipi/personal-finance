@@ -11,14 +11,79 @@
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
                 </svg>
             </Link>
-            <!-- Header -->
-            <div class="md:flex md:items-center md:justify-between">
-                <div class="flex-1 min-w-0">
-                    <h2 class="text-2xl font-bold leading-7 text-gray-900 sm:text-3xl sm:truncate">
+            <div class="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
+                <div class="min-w-0 flex-1">
+                    <h2 class="text-2xl font-bold leading-7 text-gray-900 sm:text-3xl">
                         Dashboard
                     </h2>
+                    <p class="mt-1 text-sm text-gray-500">
+                        Viewing {{ selectedMonth.label }} across monthly cards and trend charts.
+                    </p>
                 </div>
-                <div class="mt-4 flex md:mt-0 md:ml-4"></div>
+
+                <div class="w-full rounded-2xl border border-slate-200/80 bg-white/90 p-4 shadow-sm shadow-slate-200/40 sm:max-w-xl">
+                    <div class="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+                        <div>
+                            <div class="text-[11px] font-semibold uppercase tracking-[0.18em] text-slate-500">
+                                Month Filter
+                            </div>
+                            <div class="mt-1 text-base font-semibold text-slate-900">
+                                {{ selectedMonth.label }}
+                            </div>
+                        </div>
+
+                        <div class="flex flex-col gap-2 sm:items-end">
+                            <div class="flex items-center gap-2">
+                                <button
+                                    type="button"
+                                    class="inline-flex items-center gap-2 rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm font-medium text-slate-700 transition hover:border-slate-300 hover:text-slate-900 focus:outline-none focus:ring-2 focus:ring-sky-500 focus:ring-offset-2"
+                                    @click="visitMonth(selectedMonth.previous)"
+                                >
+                                    <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" />
+                                    </svg>
+                                    <span class="hidden sm:inline">Previous</span>
+                                </button>
+
+                                <button
+                                    type="button"
+                                    class="inline-flex items-center rounded-xl border px-3 py-2 text-sm font-semibold transition focus:outline-none focus:ring-2 focus:ring-sky-500 focus:ring-offset-2"
+                                    :class="selectedMonth.is_current
+                                        ? 'cursor-default border-sky-200 bg-sky-50 text-sky-700'
+                                        : 'border-slate-200 bg-white text-slate-700 hover:border-slate-300 hover:text-slate-900'"
+                                    :disabled="selectedMonth.is_current"
+                                    @click="goToCurrentMonth"
+                                >
+                                    Current
+                                </button>
+
+                                <button
+                                    type="button"
+                                    class="inline-flex items-center gap-2 rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm font-medium text-slate-700 transition hover:border-slate-300 hover:text-slate-900 focus:outline-none focus:ring-2 focus:ring-sky-500 focus:ring-offset-2 disabled:cursor-not-allowed disabled:border-slate-100 disabled:bg-slate-50 disabled:text-slate-300"
+                                    :disabled="!selectedMonth.can_go_next"
+                                    @click="visitMonth(selectedMonth.next)"
+                                >
+                                    <span class="hidden sm:inline">Next</span>
+                                    <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
+                                    </svg>
+                                </button>
+                            </div>
+
+                            <label class="flex items-center gap-2 text-xs text-slate-500">
+                                <span class="sr-only">Choose month</span>
+                                <span class="hidden sm:inline">Jump to</span>
+                                <input
+                                    type="month"
+                                    :value="selectedMonth.value"
+                                    :max="selectedMonth.current"
+                                    class="rounded-xl border border-slate-200 bg-slate-50 px-3 py-2 text-sm text-slate-700 focus:border-sky-500 focus:outline-none focus:ring-sky-500"
+                                    @change="onMonthInputChange"
+                                />
+                            </label>
+                        </div>
+                    </div>
+                </div>
             </div>
             <div
                 v-if="missingRateMessage"
@@ -248,7 +313,7 @@
                                 </div>
                             </div>
                             <div v-if="!analytics.budget_usage || analytics.budget_usage.length === 0" class="text-center py-8 text-gray-500">
-                                <p>No budgets set for this month</p>
+                                <p>No budgets set for {{ selectedMonth.short_label }}</p>
                                 <Link :href="route('budgets.create')" class="text-sky-600 hover:text-sky-500 text-sm mt-2 inline-block">
                                     Create your first budget
                                 </Link>
@@ -264,6 +329,9 @@
                     <h3 class="text-lg leading-6 font-medium text-gray-900 mb-4">
                         Balance & Savings Trend (12 Months)
                     </h3>
+                    <p class="mb-4 text-sm text-gray-500">
+                        Ending {{ selectedMonth.short_label }}.
+                    </p>
                     <div class="h-80">
                         <Line :data="balanceTrendChartData" :options="balanceTrendOptions" />
                     </div>
@@ -447,7 +515,7 @@
                             {{ analytics.savings_rate?.rate || 0 }}%
                         </div>
                         <p class="mt-2 text-sm text-gray-500">
-                            Income vs expenses this month.
+                            Income vs expenses in {{ selectedMonth.label }}.
                         </p>
                     </div>
                 </div>
@@ -515,7 +583,7 @@
                             :key="row.month"
                             class="rounded-lg border border-gray-200 p-3"
                         >
-                            <div class="text-xs text-gray-500">{{ row.month }}</div>
+                            <div class="text-xs text-gray-500">{{ formatMonthLabel(row.month) }}</div>
                             <div
                                 :class="[
                                     'text-sm font-medium',
@@ -604,9 +672,14 @@
             <!-- Recent Transactions -->
             <div class="pf-card overflow-hidden">
                 <div class="px-4 py-5 sm:px-6 flex items-center justify-between">
-                    <h3 class="text-lg leading-6 font-medium text-gray-900">
-                        Recent Transactions
-                    </h3>
+                    <div>
+                        <h3 class="text-lg leading-6 font-medium text-gray-900">
+                            Recent Transactions
+                        </h3>
+                        <p class="mt-1 text-sm text-gray-500">
+                            Latest entries in {{ selectedMonth.label }}.
+                        </p>
+                    </div>
                     <Link :href="route('transactions.index')" class="text-sm font-medium text-sky-600 hover:text-sky-500">
                         View all
                     </Link>
@@ -646,7 +719,7 @@
                             </div>
                         </li>
                         <li v-if="!recentTransactions || recentTransactions.length === 0" class="px-4 py-8 text-center">
-                            <p class="text-gray-500">No transactions yet</p>
+                            <p class="text-gray-500">No transactions in {{ selectedMonth.label }}</p>
                             <Link :href="route('transactions.create')" class="text-sky-600 hover:text-sky-500 text-sm mt-2 inline-block">
                                 Add your first transaction
                             </Link>
@@ -660,7 +733,7 @@
 
 <script setup>
 import { computed } from 'vue';
-import { Link } from '@inertiajs/vue3';
+import { Link, router } from '@inertiajs/vue3';
 import AppLayout from '../Layouts/AppLayout.vue';
 import { Doughnut, Line, Bar } from 'vue-chartjs';
 import {
@@ -692,7 +765,57 @@ const props = defineProps({
     analytics: Object,
     recentTransactions: Array,
     savingsGoals: Array,
+    selectedMonth: Object,
 });
+
+const selectedMonth = computed(() => props.selectedMonth || {
+    value: '',
+    label: 'Current month',
+    short_label: 'Current month',
+    previous: null,
+    next: null,
+    current: '',
+    is_current: true,
+    can_go_next: false,
+});
+
+const visitMonth = (month) => {
+    if (!month || month === selectedMonth.value.value) {
+        return;
+    }
+
+    router.get(
+        route('dashboard'),
+        month === selectedMonth.value.current ? {} : { month },
+        {
+            preserveScroll: true,
+            preserveState: true,
+            replace: true,
+            only: ['analytics', 'recentTransactions', 'selectedMonth'],
+        },
+    );
+};
+
+const goToCurrentMonth = () => {
+    visitMonth(selectedMonth.value.current);
+};
+
+const onMonthInputChange = (event) => {
+    visitMonth(event.target.value);
+};
+
+const formatMonthLabel = (value, withYear = true) => {
+    if (!value || !/^\d{4}-\d{2}$/.test(value)) {
+        return value || '';
+    }
+
+    const [year, month] = value.split('-').map(Number);
+    const date = new Date(year, month - 1, 1);
+
+    return date.toLocaleDateString('en-US', withYear
+        ? { month: 'short', year: '2-digit' }
+        : { month: 'short' });
+};
 
 const expenseChartData = computed(() => {
     const expenses = props.analytics.expenses_by_category || [];
@@ -709,7 +832,7 @@ const monthlySummary = computed(() => props.analytics.monthly_summary || []);
 
 const cashFlowChartData = computed(() => {
     return {
-        labels: monthlySummary.value.map((row) => row.month),
+        labels: monthlySummary.value.map((row) => formatMonthLabel(row.month)),
         datasets: [
             {
                 label: 'Net',
@@ -724,7 +847,7 @@ const cashFlowChartData = computed(() => {
 
 const incomeExpenseChartData = computed(() => {
     return {
-        labels: monthlySummary.value.map((row) => row.month),
+        labels: monthlySummary.value.map((row) => formatMonthLabel(row.month)),
         datasets: [
             {
                 label: 'Income',
@@ -744,7 +867,7 @@ const balanceHistory = computed(() => props.analytics.balance_history || []);
 
 const balanceTrendChartData = computed(() => {
     return {
-        labels: balanceHistory.value.map((row) => row.month),
+        labels: balanceHistory.value.map((row) => formatMonthLabel(row.month)),
         datasets: [
             {
                 label: 'Total Balance',

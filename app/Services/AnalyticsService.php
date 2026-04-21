@@ -10,6 +10,11 @@ use Illuminate\Support\Facades\DB;
 
 class AnalyticsService
 {
+    private function resolveReferenceMonth(?Carbon $referenceMonth = null): Carbon
+    {
+        return ($referenceMonth ? $referenceMonth->copy() : now())->startOfMonth();
+    }
+
     private function excludeOpeningBalance($query, string $table = 'transactions'): void
     {
         $query->where(function ($inner) use ($table) {
@@ -468,13 +473,15 @@ class AnalyticsService
             ],
         ];
     }
-    public function getMonthlySummary(Account $account, int $months = 12): array
+    public function getMonthlySummary(Account $account, int $months = 12, ?Carbon $referenceMonth = null): array
     {
-        $startDate = now()->subMonths($months - 1)->startOfMonth();
-        $endDate = now()->startOfMonth();
+        $referenceMonth = $this->resolveReferenceMonth($referenceMonth);
+        $startDate = $referenceMonth->copy()->subMonths($months - 1)->startOfMonth();
+        $endMonth = $referenceMonth->copy()->startOfMonth();
+        $endDate = $referenceMonth->copy()->endOfMonth();
         $monthsList = [];
         $cursor = $startDate->copy();
-        while ($cursor <= $endDate) {
+        while ($cursor <= $endMonth) {
             $monthsList[] = $cursor->format('Y-m');
             $cursor->addMonth();
         }
@@ -483,7 +490,7 @@ class AnalyticsService
 
         $rows = DB::table('transactions')
             ->where('account_id', $account->id)
-            ->where('date', '>=', $startDate)
+            ->whereBetween('date', [$startDate, $endDate])
             ->whereNull('deleted_at')
             ->tap(function ($query) {
                 $this->excludeOpeningBalance($query);
@@ -940,16 +947,18 @@ class AnalyticsService
         return array_slice($spikes, 0, 5);
     }
 
-    public function getCategoryTrends(Account $account, int $months = 6): array
+    public function getCategoryTrends(Account $account, int $months = 6, ?Carbon $referenceMonth = null): array
     {
-        $startDate = now()->subMonths($months);
+        $referenceMonth = $this->resolveReferenceMonth($referenceMonth);
+        $startDate = $referenceMonth->copy()->subMonths($months - 1)->startOfMonth();
+        $endDate = $referenceMonth->copy()->endOfMonth();
         $convertedAmount = $this->convertedAmountExpression($account->base_currency);
         
         return DB::table('transactions')
             ->join('categories', 'transactions.category_id', '=', 'categories.id')
             ->where('transactions.account_id', $account->id)
             ->where('transactions.type', 'expense')
-            ->where('transactions.date', '>=', $startDate)
+            ->whereBetween('transactions.date', [$startDate, $endDate])
             ->whereNull('transactions.deleted_at')
             ->select(
                 'categories.name as category',
@@ -988,13 +997,15 @@ class AnalyticsService
     /**
      * Get balance history showing cumulative balance over time
      */
-    public function getBalanceHistory(Account $account, int $months = 12): array
+    public function getBalanceHistory(Account $account, int $months = 12, ?Carbon $referenceMonth = null): array
     {
-        $startDate = now()->subMonths($months - 1)->startOfMonth();
-        $endDate = now()->startOfMonth();
+        $referenceMonth = $this->resolveReferenceMonth($referenceMonth);
+        $startDate = $referenceMonth->copy()->subMonths($months - 1)->startOfMonth();
+        $endMonth = $referenceMonth->copy()->startOfMonth();
+        $endDate = $referenceMonth->copy()->endOfMonth();
         $monthsList = [];
         $cursor = $startDate->copy();
-        while ($cursor <= $endDate) {
+        while ($cursor <= $endMonth) {
             $monthsList[] = $cursor->format('Y-m');
             $cursor->addMonth();
         }
@@ -1004,7 +1015,7 @@ class AnalyticsService
         // Get monthly aggregates
         $monthlyData = DB::table('transactions')
             ->where('account_id', $account->id)
-            ->where('date', '>=', $startDate)
+            ->whereBetween('date', [$startDate, $endDate])
             ->whereNull('deleted_at')
             ->select(
                 DB::raw("to_char(date_trunc('month', date), 'YYYY-MM') as month"),
@@ -1059,10 +1070,11 @@ class AnalyticsService
     /**
      * Get current month savings (same as net cash flow but with context)
      */
-    public function getCurrentMonthSavings(Account $account): array
+    public function getCurrentMonthSavings(Account $account, ?Carbon $referenceMonth = null): array
     {
-        $currentMonth = now()->format('m');
-        $currentYear = now()->format('Y');
+        $referenceMonth = $this->resolveReferenceMonth($referenceMonth);
+        $currentMonth = $referenceMonth->format('m');
+        $currentYear = $referenceMonth->format('Y');
         
         $income = $this->getMonthlyIncome($account, $currentMonth, $currentYear);
         $expenses = $this->getMonthlyExpenses($account, $currentMonth, $currentYear);
@@ -1081,12 +1093,13 @@ class AnalyticsService
         ];
     }
 
-    public function getDashboardData(Account $account, User $user): array
+    public function getDashboardData(Account $account, User $user, ?Carbon $referenceMonth = null): array
     {
-        $currentMonth = now()->format('m');
-        $currentYear = now()->format('Y');
-        $missingStart = now()->subDays(30)->toDateString();
-        $missingEnd = now()->toDateString();
+        $referenceMonth = $this->resolveReferenceMonth($referenceMonth);
+        $currentMonth = $referenceMonth->format('m');
+        $currentYear = $referenceMonth->format('Y');
+        $missingStart = $referenceMonth->copy()->startOfMonth()->toDateString();
+        $missingEnd = $referenceMonth->copy()->endOfMonth()->toDateString();
         $totalBalance = $this->getTotalBalance($account);
         $openingBalanceTotal = $this->getOpeningBalanceTotal($account);
         $netBalance = DecimalMath::sub($totalBalance, $openingBalanceTotal, 4);
@@ -1100,8 +1113,8 @@ class AnalyticsService
             'expenses_by_category' => $this->getMonthlyExpensesByCategory($account, $currentMonth, $currentYear),
             'budget_usage' => $this->getBudgetUsage($account, $currentMonth, $currentYear, $user),
             'budget_variance' => $this->getBudgetVariance($account, $currentMonth, $currentYear, $user),
-            'category_trends' => $this->getCategoryTrends($account, 6),
-            'monthly_summary' => $this->getMonthlySummary($account, 12),
+            'category_trends' => $this->getCategoryTrends($account, 6, $referenceMonth),
+            'monthly_summary' => $this->getMonthlySummary($account, 12, $referenceMonth),
             'top_categories' => $this->getTopCategories($account, 30),
             'top_subcategories' => $this->getTopSubcategories($account, 30),
             'savings_rate' => $this->getSavingsRate($account, $currentMonth, $currentYear),
@@ -1115,8 +1128,8 @@ class AnalyticsService
                 $totalBalance,
                 $conversionTargets
             ),
-            'balance_history' => $this->getBalanceHistory($account, 12),
-            'current_month_savings' => $this->getCurrentMonthSavings($account),
+            'balance_history' => $this->getBalanceHistory($account, 12, $referenceMonth),
+            'current_month_savings' => $this->getCurrentMonthSavings($account, $referenceMonth),
             'missing_rates' => $this->getMissingRateSummary($account, $missingStart, $missingEnd),
         ];
     }
