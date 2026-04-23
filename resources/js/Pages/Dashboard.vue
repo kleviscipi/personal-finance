@@ -119,9 +119,27 @@
                             </div>
                             <div class="ml-5 w-0 flex-1">
                                 <dl>
-                                    <dt class="text-sm font-medium text-gray-500 truncate">
-                                        Monthly Income
+                                    <dt class="flex items-center gap-2 text-sm font-medium text-gray-500">
+                                        <span class="truncate">Monthly Income</span>
+                                        <button
+                                            type="button"
+                                            class="inline-flex h-5 w-5 flex-shrink-0 items-center justify-center rounded-full border border-gray-200 text-gray-400 transition hover:border-gray-300 hover:text-gray-600"
+                                            :aria-expanded="isMetricInfoOpen('monthly-income')"
+                                            aria-label="Explain Monthly Income"
+                                            @click="toggleMetricInfo('monthly-income')"
+                                        >
+                                            <svg class="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M12 2a10 10 0 100 20 10 10 0 000-20z" />
+                                            </svg>
+                                        </button>
                                     </dt>
+                                    <dd
+                                        v-if="isMetricInfoOpen('monthly-income')"
+                                        class="mt-2 rounded-lg border border-slate-200 bg-slate-50 px-3 py-2 text-xs leading-5 text-slate-600"
+                                    >
+                                        Sum of all income transactions in the selected month.
+                                        <span class="mt-1 block text-slate-700">Opening balance and deleted transactions are excluded.</span>
+                                    </dd>
                                     <dd class="text-lg font-medium text-gray-900">
                                         {{ formatCurrency(analytics.current_month_income) }}
                                     </dd>
@@ -144,9 +162,27 @@
                             </div>
                             <div class="ml-5 w-0 flex-1">
                                 <dl>
-                                    <dt class="text-sm font-medium text-gray-500 truncate">
-                                        Monthly Expenses
+                                    <dt class="flex items-center gap-2 text-sm font-medium text-gray-500">
+                                        <span class="truncate">Monthly Expenses</span>
+                                        <button
+                                            type="button"
+                                            class="inline-flex h-5 w-5 flex-shrink-0 items-center justify-center rounded-full border border-gray-200 text-gray-400 transition hover:border-gray-300 hover:text-gray-600"
+                                            :aria-expanded="isMetricInfoOpen('monthly-expenses')"
+                                            aria-label="Explain Monthly Expenses"
+                                            @click="toggleMetricInfo('monthly-expenses')"
+                                        >
+                                            <svg class="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M12 2a10 10 0 100 20 10 10 0 000-20z" />
+                                            </svg>
+                                        </button>
                                     </dt>
+                                    <dd
+                                        v-if="isMetricInfoOpen('monthly-expenses')"
+                                        class="mt-2 rounded-lg border border-slate-200 bg-slate-50 px-3 py-2 text-xs leading-5 text-slate-600"
+                                    >
+                                        Sum of all expense transactions in the selected month.
+                                        <span class="mt-1 block text-slate-700">Deleted transactions are excluded.</span>
+                                    </dd>
                                     <dd class="text-lg font-medium text-gray-900">
                                         {{ formatCurrency(analytics.current_month_expenses) }}
                                     </dd>
@@ -169,9 +205,27 @@
                             </div>
                             <div class="ml-5 w-0 flex-1">
                                 <dl>
-                                    <dt class="text-sm font-medium text-gray-500 truncate">
-                                        Monthly Savings
+                                    <dt class="flex items-center gap-2 text-sm font-medium text-gray-500">
+                                        <span class="truncate">Monthly Savings</span>
+                                        <button
+                                            type="button"
+                                            class="inline-flex h-5 w-5 flex-shrink-0 items-center justify-center rounded-full border border-gray-200 text-gray-400 transition hover:border-gray-300 hover:text-gray-600"
+                                            :aria-expanded="isMetricInfoOpen('monthly-savings')"
+                                            aria-label="Explain Monthly Savings"
+                                            @click="toggleMetricInfo('monthly-savings')"
+                                        >
+                                            <svg class="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M12 2a10 10 0 100 20 10 10 0 000-20z" />
+                                            </svg>
+                                        </button>
                                     </dt>
+                                    <dd
+                                        v-if="isMetricInfoOpen('monthly-savings')"
+                                        class="mt-2 rounded-lg border border-slate-200 bg-slate-50 px-3 py-2 text-xs leading-5 text-slate-600"
+                                    >
+                                        Monthly savings equals monthly income minus monthly expenses.
+                                        <span class="mt-1 block text-slate-700">Savings rate = savings / income × 100.</span>
+                                    </dd>
                                     <dd class="text-lg font-medium text-gray-900">
                                         {{ formatCurrency(analytics.current_month_savings?.amount || 0) }}
                                     </dd>
@@ -197,9 +251,28 @@
                             </div>
                             <div class="ml-5 w-0 flex-1">
                                 <dl>
-                                    <dt class="text-sm font-medium text-gray-500 truncate">
-                                        Current Balance
+                                    <dt class="flex items-center gap-2 text-sm font-medium text-gray-500">
+                                        <span class="truncate">Current Balance</span>
+                                        <button
+                                            type="button"
+                                            class="inline-flex h-5 w-5 flex-shrink-0 items-center justify-center rounded-full border border-gray-200 text-gray-400 transition hover:border-gray-300 hover:text-gray-600"
+                                            :aria-expanded="isMetricInfoOpen('current-balance')"
+                                            aria-label="Explain Current Balance"
+                                            @click="toggleMetricInfo('current-balance')"
+                                        >
+                                            <svg class="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M12 2a10 10 0 100 20 10 10 0 000-20z" />
+                                            </svg>
+                                        </button>
                                     </dt>
+                                    <dd
+                                        v-if="isMetricInfoOpen('current-balance')"
+                                        class="mt-2 rounded-lg border border-slate-200 bg-slate-50 px-3 py-2 text-xs leading-5 text-slate-600"
+                                    >
+                                        Lifetime balance for this account.
+                                        <span class="mt-1 block text-slate-700">Formula: all income - all expenses, including the opening balance. Transfers are not included.</span>
+                                        <span class="mt-1 block text-slate-700">Transactions in other currencies are converted to the account base currency first.</span>
+                                    </dd>
                                     <dd class="text-lg font-medium text-gray-900">
                                         {{ formatCurrency(analytics.total_balance) }}
                                     </dd>
@@ -255,9 +328,27 @@
                             </div>
                             <div class="ml-5 w-0 flex-1">
                                 <dl>
-                                    <dt class="text-sm font-medium text-gray-500 truncate">
-                                        Active Budgets
+                                    <dt class="flex items-center gap-2 text-sm font-medium text-gray-500">
+                                        <span class="truncate">Active Budgets</span>
+                                        <button
+                                            type="button"
+                                            class="inline-flex h-5 w-5 flex-shrink-0 items-center justify-center rounded-full border border-gray-200 text-gray-400 transition hover:border-gray-300 hover:text-gray-600"
+                                            :aria-expanded="isMetricInfoOpen('active-budgets')"
+                                            aria-label="Explain Active Budgets"
+                                            @click="toggleMetricInfo('active-budgets')"
+                                        >
+                                            <svg class="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M12 2a10 10 0 100 20 10 10 0 000-20z" />
+                                            </svg>
+                                        </button>
                                     </dt>
+                                    <dd
+                                        v-if="isMetricInfoOpen('active-budgets')"
+                                        class="mt-2 rounded-lg border border-slate-200 bg-slate-50 px-3 py-2 text-xs leading-5 text-slate-600"
+                                    >
+                                        Number of monthly budgets active in the selected month.
+                                        <span class="mt-1 block text-slate-700">Includes account-wide budgets and your visible personal budgets.</span>
+                                    </dd>
                                     <dd class="text-lg font-medium text-gray-900">
                                         {{ analytics.budget_usage?.length || 0 }}
                                     </dd>
@@ -280,9 +371,27 @@
                             </div>
                             <div class="ml-5 w-0 flex-1">
                                 <dl>
-                                    <dt class="text-sm font-medium text-gray-500 truncate">
-                                        Monthly Transactions
+                                    <dt class="flex items-center gap-2 text-sm font-medium text-gray-500">
+                                        <span class="truncate">Monthly Transactions</span>
+                                        <button
+                                            type="button"
+                                            class="inline-flex h-5 w-5 flex-shrink-0 items-center justify-center rounded-full border border-gray-200 text-gray-400 transition hover:border-gray-300 hover:text-gray-600"
+                                            :aria-expanded="isMetricInfoOpen('monthly-transactions')"
+                                            aria-label="Explain Monthly Transactions"
+                                            @click="toggleMetricInfo('monthly-transactions')"
+                                        >
+                                            <svg class="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M12 2a10 10 0 100 20 10 10 0 000-20z" />
+                                            </svg>
+                                        </button>
                                     </dt>
+                                    <dd
+                                        v-if="isMetricInfoOpen('monthly-transactions')"
+                                        class="mt-2 rounded-lg border border-slate-200 bg-slate-50 px-3 py-2 text-xs leading-5 text-slate-600"
+                                    >
+                                        Count of non-deleted transactions in the selected month.
+                                        <span class="mt-1 block text-slate-700">Opening balance entries are excluded.</span>
+                                    </dd>
                                     <dd class="text-lg font-medium text-gray-900">
                                         {{ analytics.current_month_transaction_count || 0 }}
                                     </dd>
@@ -758,7 +867,7 @@
 </template>
 
 <script setup>
-import { computed } from 'vue';
+import { computed, ref } from 'vue';
 import { Link, router } from '@inertiajs/vue3';
 import AppLayout from '../Layouts/AppLayout.vue';
 import { Doughnut, Line, Bar } from 'vue-chartjs';
@@ -805,10 +914,20 @@ const selectedMonth = computed(() => props.selectedMonth || {
     can_go_next: false,
 });
 
+const openMetricInfo = ref(null);
+
+const toggleMetricInfo = (key) => {
+    openMetricInfo.value = openMetricInfo.value === key ? null : key;
+};
+
+const isMetricInfoOpen = (key) => openMetricInfo.value === key;
+
 const visitMonth = (month) => {
     if (!month || month === selectedMonth.value.value) {
         return;
     }
+
+    openMetricInfo.value = null;
 
     router.get(
         route('dashboard'),
