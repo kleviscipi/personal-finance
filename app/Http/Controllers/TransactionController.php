@@ -88,7 +88,7 @@ class TransactionController extends Controller
             });
         }
         
-        $transactions = $query->latest('date')->paginate(15);
+        $transactions = $query->latest('date')->paginate(15)->withQueryString();
         $categories = $account->categories()
             ->with(['subcategories' => function ($query) {
                 $query->orderBy('order')->orderBy('name');

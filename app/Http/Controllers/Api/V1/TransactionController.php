@@ -90,7 +90,7 @@ class TransactionController extends ApiController
         $perPage = (int) $request->input('per_page', 15);
         $perPage = max(1, min(100, $perPage));
 
-        $transactions = $query->latest('date')->paginate($perPage);
+        $transactions = $query->latest('date')->paginate($perPage)->withQueryString();
 
         return TransactionResource::collection($transactions);
     }
