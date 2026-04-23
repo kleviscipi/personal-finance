@@ -44,7 +44,6 @@ Route::post('/invites/{token}', [InvitationController::class, 'accept'])->name('
 Route::middleware(['auth'])->group(function () {
     Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
 
-    Route::post('/transactions/scan', [TransactionController::class, 'scanDraft'])->name('transactions.scan');
     Route::resource('transactions', TransactionController::class);
     Route::resource('budgets', BudgetController::class);
     Route::resource('savings-goals', SavingsGoalController::class);

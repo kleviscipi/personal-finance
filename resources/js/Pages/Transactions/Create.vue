@@ -1,6 +1,5 @@
 <script setup>
-import axios from 'axios';
-import { computed, ref, watch } from 'vue';
+import { computed, watch } from 'vue';
 import AppLayout from '@/Layouts/AppLayout.vue';
 import InputError from '@/Components/InputError.vue';
 import InputLabel from '@/Components/InputLabel.vue';
@@ -15,7 +14,7 @@ const props = defineProps({
     categories: Array,
     currencies: Object,
     tags: Array,
-    invoiceScanEnabled: Boolean,
+    initialDraft: Object,
 });
 
 const currencyOptions = computed(() => {
@@ -33,25 +32,6 @@ const currencyOptions = computed(() => {
         .sort((a, b) => a.code.localeCompare(b.code));
 });
 
-const form = useForm({
-    type: 'expense',
-    amount: '',
-    currency: props.currentAccount?.base_currency || 'USD',
-    date: new Date().toISOString().slice(0, 10),
-    category_id: '',
-    subcategory_id: '',
-    description: '',
-    payment_method: 'cash',
-    tag_ids: [],
-    tag_names: '',
-    tag_list: [],
-});
-
-const scanFile = ref(null);
-const scanError = ref('');
-const scanResult = ref(null);
-const isScanning = ref(false);
-
 const paymentOptions = [
     { value: 'cash', label: 'Cash' },
     { value: 'card', label: 'Card' },
@@ -60,6 +40,47 @@ const paymentOptions = [
     { value: 'opening_balance', label: 'Opening balance' },
     { value: 'other', label: 'Other' },
 ];
+
+const normalizeAmount = (value) => {
+    if (value === null || value === undefined || value === '') {
+        return '';
+    }
+
+    const numeric = parseFloat(value.toString().replace(/,/g, '.'));
+    if (Number.isNaN(numeric)) {
+        return '';
+    }
+
+    return numeric.toFixed(2);
+};
+
+const normalizeDateInput = (value) => {
+    if (!value) {
+        return new Date().toISOString().slice(0, 10);
+    }
+
+    if (value instanceof Date) {
+        return value.toISOString().slice(0, 10);
+    }
+
+    const stringValue = value.toString();
+
+    return stringValue.includes('T') ? stringValue.slice(0, 10) : stringValue;
+};
+
+const form = useForm({
+    type: props.initialDraft?.type || 'expense',
+    amount: normalizeAmount(props.initialDraft?.amount || ''),
+    currency: props.initialDraft?.currency || props.currentAccount?.base_currency || 'USD',
+    date: normalizeDateInput(props.initialDraft?.date),
+    category_id: props.initialDraft?.category_id || '',
+    subcategory_id: props.initialDraft?.subcategory_id || '',
+    description: props.initialDraft?.description || '',
+    payment_method: props.initialDraft?.payment_method || 'cash',
+    tag_ids: [],
+    tag_names: '',
+    tag_list: [...(props.initialDraft?.tag_list || [])],
+});
 
 const availableCategories = computed(() => {
     if (!props.categories) {
@@ -81,6 +102,24 @@ const selectedCategory = computed(() => {
 const availableSubcategories = computed(() => {
     return selectedCategory.value?.subcategories || [];
 });
+
+watch(
+    () => form.type,
+    () => {
+        const categoryId = Number(form.category_id || 0);
+        if (!categoryId) {
+            return;
+        }
+
+        const stillValid = availableCategories.value.some(
+            (category) => category.id === categoryId,
+        );
+        if (!stillValid) {
+            form.category_id = '';
+            form.subcategory_id = '';
+        }
+    },
+);
 
 watch(
     () => form.category_id,
@@ -106,64 +145,6 @@ const submit = () => {
     form.tag_names = tagNames.join(', ');
     form.tag_list = tagList;
     form.post(route('transactions.store'));
-};
-
-const handleScanFileChange = (event) => {
-    scanFile.value = event.target.files?.[0] || null;
-    scanError.value = '';
-};
-
-const applyScannedDraft = (draft) => {
-    if (draft.type) {
-        form.type = draft.type;
-    }
-    if (draft.amount) {
-        form.amount = draft.amount;
-        formatAmountInput();
-    }
-    if (draft.currency) {
-        form.currency = draft.currency;
-    }
-    if (draft.date) {
-        form.date = draft.date;
-    }
-    if (draft.description) {
-        form.description = draft.description;
-    }
-    if (draft.payment_method) {
-        form.payment_method = draft.payment_method;
-    }
-};
-
-const scanDocument = async () => {
-    if (!scanFile.value) {
-        scanError.value = 'Choose an invoice or receipt image/PDF first.';
-        return;
-    }
-
-    scanError.value = '';
-    scanResult.value = null;
-    isScanning.value = true;
-
-    const payload = new FormData();
-    payload.append('document', scanFile.value);
-
-    try {
-        const response = await axios.post(route('transactions.scan'), payload, {
-            headers: {
-                'Content-Type': 'multipart/form-data',
-            },
-        });
-
-        applyScannedDraft(response.data?.draft || {});
-        scanResult.value = response.data?.document || null;
-    } catch (error) {
-        scanError.value = error.response?.data?.message
-            || error.response?.data?.errors?.document?.[0]
-            || 'Invoice scan failed. Please try again.';
-    } finally {
-        isScanning.value = false;
-    }
 };
 
 const parseTagList = (values, tags) => {
@@ -234,6 +215,15 @@ const formatAmountInput = () => {
                     <p class="mt-1 text-sm text-gray-600">
                         Record income, expenses, or transfers with clear context.
                     </p>
+                    <p
+                        v-if="props.initialDraft?.source_transaction_id"
+                        class="mt-2 text-sm text-indigo-600"
+                    >
+                        Repeating transaction #{{ props.initialDraft.source_transaction_id }}
+                        <span v-if="props.initialDraft.source_description">
+                            • {{ props.initialDraft.source_description }}
+                        </span>
+                    </p>
                 </div>
                 <Link
                     :href="route('transactions.index')"
@@ -245,94 +235,6 @@ const formatAmountInput = () => {
 
             <form @submit.prevent="submit" class="pf-card">
                 <div class="px-6 py-6 space-y-8">
-                    <div class="rounded-2xl border border-slate-200 bg-slate-50 p-5">
-                        <div class="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
-                            <div class="max-w-2xl">
-                                <h3 class="text-base font-semibold text-slate-900">
-                                    Import from invoice or receipt
-                                </h3>
-                                <p class="mt-1 text-sm text-slate-600">
-                                    Upload an image or PDF and the app will prefill a draft transaction. Review every field before saving.
-                                </p>
-                            </div>
-                            <div class="flex w-full flex-col gap-3 lg:w-auto lg:min-w-[28rem]">
-                                <input
-                                    id="scan_document"
-                                    type="file"
-                                    accept=".jpg,.jpeg,.png,.webp,.gif,.pdf"
-                                    class="block w-full rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm text-slate-700 file:mr-4 file:rounded-lg file:border-0 file:bg-slate-900 file:px-3 file:py-2 file:text-sm file:font-medium file:text-white"
-                                    :disabled="isScanning || !invoiceScanEnabled"
-                                    @change="handleScanFileChange"
-                                />
-                                <button
-                                    type="button"
-                                    class="inline-flex items-center justify-center rounded-xl bg-slate-900 px-4 py-2.5 text-sm font-medium text-white transition hover:bg-slate-800 disabled:cursor-not-allowed disabled:opacity-60"
-                                    :disabled="isScanning || !invoiceScanEnabled"
-                                    @click="scanDocument"
-                                >
-                                    {{ isScanning ? 'Scanning document...' : 'Scan document' }}
-                                </button>
-                            </div>
-                        </div>
-
-                        <div
-                            v-if="!invoiceScanEnabled"
-                            class="mt-4 rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-900"
-                        >
-                            Invoice scan is unavailable until the AI parser is configured on the server.
-                        </div>
-
-                        <div
-                            v-else
-                            class="mt-4 rounded-xl border border-sky-200 bg-sky-50 px-4 py-3 text-sm text-sky-900"
-                        >
-                            The scan fills a draft only. Nothing is saved until you press <span class="font-semibold">Create Transaction</span>.
-                        </div>
-
-                        <div
-                            v-if="scanError"
-                            class="mt-4 rounded-xl border border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-900"
-                        >
-                            {{ scanError }}
-                        </div>
-
-                        <div
-                            v-if="scanResult"
-                            class="mt-4 rounded-xl border border-emerald-200 bg-emerald-50 px-4 py-4 text-sm text-emerald-950"
-                        >
-                            <div class="flex flex-col gap-2 lg:flex-row lg:items-center lg:justify-between">
-                                <div class="font-medium">
-                                    Draft applied from {{ scanResult.source_name }}
-                                </div>
-                                <div class="text-xs uppercase tracking-wide text-emerald-700">
-                                    Confidence {{ Math.round((scanResult.confidence || 0) * 100) }}%
-                                </div>
-                            </div>
-                            <div class="mt-2 flex flex-wrap gap-2 text-xs text-emerald-800">
-                                <span class="rounded-full bg-white/70 px-2.5 py-1">
-                                    {{ scanResult.kind || 'unknown document' }}
-                                </span>
-                                <span
-                                    v-if="scanResult.merchant"
-                                    class="rounded-full bg-white/70 px-2.5 py-1"
-                                >
-                                    {{ scanResult.merchant }}
-                                </span>
-                            </div>
-                            <ul
-                                v-if="scanResult.warnings?.length"
-                                class="mt-3 space-y-1 text-xs text-emerald-900"
-                            >
-                                <li
-                                    v-for="warning in scanResult.warnings"
-                                    :key="warning"
-                                >
-                                    {{ warning }}
-                                </li>
-                            </ul>
-                        </div>
-                    </div>
-
                     <div class="grid grid-cols-1 gap-6 lg:grid-cols-6">
                         <div class="lg:col-span-2">
                             <InputLabel for="type" value="Type" />

@@ -2,10 +2,10 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Account;
 use App\Models\Transaction;
 use App\Services\CurrencyService;
 use App\Services\TransactionService;
-use App\Services\TransactionScanService;
 use App\Support\ActiveAccount;
 use Illuminate\Http\Request;
 use Illuminate\Validation\Rule;
@@ -15,8 +15,7 @@ class TransactionController extends Controller
 {
     public function __construct(
         private TransactionService $transactionService,
-        private CurrencyService $currencyService,
-        private TransactionScanService $transactionScanService
+        private CurrencyService $currencyService
     ) {}
 
     public function index(Request $request)
@@ -128,7 +127,8 @@ class TransactionController extends Controller
 
     public function create()
     {
-        $account = ActiveAccount::resolve(request());
+        $request = request();
+        $account = ActiveAccount::resolve($request);
         if (!$account) {
             return redirect()->route('accounts.create');
         }
@@ -145,7 +145,7 @@ class TransactionController extends Controller
             'currentAccount' => $account,
             'categories' => $categories,
             'tags' => $tags,
-            'invoiceScanEnabled' => $this->transactionScanService->isConfigured(),
+            'initialDraft' => $this->resolveInitialDraft($request, $account),
         ]);
     }
 
@@ -177,26 +177,6 @@ class TransactionController extends Controller
         $this->transactionService->createTransaction($account, $request->user(), $validated);
 
         return redirect()->route('transactions.index')->with('message', 'Transaction created successfully.');
-    }
-
-    public function scanDraft(Request $request)
-    {
-        $account = ActiveAccount::resolve($request);
-        abort_unless($account, 404, 'Account not found.');
-
-        $validated = $request->validate([
-            'document' => ['required', 'file', 'mimes:jpg,jpeg,png,webp,gif,pdf', 'max:12288'],
-        ]);
-
-        try {
-            $draft = $this->transactionScanService->scanDraft($validated['document'], $account->base_currency);
-        } catch (\RuntimeException $exception) {
-            return response()->json([
-                'message' => $exception->getMessage(),
-            ], 422);
-        }
-
-        return response()->json($draft);
     }
 
     public function edit(Transaction $transaction)
@@ -285,5 +265,33 @@ class TransactionController extends Controller
         $names = array_filter($names, static fn ($name) => $name !== '');
 
         return array_slice(array_values(array_unique($names)), 0, 20);
+    }
+
+    private function resolveInitialDraft(Request $request, Account $account): ?array
+    {
+        if (!$request->filled('repeat')) {
+            return null;
+        }
+
+        $repeatId = (int) $request->input('repeat');
+        abort_unless($repeatId > 0, 404);
+
+        $transaction = $account->transactions()
+            ->with(['category:id,name', 'tags:id,name'])
+            ->findOrFail($repeatId);
+
+        return [
+            'source_transaction_id' => $transaction->id,
+            'source_description' => $transaction->description ?: $transaction->category?->name,
+            'type' => $transaction->type,
+            'amount' => $transaction->amount,
+            'currency' => $transaction->currency,
+            'date' => now()->toDateString(),
+            'category_id' => $transaction->category_id,
+            'subcategory_id' => $transaction->subcategory_id,
+            'description' => $transaction->description,
+            'payment_method' => $transaction->payment_method,
+            'tag_list' => $transaction->tags->pluck('name')->values()->all(),
+        ];
     }
 }

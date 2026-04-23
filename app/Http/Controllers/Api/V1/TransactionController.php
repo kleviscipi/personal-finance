@@ -7,7 +7,6 @@ use App\Models\Subcategory;
 use App\Models\Transaction;
 use App\Services\CurrencyService;
 use App\Services\TransactionService;
-use App\Services\TransactionScanService;
 use Illuminate\Http\Request;
 use Illuminate\Validation\Rule;
 use Illuminate\Validation\ValidationException;
@@ -16,8 +15,7 @@ class TransactionController extends ApiController
 {
     public function __construct(
         private TransactionService $transactionService,
-        private CurrencyService $currencyService,
-        private TransactionScanService $transactionScanService
+        private CurrencyService $currencyService
     ) {}
 
     public function index(Request $request)
@@ -106,26 +104,6 @@ class TransactionController extends ApiController
             ->findOrFail($transactionId);
 
         return new TransactionResource($transaction);
-    }
-
-    public function scanDraft(Request $request)
-    {
-        $account = $this->resolveAccount($request);
-        $this->ensureAccountRole($request, $account, ['owner', 'admin', 'member']);
-
-        $validated = $request->validate([
-            'document' => ['required', 'file', 'mimes:jpg,jpeg,png,webp,gif,pdf', 'max:12288'],
-        ]);
-
-        try {
-            $draft = $this->transactionScanService->scanDraft($validated['document'], $account->base_currency);
-        } catch (\RuntimeException $exception) {
-            return response()->json([
-                'message' => $exception->getMessage(),
-            ], 422);
-        }
-
-        return response()->json($draft);
     }
 
     public function store(Request $request)

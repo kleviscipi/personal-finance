@@ -42,13 +42,6 @@ return [
         'secret' => env('RECAPTCHA_SECRET_KEY'),
     ],
 
-    'openai' => [
-        'api_key' => env('OPENAI_API_KEY'),
-        'base_url' => env('OPENAI_BASE_URL', 'https://api.openai.com/v1'),
-        'transaction_scan_model' => env('OPENAI_TRANSACTION_SCAN_MODEL', 'gpt-5-mini'),
-        'transaction_scan_timeout' => (int) env('OPENAI_TRANSACTION_SCAN_TIMEOUT', 45),
-    ],
-
     'slack' => [
         'notifications' => [
             'bot_user_oauth_token' => env('SLACK_BOT_USER_OAUTH_TOKEN'),
