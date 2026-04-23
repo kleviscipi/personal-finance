@@ -70,17 +70,29 @@
                                 </button>
                             </div>
 
-                            <label class="flex items-center gap-2 text-xs text-slate-500">
-                                <span class="sr-only">Choose month</span>
-                                <span class="hidden sm:inline">Jump to</span>
-                                <input
-                                    type="month"
-                                    :value="selectedMonth.value"
-                                    :max="selectedMonth.current"
-                                    class="rounded-xl border border-slate-200 bg-slate-50 px-3 py-2 text-sm text-slate-700 focus:border-sky-500 focus:outline-none focus:ring-sky-500"
-                                    @change="onMonthInputChange"
-                                />
-                            </label>
+                            <div class="flex flex-col gap-2 sm:items-end">
+                                <label class="flex items-center gap-2 text-xs text-slate-500">
+                                    <span class="sr-only">Choose month</span>
+                                    <span class="hidden sm:inline">Jump to</span>
+                                    <input
+                                        type="month"
+                                        :value="selectedMonth.value"
+                                        :max="selectedMonth.current"
+                                        class="rounded-xl border border-slate-200 bg-slate-50 px-3 py-2 text-sm text-slate-700 focus:border-sky-500 focus:outline-none focus:ring-sky-500"
+                                        @change="onMonthInputChange"
+                                    />
+                                </label>
+
+                                <a
+                                    :href="exportHref"
+                                    class="inline-flex items-center justify-center gap-2 rounded-xl bg-slate-900 px-3 py-2 text-sm font-medium text-white transition hover:bg-slate-800 focus:outline-none focus:ring-2 focus:ring-slate-500 focus:ring-offset-2"
+                                >
+                                    <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 3v12m0 0l4-4m-4 4l-4-4m12 8H4" />
+                                    </svg>
+                                    <span>Export Excel</span>
+                                </a>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -803,6 +815,15 @@ const goToCurrentMonth = () => {
 const onMonthInputChange = (event) => {
     visitMonth(event.target.value);
 };
+
+const exportHref = computed(() => {
+    const month = selectedMonth.value.value;
+
+    return route(
+        'accounts.export',
+        month && month !== selectedMonth.value.current ? { month } : {},
+    );
+});
 
 const formatMonthLabel = (value, withYear = true) => {
     if (!value || !/^\d{4}-\d{2}$/.test(value)) {

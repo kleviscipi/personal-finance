@@ -1,18 +1,19 @@
 <?php
 
 use App\Http\Controllers\AccountController;
+use App\Http\Controllers\AccountExportController;
 use App\Http\Controllers\BudgetController;
 use App\Http\Controllers\CategoryController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\ExchangeRateController;
-use App\Http\Controllers\SubcategoryController;
 use App\Http\Controllers\FamilyController;
 use App\Http\Controllers\InvitationController;
-use App\Http\Controllers\SettingsController;
-use App\Http\Controllers\StatisticsController;
-use App\Http\Controllers\TransactionController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\SavingsGoalController;
+use App\Http\Controllers\SettingsController;
+use App\Http\Controllers\StatisticsController;
+use App\Http\Controllers\SubcategoryController;
+use App\Http\Controllers\TransactionController;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
 
@@ -32,6 +33,7 @@ Route::get('/register', function () {
 
 Route::post('/logout', function () {
     auth()->logout();
+
     return redirect('/');
 })->name('logout');
 
@@ -41,7 +43,7 @@ Route::post('/invites/{token}', [InvitationController::class, 'accept'])->name('
 // Dashboard and authenticated routes
 Route::middleware(['auth'])->group(function () {
     Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
-    
+
     Route::resource('transactions', TransactionController::class);
     Route::resource('budgets', BudgetController::class);
     Route::resource('savings-goals', SavingsGoalController::class);
@@ -60,7 +62,8 @@ Route::middleware(['auth'])->group(function () {
     Route::get('/accounts/create', [AccountController::class, 'create'])->name('accounts.create');
     Route::post('/accounts', [AccountController::class, 'store'])->name('accounts.store');
     Route::post('/accounts/active', [AccountController::class, 'setActive'])->name('accounts.active');
-    
+    Route::get('/accounts/export', [AccountExportController::class, 'download'])->name('accounts.export');
+
     Route::get('/settings', [SettingsController::class, 'show'])->name('settings');
     Route::patch('/settings', [SettingsController::class, 'update'])->name('settings.update');
     Route::get('/statistics', [StatisticsController::class, 'index'])->name('statistics.index');
@@ -73,11 +76,10 @@ Route::middleware(['auth'])->group(function () {
     Route::post('/family', [FamilyController::class, 'store'])->name('family.store');
     Route::patch('/family/{user}', [FamilyController::class, 'update'])->name('family.update');
     Route::delete('/family/{user}', [FamilyController::class, 'destroy'])->name('family.destroy');
-    
+
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
     Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
     Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
 });
-
 
 require __DIR__.'/auth.php';
