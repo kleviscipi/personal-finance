@@ -203,7 +203,7 @@ private struct DashboardSummaryGrid: View {
             SummaryCard(title: "Monthly Income", value: formatMoney(analytics.currentMonthIncome))
             SummaryCard(title: "Monthly Expenses", value: formatMoney(analytics.currentMonthExpenses))
             SummaryCard(title: "Monthly Savings", value: formatMoney(analytics.currentMonthSavings?.amount))
-            SummaryCard(title: "Total Balance", value: formatMoney(analytics.totalBalance))
+            SummaryCard(title: "Current Balance", value: formatMoney(analytics.totalBalance))
             SummaryCard(title: "Active Budgets", value: String(analytics.budgetUsage?.count ?? 0))
             SummaryCard(title: "Monthly Transactions", value: String(analytics.currentMonthTransactionCount ?? 0))
         }

@@ -184,7 +184,7 @@
                     </div>
                 </div>
 
-                <!-- Total Balance Card -->
+                <!-- Current Balance Card -->
                 <div class="pf-card overflow-hidden">
                     <div class="p-5">
                         <div class="flex items-center">
@@ -198,31 +198,45 @@
                             <div class="ml-5 w-0 flex-1">
                                 <dl>
                                     <dt class="text-sm font-medium text-gray-500 truncate">
-                                        Total Balance
+                                        Current Balance
                                     </dt>
                                     <dd class="text-lg font-medium text-gray-900">
                                         {{ formatCurrency(analytics.total_balance) }}
                                     </dd>
-                                    <dd class="mt-1 text-[11px] text-gray-500">
-                                        Opening balance {{ formatCurrency(analytics.total_balance_opening || 0) }}
-                                    </dd>
-                                    <dd class="text-[11px] text-gray-500">
-                                        Net {{ formatCurrency(analytics.total_balance_net || 0) }}
-                                    </dd>
-                                    <dd v-if="analytics.total_balance_conversions?.length" class="mt-1 text-[11px] text-gray-500">
-                                        <span
-                                            v-for="(conversion, index) in analytics.total_balance_conversions"
-                                            :key="conversion.currency"
-                                            class="inline-flex items-center"
-                                        >
-                                            {{ formatCurrency(conversion.amount, conversion.currency) }}
-                                            <span v-if="index < analytics.total_balance_conversions.length - 1" class="mx-1">•</span>
-                                        </span>
-                                    </dd>
                                     <dd class="text-xs text-gray-500">
-                                        Net Worth
+                                        All-time balance for this account
                                     </dd>
                                 </dl>
+                                <div class="mt-3 space-y-2 border-t border-gray-100 pt-3 text-xs">
+                                    <div class="flex items-start justify-between gap-3 text-gray-500">
+                                        <span>Opening balance</span>
+                                        <span class="text-right font-medium text-gray-900">
+                                            {{ formatCurrency(analytics.total_balance_opening || 0) }}
+                                        </span>
+                                    </div>
+                                    <div class="flex items-start justify-between gap-3 text-gray-500">
+                                        <span>Change since opening balance</span>
+                                        <span :class="['text-right font-medium', balanceChangeTextClass]">
+                                            {{ balanceChangeSummary }}
+                                        </span>
+                                    </div>
+                                    <div
+                                        v-if="analytics.total_balance_conversions?.length"
+                                        class="flex items-start justify-between gap-3 text-gray-500"
+                                    >
+                                        <span>Equivalent</span>
+                                        <span class="text-right">
+                                            <span
+                                                v-for="(conversion, index) in analytics.total_balance_conversions"
+                                                :key="conversion.currency"
+                                                class="inline-flex items-center"
+                                            >
+                                                {{ formatCurrency(conversion.amount, conversion.currency) }}
+                                                <span v-if="index < analytics.total_balance_conversions.length - 1" class="mx-1">•</span>
+                                            </span>
+                                        </span>
+                                    </div>
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -891,7 +905,7 @@ const balanceTrendChartData = computed(() => {
         labels: balanceHistory.value.map((row) => formatMonthLabel(row.month)),
         datasets: [
             {
-                label: 'Total Balance',
+                label: 'Balance',
                 data: balanceHistory.value.map((row) => parseFloat(row.balance)),
                 borderColor: '#6366f1',
                 backgroundColor: 'rgba(99, 102, 241, 0.1)',
@@ -1011,6 +1025,32 @@ const formatCurrency = (amount, currency) => {
         maximumFractionDigits: 2,
     }).format(parseFloat(amount || 0));
 };
+
+const totalBalanceNet = computed(() => parseFloat(props.analytics?.total_balance_net || 0));
+
+const balanceChangeTextClass = computed(() => {
+    if (totalBalanceNet.value > 0) {
+        return 'text-emerald-600';
+    }
+
+    if (totalBalanceNet.value < 0) {
+        return 'text-red-600';
+    }
+
+    return 'text-gray-900';
+});
+
+const balanceChangeSummary = computed(() => {
+    if (totalBalanceNet.value > 0) {
+        return `Increase ${formatCurrency(Math.abs(totalBalanceNet.value))}`;
+    }
+
+    if (totalBalanceNet.value < 0) {
+        return `Decrease ${formatCurrency(Math.abs(totalBalanceNet.value))}`;
+    }
+
+    return 'No change';
+});
 
 const missingRates = computed(() => props.analytics?.missing_rates || {});
 
