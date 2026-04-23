@@ -55,7 +55,7 @@ class StatisticsExportService
                 sprintf('Income (%s)', $baseCurrency),
                 sprintf('Expenses (%s)', $baseCurrency),
                 sprintf('Transfers (%s)', $baseCurrency),
-                sprintf('Net (%s)', $baseCurrency),
+                sprintf('Net Cash Flow (%s)', $baseCurrency),
             ],
             $this->buildMonthlyRows($analytics),
             'Monthly Breakdown',
@@ -203,24 +203,24 @@ class StatisticsExportService
         );
         $rows[] = $this->metricRow(
             'Totals',
-            'Opening Balance',
+            'Opening Balance Entries',
             $this->amountCell($totals['opening_balance'] ?? 0),
             $account->base_currency,
-            'Opening balance rows that fall inside the selected range.'
+            'Opening-balance rows that fall inside the selected range.'
         );
         $rows[] = $this->metricRow(
             'Totals',
-            'Net Balance',
+            'Net Cash Flow',
             $this->amountCell($totals['net'] ?? 0),
             $account->base_currency,
-            'Income minus expenses, excluding opening balance rows.'
+            'Income minus expenses, excluding opening-balance rows.'
         );
         $rows[] = $this->metricRow(
             'Totals',
-            'Net incl. Opening Balance',
+            'Balance Change in Range',
             $this->amountCell($totals['net_with_opening'] ?? 0),
             $account->base_currency,
-            'Net balance plus opening balance rows inside the selected range.'
+            'Net cash flow plus opening-balance rows inside the selected range.'
         );
         $rows[] = $this->metricRow(
             'Totals',
@@ -231,10 +231,10 @@ class StatisticsExportService
         );
         $rows[] = $this->metricRow(
             'Totals',
-            'Net Conversions',
+            'Balance Change Conversions',
             $this->stringCell($this->formatConversions($totals['net_with_opening_conversions'] ?? []), 'TextWrap'),
             '',
-            'Latest available FX conversions for net incl. opening balance.'
+            'Latest available FX conversions for balance change in range.'
         );
 
         $rows[] = $this->blankRow(5);

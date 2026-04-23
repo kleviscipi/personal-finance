@@ -92,6 +92,8 @@ class StatisticsExportServiceTest extends TestCase
         $this->assertStringContainsString('Worksheet ss:Name="Expense Share"', $contents);
         $this->assertStringContainsString('2026-01-01', $contents);
         $this->assertStringContainsString('2026-04-30', $contents);
+        $this->assertStringContainsString('Net Cash Flow', $contents);
+        $this->assertStringContainsString('Balance Change in Range', $contents);
         $this->assertStringContainsString('Transport', $contents);
         $this->assertStringContainsString('Transport • Moto BMW', $contents);
         $this->assertSame(

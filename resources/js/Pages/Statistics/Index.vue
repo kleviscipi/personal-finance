@@ -261,7 +261,7 @@ const applyFilters = () => {
             </div>
 
             <div class="rounded-lg border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-600">
-                Statistics exclude opening balance adjustments from income and expense totals.
+                Income, expenses, and net cash flow exclude opening balance adjustments. Opening balance rows are shown separately below.
             </div>
             <div
                 v-if="missingRateMessage"
@@ -284,7 +284,7 @@ const applyFilters = () => {
                                         class="pointer-events-none absolute left-1/2 top-full z-10 mt-2 w-56 -translate-x-1/2 rounded-md border border-slate-200 bg-white px-3 py-2 text-xs text-slate-700 opacity-0 shadow-lg transition group-hover:opacity-100"
                                         role="tooltip"
                                     >
-                                        Sum of all income transactions in the selected range.
+                                        Income posted in the selected date range. Opening balance rows are excluded.
                                     </span>
                                 </span>
                             </span>
@@ -297,6 +297,12 @@ const applyFilters = () => {
                     </div>
                     <div class="mt-2 text-xl font-semibold text-slate-900 break-words">
                         {{ formatCurrency(analytics?.totals?.income || 0) }}
+                    </div>
+                    <div class="mt-2 text-xs text-slate-500">
+                        Income posted in the selected range.
+                    </div>
+                    <div class="mt-1 text-[11px] text-slate-400">
+                        Formula: sum of income transactions in range
                     </div>
                 </div>
                 <div class="pf-card p-6 min-w-0">
@@ -312,7 +318,7 @@ const applyFilters = () => {
                                         class="pointer-events-none absolute left-1/2 top-full z-10 mt-2 w-56 -translate-x-1/2 rounded-md border border-slate-200 bg-white px-3 py-2 text-xs text-slate-700 opacity-0 shadow-lg transition group-hover:opacity-100"
                                         role="tooltip"
                                     >
-                                        Sum of all expense transactions in the selected range.
+                                        Expenses posted in the selected date range.
                                     </span>
                                 </span>
                             </span>
@@ -325,6 +331,12 @@ const applyFilters = () => {
                     </div>
                     <div class="mt-2 text-xl font-semibold text-slate-900 break-words">
                         {{ formatCurrency(analytics?.totals?.expenses || 0) }}
+                    </div>
+                    <div class="mt-2 text-xs text-slate-500">
+                        Expenses posted in the selected range.
+                    </div>
+                    <div class="mt-1 text-[11px] text-slate-400">
+                        Formula: sum of expense transactions in range
                     </div>
                 </div>
                 <div class="pf-card p-6 min-w-0">
@@ -340,7 +352,7 @@ const applyFilters = () => {
                                         class="pointer-events-none absolute left-1/2 top-full z-10 mt-2 w-56 -translate-x-1/2 rounded-md border border-slate-200 bg-white px-3 py-2 text-xs text-slate-700 opacity-0 shadow-lg transition group-hover:opacity-100"
                                         role="tooltip"
                                     >
-                                        Sum of all transfer transactions in the selected range.
+                                        Transfers posted in the selected date range. They are tracked separately from income and expenses.
                                     </span>
                                 </span>
                             </span>
@@ -354,11 +366,17 @@ const applyFilters = () => {
                     <div class="mt-2 text-xl font-semibold text-slate-900 break-words">
                         {{ formatCurrency(analytics?.totals?.transfers || 0) }}
                     </div>
+                    <div class="mt-2 text-xs text-slate-500">
+                        Transfers posted in the selected range.
+                    </div>
+                    <div class="mt-1 text-[11px] text-slate-400">
+                        Formula: sum of transfer transactions in range
+                    </div>
                 </div>
                 <div class="pf-card p-6 min-w-0">
                     <div class="flex items-center justify-between">
                         <div class="flex items-center gap-2 text-sm text-slate-500">
-                            <span>Opening balance</span>
+                            <span>Opening balance entries</span>
                             <span class="relative inline-flex items-center">
                                 <span class="group inline-flex h-5 w-5 items-center justify-center rounded-full border border-slate-200 text-slate-500">
                                     <svg class="h-3 w-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -368,7 +386,7 @@ const applyFilters = () => {
                                         class="pointer-events-none absolute left-1/2 top-full z-10 mt-2 w-56 -translate-x-1/2 rounded-md border border-slate-200 bg-white px-3 py-2 text-xs text-slate-700 opacity-0 shadow-lg transition group-hover:opacity-100"
                                         role="tooltip"
                                     >
-                                        Sum of opening balance adjustments in the selected range.
+                                        Setup or imported opening-balance rows that fall inside the selected date range.
                                     </span>
                                 </span>
                             </span>
@@ -382,11 +400,17 @@ const applyFilters = () => {
                     <div class="mt-2 text-xl font-semibold text-slate-900 break-words">
                         {{ formatCurrency(analytics?.totals?.opening_balance || 0) }}
                     </div>
+                    <div class="mt-2 text-xs text-slate-500">
+                        Opening-balance rows inside the selected range.
+                    </div>
+                    <div class="mt-1 text-[11px] text-slate-400">
+                        Formula: sum of opening-balance rows in range
+                    </div>
                 </div>
                 <div class="pf-card p-6 min-w-0">
                     <div class="flex items-center justify-between">
                         <div class="flex items-center gap-2 text-sm text-slate-500">
-                            <span>Net balance</span>
+                            <span>Net cash flow</span>
                             <span class="relative inline-flex items-center">
                                 <span class="group inline-flex h-5 w-5 items-center justify-center rounded-full border border-slate-200 text-slate-500">
                                     <svg class="h-3 w-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -396,7 +420,7 @@ const applyFilters = () => {
                                         class="pointer-events-none absolute left-1/2 top-full z-10 mt-2 w-56 -translate-x-1/2 rounded-md border border-slate-200 bg-white px-3 py-2 text-xs text-slate-700 opacity-0 shadow-lg transition group-hover:opacity-100"
                                         role="tooltip"
                                     >
-                                        Total income minus expenses (opening balance excluded).
+                                        How much you gained or spent from normal activity in the selected range. Opening balance rows are excluded.
                                     </span>
                                 </span>
                             </span>
@@ -410,11 +434,17 @@ const applyFilters = () => {
                     <div class="mt-2 text-xl font-semibold text-slate-900 break-words">
                         {{ formatCurrency(analytics?.totals?.net || 0) }}
                     </div>
+                    <div class="mt-2 text-xs text-slate-500">
+                        Change from normal income and expense activity only.
+                    </div>
+                    <div class="mt-1 text-[11px] text-slate-400">
+                        Formula: income - expenses
+                    </div>
                 </div>
                 <div class="pf-card p-6 min-w-0">
                     <div class="flex items-center justify-between">
                         <div class="flex items-center gap-2 text-sm text-slate-500">
-                            <span>Net incl. opening balance</span>
+                            <span>Balance change in range</span>
                             <span class="relative inline-flex items-center">
                                 <span class="group inline-flex h-5 w-5 items-center justify-center rounded-full border border-slate-200 text-slate-500">
                                     <svg class="h-3 w-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -424,7 +454,7 @@ const applyFilters = () => {
                                         class="pointer-events-none absolute left-1/2 top-full z-10 mt-2 w-56 -translate-x-1/2 rounded-md border border-slate-200 bg-white px-3 py-2 text-xs text-slate-700 opacity-0 shadow-lg transition group-hover:opacity-100"
                                         role="tooltip"
                                     >
-                                        Net balance plus opening balance adjustments.
+                                        Total balance impact of all rows in the selected range, including any opening-balance entries.
                                     </span>
                                 </span>
                             </span>
@@ -437,6 +467,12 @@ const applyFilters = () => {
                     </div>
                     <div class="mt-2 text-xl font-semibold text-slate-900 break-words">
                         {{ formatCurrency(analytics?.totals?.net_with_opening || 0) }}
+                    </div>
+                    <div class="mt-2 text-xs text-slate-500">
+                        Net cash flow plus opening-balance entries in range.
+                    </div>
+                    <div class="mt-1 text-[11px] text-slate-400">
+                        Formula: net cash flow + opening-balance rows
                     </div>
                     <div v-if="analytics?.totals?.net_with_opening_conversions?.length" class="mt-1 text-[11px] text-slate-500">
                         <span
