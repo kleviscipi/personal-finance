@@ -9,6 +9,7 @@ use App\Http\Controllers\ExchangeRateController;
 use App\Http\Controllers\FamilyController;
 use App\Http\Controllers\InvitationController;
 use App\Http\Controllers\ProfileController;
+use App\Http\Controllers\RecurringTransactionController;
 use App\Http\Controllers\SavingsGoalController;
 use App\Http\Controllers\SettingsController;
 use App\Http\Controllers\StatisticsController;
@@ -45,6 +46,9 @@ Route::middleware(['auth'])->group(function () {
     Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
 
     Route::resource('transactions', TransactionController::class);
+    Route::post('/recurring-transactions/run-due', [RecurringTransactionController::class, 'runDue'])
+        ->name('recurring-transactions.run-due');
+    Route::resource('recurring-transactions', RecurringTransactionController::class)->except(['show']);
     Route::resource('budgets', BudgetController::class);
     Route::resource('savings-goals', SavingsGoalController::class);
     Route::patch('/categories/reorder', [CategoryController::class, 'reorder'])

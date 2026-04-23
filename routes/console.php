@@ -3,6 +3,7 @@
 use App\Models\Account;
 use App\Services\CurrencyService;
 use App\Services\ExchangeRateService;
+use App\Services\RecurringTransactionService;
 use Illuminate\Foundation\Inspiring;
 use Illuminate\Support\Facades\Artisan;
 use Illuminate\Support\Facades\Schedule;
@@ -83,8 +84,21 @@ Artisan::command('exchange-rates:sync-accounts {--date=}', function () {
     $this->comment("Total rates synced: {$total}.");
 })->purpose('Sync exchange rates for all accounts using account settings');
 
+Artisan::command('recurring-transactions:run-due {--date=}', function () {
+    $date = $this->option('date') ?? now()->toDateString();
+    $service = app(RecurringTransactionService::class);
+    $result = $service->runDueTransactions($date);
+
+    $this->info("Processed {$result['templates_processed']} recurring templates.");
+    $this->comment("Created {$result['transactions_created']} transactions as of {$result['as_of']}.");
+})->purpose('Generate due transactions from recurring templates');
+
 $syncTime = config('services.exchangerate_host.sync_time', '02:00');
 
 Schedule::command('exchange-rates:sync-accounts')
     ->dailyAt($syncTime)
+    ->withoutOverlapping();
+
+Schedule::command('recurring-transactions:run-due')
+    ->dailyAt('00:05')
     ->withoutOverlapping();

@@ -58,4 +58,9 @@ class User extends Authenticatable
     {
         return $this->hasMany(Transaction::class, 'created_by');
     }
+
+    public function recurringTransactions()
+    {
+        return $this->hasMany(RecurringTransaction::class, 'created_by');
+    }
 }

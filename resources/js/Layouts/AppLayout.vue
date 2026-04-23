@@ -38,6 +38,15 @@
                                 Transactions
                             </Link>
                             <Link 
+                                :href="route('recurring-transactions.index')" 
+                                :class="[route().current('recurring-transactions.*') ? 'border-sky-500 text-slate-900' : 'border-transparent text-slate-500 hover:border-slate-300 hover:text-slate-800', 'inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium']"
+                            >
+                                <svg class="mr-2 h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10m-11 9h12a2 2 0 002-2V7a2 2 0 00-2-2H6a2 2 0 00-2 2v11a2 2 0 002 2z" />
+                                </svg>
+                                Recurring
+                            </Link>
+                            <Link 
                                 :href="route('categories.index')" 
                                 :class="[route().current('categories.*') ? 'border-sky-500 text-slate-900' : 'border-transparent text-slate-500 hover:border-slate-300 hover:text-slate-800', 'inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium']"
                             >
@@ -203,6 +212,15 @@
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 7h18M3 12h18M3 17h18" />
                         </svg>
                         Transactions
+                    </Link>
+                    <Link
+                        :href="route('recurring-transactions.index')"
+                        class="flex items-center gap-2 rounded-md px-3 py-2 text-base font-medium text-gray-700 hover:bg-gray-100"
+                    >
+                        <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10m-11 9h12a2 2 0 002-2V7a2 2 0 00-2-2H6a2 2 0 00-2 2v11a2 2 0 002 2z" />
+                        </svg>
+                        Recurring
                     </Link>
                     <Link
                         :href="route('budgets.index')"
