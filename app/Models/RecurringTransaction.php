@@ -14,6 +14,7 @@ class RecurringTransaction extends Model
     protected $fillable = [
         'account_id',
         'created_by',
+        'user_id',
         'type',
         'amount',
         'currency',
@@ -52,6 +53,11 @@ class RecurringTransaction extends Model
     public function creator(): BelongsTo
     {
         return $this->belongsTo(User::class, 'created_by');
+    }
+
+    public function user(): BelongsTo
+    {
+        return $this->belongsTo(User::class);
     }
 
     public function category(): BelongsTo

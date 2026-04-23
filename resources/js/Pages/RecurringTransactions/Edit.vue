@@ -14,6 +14,8 @@ const props = defineProps({
     recurringTransaction: Object,
     categories: Array,
     currencies: Object,
+    accountUsers: Array,
+    currentUserId: Number,
     tags: Array,
 });
 
@@ -54,6 +56,7 @@ const normalizeDate = (value) => {
 };
 
 const form = useForm({
+    user_id: props.recurringTransaction?.user_id || props.currentUserId || '',
     type: props.recurringTransaction?.type || 'expense',
     amount: normalizeAmount(props.recurringTransaction?.amount),
     currency: props.recurringTransaction?.currency || props.currentAccount?.base_currency || 'USD',
@@ -85,6 +88,18 @@ const frequencyOptions = [
     { value: 'monthly', label: 'Monthly' },
     { value: 'yearly', label: 'Yearly' },
 ];
+
+const formatUserLabel = (user) => {
+    if (!user) {
+        return '';
+    }
+
+    if (props.currentUserId && user.id === props.currentUserId) {
+        return `You (${user.name || user.email || user.id})`;
+    }
+
+    return user.name || user.email || `User ${user.id}`;
+};
 
 const availableCategories = computed(() => {
     if (!props.categories) {
@@ -219,6 +234,19 @@ const submit = () => {
                     </div>
 
                     <div class="grid grid-cols-1 gap-6 lg:grid-cols-6">
+                        <div class="lg:col-span-2">
+                            <InputLabel for="user_id" value="Transaction user" />
+                            <select id="user_id" v-model="form.user_id" class="mt-1 block w-full rounded-xl border-gray-200 bg-gray-50 focus:border-indigo-500 focus:ring-indigo-500">
+                                <option v-for="user in accountUsers || []" :key="user.id" :value="user.id">
+                                    {{ formatUserLabel(user) }}
+                                </option>
+                            </select>
+                            <p class="mt-2 text-xs text-gray-500">
+                                Future generated transactions will belong to this user.
+                            </p>
+                            <InputError class="mt-2" :message="form.errors.user_id" />
+                        </div>
+
                         <div class="lg:col-span-2">
                             <InputLabel for="type" value="Type" />
                             <select id="type" v-model="form.type" class="mt-1 block w-full rounded-xl border-gray-200 bg-gray-50 focus:border-indigo-500 focus:ring-indigo-500">

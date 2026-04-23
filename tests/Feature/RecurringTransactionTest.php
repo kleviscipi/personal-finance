@@ -8,6 +8,7 @@ use App\Models\RecurringTransaction;
 use App\Models\Subcategory;
 use App\Models\Tag;
 use App\Models\Transaction;
+use App\Models\TransactionHistory;
 use App\Models\User;
 use App\Services\RecurringTransactionService;
 use Carbon\Carbon;
@@ -21,10 +22,17 @@ class RecurringTransactionTest extends TestCase
     public function test_due_monthly_recurring_transactions_are_generated_and_advance_correctly(): void
     {
         [$user, $account] = $this->makeUserWithAccount();
+        $member = User::factory()->create();
+        $member->accounts()->attach($account->id, [
+            'role' => 'member',
+            'is_active' => true,
+            'joined_at' => now(),
+        ]);
         [$category, $subcategory, $tag] = $this->makeTransactionFixtures($account);
 
         $service = app(RecurringTransactionService::class);
         $recurring = $service->createRecurringTransaction($account, $user, [
+            'user_id' => $member->id,
             'type' => 'expense',
             'amount' => '2500.00',
             'currency' => 'ALL',
@@ -52,6 +60,7 @@ class RecurringTransactionTest extends TestCase
             ->get();
 
         $this->assertCount(3, $transactions);
+        $this->assertSame([$member->id, $member->id, $member->id], $transactions->pluck('created_by')->all());
         $this->assertSame(
             ['2026-01-31', '2026-02-28', '2026-03-31'],
             $transactions->pluck('date')->map(fn ($date) => $date->toDateString())->all()
@@ -61,6 +70,7 @@ class RecurringTransactionTest extends TestCase
             $transactions->pluck('metadata.recurring_transaction_id')->all()
         );
         $this->assertEquals([$tag->id], $transactions->first()->tags()->pluck('tags.id')->all());
+        $this->assertSame([$user->id, $user->id, $user->id], TransactionHistory::query()->pluck('changed_by')->all());
 
         $recurring->refresh();
         $this->assertSame('2026-04-30', $recurring->next_run_date->toDateString());
@@ -71,11 +81,18 @@ class RecurringTransactionTest extends TestCase
     public function test_run_due_endpoint_creates_transactions_for_active_account(): void
     {
         [$user, $account] = $this->makeUserWithAccount();
+        $member = User::factory()->create();
+        $member->accounts()->attach($account->id, [
+            'role' => 'member',
+            'is_active' => true,
+            'joined_at' => now(),
+        ]);
         [$category, $subcategory] = $this->makeTransactionFixtures($account);
 
         RecurringTransaction::create([
             'account_id' => $account->id,
             'created_by' => $user->id,
+            'user_id' => $member->id,
             'type' => 'expense',
             'amount' => 40,
             'currency' => 'ALL',
@@ -100,6 +117,7 @@ class RecurringTransactionTest extends TestCase
         $this->assertDatabaseCount('transactions', 1);
         $transaction = Transaction::query()->firstOrFail();
         $this->assertSame($account->id, $transaction->account_id);
+        $this->assertSame($member->id, $transaction->created_by);
         $this->assertSame('Weekly class', $transaction->description);
         $this->assertSame('2026-04-20', $transaction->date->toDateString());
     }

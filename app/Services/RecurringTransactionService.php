@@ -24,11 +24,12 @@ class RecurringTransactionService
                 ...$attributes,
                 'account_id' => $account->id,
                 'created_by' => $user->id,
+                'user_id' => $data['user_id'] ?? $user->id,
             ]);
 
             $this->syncTags($recurringTransaction, $account, $data);
 
-            return $recurringTransaction->fresh(['category', 'subcategory', 'creator', 'tags']);
+            return $recurringTransaction->fresh(['category', 'subcategory', 'creator', 'user', 'tags']);
         });
     }
 
@@ -38,7 +39,7 @@ class RecurringTransactionService
             $recurringTransaction->update($this->prepareAttributes($data));
             $this->syncTags($recurringTransaction, $recurringTransaction->account, $data);
 
-            return $recurringTransaction->fresh(['category', 'subcategory', 'creator', 'tags']);
+            return $recurringTransaction->fresh(['category', 'subcategory', 'creator', 'user', 'tags']);
         });
     }
 
@@ -47,7 +48,7 @@ class RecurringTransactionService
         return $recurringTransaction->delete();
     }
 
-    public function runDueTransactions(Carbon|string|null $asOf = null, ?Account $account = null): array
+    public function runDueTransactions(Carbon|string|null $asOf = null, ?Account $account = null, ?User $actor = null): array
     {
         $asOfDate = $asOf instanceof Carbon
             ? $asOf->copy()->startOfDay()
@@ -56,7 +57,7 @@ class RecurringTransactionService
         $query = RecurringTransaction::query()
             ->where('is_active', true)
             ->whereDate('next_run_date', '<=', $asOfDate->toDateString())
-            ->with(['account', 'creator', 'tags'])
+            ->with(['account', 'creator', 'user', 'tags'])
             ->orderBy('next_run_date')
             ->orderBy('id');
 
@@ -68,7 +69,7 @@ class RecurringTransactionService
         $transactionsCreated = 0;
 
         foreach ($query->get() as $template) {
-            [$processed, $created] = $this->processTemplate($template, $asOfDate);
+            [$processed, $created] = $this->processTemplate($template, $asOfDate, $actor);
             $templatesProcessed += $processed ? 1 : 0;
             $transactionsCreated += $created;
         }
@@ -109,14 +110,14 @@ class RecurringTransactionService
         return $validated;
     }
 
-    private function processTemplate(RecurringTransaction $template, Carbon $asOfDate): array
+    private function processTemplate(RecurringTransaction $template, Carbon $asOfDate, ?User $actor = null): array
     {
-        return DB::transaction(function () use ($template, $asOfDate) {
+        return DB::transaction(function () use ($template, $asOfDate, $actor) {
             /** @var RecurringTransaction|null $locked */
             $locked = RecurringTransaction::query()
                 ->whereKey($template->id)
                 ->lockForUpdate()
-                ->with(['account', 'creator', 'tags'])
+                ->with(['account', 'creator', 'user', 'tags'])
                 ->first();
 
             if (!$locked || !$locked->is_active || $locked->next_run_date->gt($asOfDate)) {
@@ -126,12 +127,15 @@ class RecurringTransactionService
             $created = 0;
             $runDate = $locked->next_run_date->copy();
             $endDate = $locked->end_date?->copy();
+            $transactionOwner = $locked->user ?: $locked->creator;
+            $historyActor = $actor ?: $locked->creator;
 
             while ($runDate->lte($asOfDate) && (!$endDate || $runDate->lte($endDate))) {
                 $this->transactionService->createTransaction(
                     $locked->account,
-                    $locked->creator,
+                    $historyActor,
                     [
+                        'created_by' => $transactionOwner->id,
                         'type' => $locked->type,
                         'amount' => $locked->amount,
                         'currency' => $locked->currency,
@@ -173,6 +177,7 @@ class RecurringTransactionService
             'type' => $data['type'],
             'amount' => $data['amount'],
             'currency' => $data['currency'],
+            'user_id' => $data['user_id'] ?? null,
             'next_run_date' => $nextRunDate->toDateString(),
             'end_date' => $data['end_date'] ?? null,
             'frequency' => $data['frequency'],

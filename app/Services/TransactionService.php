@@ -46,10 +46,11 @@ class TransactionService
     {
         return DB::transaction(function () use ($account, $user, $data) {
             $data = $this->applyOpeningBalanceMetadata(null, $data);
+            $ownerId = (int) ($data['created_by'] ?? $user->id);
 
             $transaction = Transaction::create([
                 'account_id' => $account->id,
-                'created_by' => $user->id,
+                'created_by' => $ownerId,
                 'type' => $data['type'],
                 'amount' => $data['amount'],
                 'currency' => $data['currency'] ?? $account->base_currency,

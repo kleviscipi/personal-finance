@@ -33,7 +33,17 @@ class RecurringTransactionPolicy
             ->first()
             ?->pivot;
 
-        return $pivot && in_array($pivot->role, ['owner', 'admin', 'member'], true) && $pivot->is_active;
+        if (!$pivot || !in_array($pivot->role, ['owner', 'admin', 'member'], true) || !$pivot->is_active) {
+            return false;
+        }
+
+        $isAccountManager = in_array($pivot->role, ['owner', 'admin'], true);
+
+        if ($recurringTransaction->user_id && $recurringTransaction->user_id !== $user->id && !$isAccountManager) {
+            return false;
+        }
+
+        return true;
     }
 
     public function delete(User $user, RecurringTransaction $recurringTransaction): bool

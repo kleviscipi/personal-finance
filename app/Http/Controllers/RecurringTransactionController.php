@@ -25,7 +25,7 @@ class RecurringTransactionController extends Controller
         }
 
         $recurringTransactions = $account->recurringTransactions()
-            ->with(['category', 'subcategory', 'creator', 'tags'])
+            ->with(['category', 'subcategory', 'creator', 'user', 'tags'])
             ->orderBy('next_run_date')
             ->orderBy('id')
             ->get();
@@ -36,6 +36,7 @@ class RecurringTransactionController extends Controller
             ->count();
 
         return Inertia::render('RecurringTransactions/Index', [
+            'currentAccount' => $account,
             'recurringTransactions' => $recurringTransactions,
             'dueCount' => $dueCount,
         ]);
@@ -51,7 +52,10 @@ class RecurringTransactionController extends Controller
         $this->authorizeManagement($account, $request);
 
         return Inertia::render('RecurringTransactions/Create', [
+            'currentAccount' => $account,
             'categories' => $this->categoriesForAccount($account),
+            'accountUsers' => $this->accountUsersForAccount($account),
+            'currentUserId' => $request->user()->id,
             'tags' => $account->tags()->orderBy('name')->get(),
         ]);
     }
@@ -66,6 +70,8 @@ class RecurringTransactionController extends Controller
         $this->authorizeManagement($account, $request);
 
         $validated = $this->validatePayload($request, $account->id);
+        $validated['user_id'] = !empty($validated['user_id']) ? (int) $validated['user_id'] : $request->user()->id;
+        $this->authorizeTransactionUserScope($account, $request, $validated['user_id']);
         $validated['tag_ids'] = $validated['tag_ids'] ?? [];
         $validated['tag_names'] = $this->parseTagNames($request->input('tag_names'));
 
@@ -86,8 +92,11 @@ class RecurringTransactionController extends Controller
         }
 
         return Inertia::render('RecurringTransactions/Edit', [
-            'recurringTransaction' => $recurringTransaction->load(['category', 'subcategory', 'tags']),
+            'currentAccount' => $account,
+            'recurringTransaction' => $recurringTransaction->load(['category', 'subcategory', 'tags', 'user']),
             'categories' => $this->categoriesForAccount($account),
+            'accountUsers' => $this->accountUsersForAccount($account),
+            'currentUserId' => $request->user()->id,
             'tags' => $account->tags()->orderBy('name')->get(),
         ]);
     }
@@ -102,6 +111,8 @@ class RecurringTransactionController extends Controller
         }
 
         $validated = $this->validatePayload($request, $account->id);
+        $validated['user_id'] = !empty($validated['user_id']) ? (int) $validated['user_id'] : $request->user()->id;
+        $this->authorizeTransactionUserScope($account, $request, $validated['user_id']);
         $validated['tag_ids'] = $validated['tag_ids'] ?? [];
         $validated['tag_names'] = $this->parseTagNames($request->input('tag_names'));
 
@@ -132,7 +143,7 @@ class RecurringTransactionController extends Controller
 
         $this->authorizeManagement($account, $request);
 
-        $result = $this->recurringTransactionService->runDueTransactions(now(), $account);
+        $result = $this->recurringTransactionService->runDueTransactions(now(), $account, $request->user());
 
         return redirect()
             ->route('recurring-transactions.index')
@@ -152,6 +163,10 @@ class RecurringTransactionController extends Controller
             'end_date' => ['nullable', 'date', 'after_or_equal:next_run_date'],
             'frequency' => ['required', Rule::in(['daily', 'weekly', 'monthly', 'yearly'])],
             'interval' => ['required', 'integer', 'min:1', 'max:365'],
+            'user_id' => [
+                'nullable',
+                Rule::exists('account_user', 'user_id')->where(fn ($query) => $query->where('account_id', $accountId)),
+            ],
             'category_id' => [
                 'nullable',
                 Rule::exists('categories', 'id')->where(fn ($query) => $query->where('account_id', $accountId)),
@@ -191,6 +206,14 @@ class RecurringTransactionController extends Controller
             ->get();
     }
 
+    private function accountUsersForAccount($account)
+    {
+        return $account->users()
+            ->select('users.id', 'users.name', 'users.email')
+            ->orderBy('name')
+            ->get();
+    }
+
     private function parseTagNames($value): array
     {
         if (is_array($value)) {
@@ -203,5 +226,22 @@ class RecurringTransactionController extends Controller
         $names = array_filter($names, static fn ($name) => $name !== '');
 
         return array_slice(array_values(array_unique($names)), 0, 20);
+    }
+
+    private function authorizeTransactionUserScope($account, Request $request, int $userId): void
+    {
+        if ($userId === $request->user()->id) {
+            return;
+        }
+
+        $pivot = $account->users()
+            ->where('users.id', $request->user()->id)
+            ->first()
+            ?->pivot;
+
+        $isAccountManager = $pivot && in_array($pivot->role, ['owner', 'admin'], true);
+        if (! $isAccountManager) {
+            abort(403);
+        }
     }
 }

@@ -197,6 +197,7 @@ const deleteMessage = computed(() => {
                                 </div>
                                 <div class="mt-1 text-sm text-slate-600">
                                     {{ capitalize(recurring.type) }}
+                                    <span v-if="recurring.user"> • for {{ recurring.user.name || recurring.user.email || `User ${recurring.user.id}` }}</span>
                                     <span v-if="recurring.category"> • {{ recurring.category.name }}</span>
                                     <span v-if="recurring.subcategory"> • {{ recurring.subcategory.name }}</span>
                                     <span v-if="recurring.payment_method"> • {{ recurring.payment_method }}</span>
