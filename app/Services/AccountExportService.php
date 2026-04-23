@@ -14,6 +14,10 @@ use XMLWriter;
 
 class AccountExportService
 {
+    private const SPREADSHEET_NS = 'urn:schemas-microsoft-com:office:spreadsheet';
+
+    private const EXCEL_NS = 'urn:schemas-microsoft-com:office:excel';
+
     public function __construct(
         private AnalyticsService $analyticsService,
         private SavingsGoalService $savingsGoalService
@@ -38,10 +42,10 @@ class AccountExportService
         $writer->startDocument('1.0', 'UTF-8');
         $writer->writePI('mso-application', 'progid="Excel.Sheet"');
 
-        $writer->startElementNS(null, 'Workbook', 'urn:schemas-microsoft-com:office:spreadsheet');
+        $writer->startElementNS(null, 'Workbook', self::SPREADSHEET_NS);
         $writer->writeAttributeNs('xmlns', 'o', null, 'urn:schemas-microsoft-com:office:office');
-        $writer->writeAttributeNs('xmlns', 'x', null, 'urn:schemas-microsoft-com:office:excel');
-        $writer->writeAttributeNs('xmlns', 'ss', null, 'urn:schemas-microsoft-com:office:spreadsheet');
+        $writer->writeAttributeNs('xmlns', 'x', null, self::EXCEL_NS);
+        $writer->writeAttributeNs('xmlns', 'ss', null, self::SPREADSHEET_NS);
         $writer->writeAttributeNs('xmlns', 'html', null, 'http://www.w3.org/TR/REC-html40');
 
         $this->writeStyles($writer);
@@ -49,7 +53,7 @@ class AccountExportService
         $this->writeWorksheet(
             $writer,
             'Summary',
-            ['Section', 'Metric', 'Value', 'Notes'],
+            ['Theme', 'Metric', 'Value', 'Unit', 'Comment'],
             $this->buildSummaryRows(
                 $account,
                 $user,
@@ -59,7 +63,25 @@ class AccountExportService
                 $budgets,
                 $savingsGoals,
                 $members
-            )
+            ),
+            sprintf('%s Finance Snapshot', $account->name),
+            sprintf(
+                'Month in focus: %s | Base currency: %s | Exported %s',
+                $referenceMonth->format('F Y'),
+                $account->base_currency,
+                now()->format('Y-m-d H:i')
+            ),
+            [100, 180, 110, 80, 300]
+        );
+
+        $this->writeWorksheet(
+            $writer,
+            'Insights',
+            ['Lens', 'Insight', 'Amount', 'Unit', 'Comment'],
+            $this->buildInsightsRows($account, $analytics),
+            'Spending Insights',
+            'Top categories, subcategories, and unusual spending spikes.',
+            [100, 180, 110, 80, 300]
         );
 
         $this->writeWorksheet(
@@ -73,7 +95,10 @@ class AccountExportService
                 sprintf('Ending Balance (%s)', $account->base_currency),
                 sprintf('Monthly Savings (%s)', $account->base_currency),
             ],
-            $this->buildMonthlyOverviewRows($analytics)
+            $this->buildMonthlyOverviewRows($analytics),
+            'Monthly Overview',
+            'Twelve-month cash flow and balance trend.',
+            [85, 110, 110, 110, 120, 120]
         );
 
         $this->writeWorksheet(
@@ -94,7 +119,10 @@ class AccountExportService
                 'Opening Balance',
                 'Created At',
             ],
-            $this->buildTransactionRows($transactions)
+            $this->buildTransactionRows($transactions),
+            'Transaction Ledger',
+            'Complete account history with categories, tags, and creator details.',
+            [60, 85, 85, 90, 65, 120, 120, 220, 120, 120, 150, 90, 120]
         );
 
         $this->writeWorksheet(
@@ -117,7 +145,10 @@ class AccountExportService
                 sprintf('Selected Month Remaining (%s)', $account->base_currency),
                 'Selected Month Usage %',
             ],
-            $this->buildBudgetRows($budgets, $analytics['budget_usage'] ?? [])
+            $this->buildBudgetRows($budgets, $analytics['budget_usage'] ?? []),
+            'Budget Tracker',
+            sprintf('Budget health for %s.', $referenceMonth->format('F Y')),
+            [60, 130, 130, 90, 120, 110, 80, 80, 85, 85, 100, 110, 110, 110, 90]
         );
 
         $this->writeWorksheet(
@@ -144,14 +175,20 @@ class AccountExportService
                 'Projected Completion',
                 'Required Monthly',
             ],
-            $this->buildSavingsGoalRows($savingsGoals)
+            $this->buildSavingsGoalRows($savingsGoals),
+            'Savings Goals',
+            'Progress, remaining target, and completion outlook.',
+            [60, 150, 90, 120, 100, 75, 100, 100, 100, 100, 90, 80, 110, 120, 120, 85, 85, 110, 100]
         );
 
         $this->writeWorksheet(
             $writer,
             'Members',
             ['User ID', 'Name', 'Email', 'Role', 'Active', 'Joined At', 'Invited At'],
-            $this->buildMemberRows($members)
+            $this->buildMemberRows($members),
+            'Account Members',
+            'Who has access to this account and when they joined.',
+            [60, 140, 200, 90, 80, 120, 120]
         );
 
         $writer->endElement();
@@ -214,89 +251,281 @@ class AccountExportService
         Collection $savingsGoals,
         Collection $members
     ): array {
-        $settings = $account->settings;
         $missingRates = $analytics['missing_rates'] ?? [];
+        $settings = $account->settings;
+        $forecast = $analytics['forecast'] ?? [];
+        $latestTransactionDate = $transactions->first()?->date;
+        $rows = [];
 
-        return [
-            $this->stringRow('Account', 'Account Name', $account->name, ''),
-            $this->stringRow('Account', 'Base Currency', $account->base_currency, ''),
-            $this->stringRow('Account', 'Description', $account->description ?: 'None', ''),
-            $this->stringRow('Account', 'Selected Month', $referenceMonth->format('F Y'), ''),
-            $this->stringRow('Account', 'Exported At', now()->format('Y-m-d H:i:s'), ''),
-            $this->stringRow('Account', 'Exported By', $user->email, ''),
-            $this->stringRow('Account', 'Locale', $settings?->locale ?: 'Default', ''),
-            $this->stringRow('Account', 'Timezone', $settings?->timezone ?: 'Default', ''),
-            $this->stringRow(
-                'Balances',
-                'Total Balance',
-                (string) ($analytics['total_balance'] ?? 0),
-                $account->base_currency
-            ),
-            $this->stringRow(
-                'Balances',
-                'Opening Balance',
-                (string) ($analytics['total_balance_opening'] ?? 0),
-                $account->base_currency
-            ),
-            $this->stringRow(
-                'Balances',
-                'Net Balance',
-                (string) ($analytics['total_balance_net'] ?? 0),
-                $account->base_currency
-            ),
-            $this->stringRow(
-                'Balances',
-                'Balance Conversions',
-                $this->formatConversions($analytics['total_balance_conversions'] ?? []),
-                'Latest available FX rates'
-            ),
-            $this->stringRow(
-                'Selected Month',
-                'Income',
-                (string) ($analytics['current_month_income'] ?? 0),
-                $account->base_currency
-            ),
-            $this->stringRow(
-                'Selected Month',
-                'Expenses',
-                (string) ($analytics['current_month_expenses'] ?? 0),
-                $account->base_currency
-            ),
-            $this->stringRow(
-                'Selected Month',
-                'Net Cash Flow',
-                (string) ($analytics['net_cash_flow'] ?? 0),
-                $account->base_currency
-            ),
-            $this->stringRow(
-                'Selected Month',
-                'Savings',
-                (string) ($analytics['current_month_savings']['amount'] ?? 0),
-                $account->base_currency
-            ),
-            $this->stringRow(
-                'Selected Month',
-                'Savings Rate',
-                (string) ($analytics['current_month_savings']['rate'] ?? 0),
-                '%'
-            ),
-            $this->stringRow(
-                'Selected Month',
-                'Transaction Count',
-                (string) ($analytics['current_month_transaction_count'] ?? 0),
-                ''
-            ),
-            $this->stringRow(
-                'Selected Month',
-                'Missing FX Transactions',
-                (string) ($missingRates['count'] ?? 0),
-                ! empty($missingRates['currencies']) ? implode(', ', $missingRates['currencies']) : ''
-            ),
-            $this->stringRow('Data Volume', 'Transactions Exported', (string) $transactions->count(), 'Full account history'),
-            $this->stringRow('Data Volume', 'Budgets Exported', (string) $budgets->count(), 'Visible to current user'),
-            $this->stringRow('Data Volume', 'Savings Goals Exported', (string) $savingsGoals->count(), 'Visible to current user'),
-            $this->stringRow('Data Volume', 'Members Exported', (string) $members->count(), ''),
-        ];
+        $rows[] = $this->sectionRow('Account Snapshot', 5);
+        $rows[] = $this->metricRow(
+            'Account',
+            'Account Name',
+            $this->stringCell($account->name, 'Text'),
+            '',
+            'Primary workspace for this export.'
+        );
+        $rows[] = $this->metricRow(
+            'Account',
+            'Base Currency',
+            $this->stringCell($account->base_currency, 'BadgeShared'),
+            '',
+            'All dashboard analytics are normalized to this currency.'
+        );
+        $rows[] = $this->metricRow(
+            'Account',
+            'Description',
+            $this->stringCell($account->description ?: 'No description', 'TextWrap'),
+            '',
+            'Useful when the account is shared across a family or team.'
+        );
+        $rows[] = $this->metricRow(
+            'Account',
+            'Selected Month',
+            $this->stringCell($referenceMonth->format('F Y'), 'Text'),
+            '',
+            'The same month filter used on the dashboard.'
+        );
+        $rows[] = $this->metricRow(
+            'Account',
+            'Exported By',
+            $this->stringCell($user->name ?: $user->email, 'Text'),
+            '',
+            $user->email
+        );
+        $rows[] = $this->metricRow(
+            'Account',
+            'Locale / Timezone',
+            $this->stringCell(($settings?->locale ?: 'Default').' / '.($settings?->timezone ?: 'Default'), 'Text'),
+            '',
+            'Account presentation settings.'
+        );
+
+        $rows[] = $this->blankRow(5);
+        $rows[] = $this->sectionRow('Cash Position', 5);
+        $rows[] = $this->metricRow(
+            'Balance',
+            'Total Balance',
+            $this->amountCell($analytics['total_balance'] ?? 0),
+            $account->base_currency,
+            'All recorded income minus all recorded expenses.'
+        );
+        $rows[] = $this->metricRow(
+            'Balance',
+            'Opening Balance',
+            $this->amountCell($analytics['total_balance_opening'] ?? 0),
+            $account->base_currency,
+            'Imported or opening-balance transactions only.'
+        );
+        $rows[] = $this->metricRow(
+            'Balance',
+            'Net Balance',
+            $this->amountCell($analytics['total_balance_net'] ?? 0),
+            $account->base_currency,
+            'Balance excluding opening-balance adjustments.'
+        );
+        $rows[] = $this->metricRow(
+            'Balance',
+            'Balance Conversions',
+            $this->stringCell($this->formatConversions($analytics['total_balance_conversions'] ?? []), 'TextWrap'),
+            '',
+            'Latest available FX rates.'
+        );
+
+        $rows[] = $this->blankRow(5);
+        $rows[] = $this->sectionRow('Month in Focus', 5);
+        $rows[] = $this->metricRow(
+            'Month',
+            'Income',
+            $this->numberCell($analytics['current_month_income'] ?? 0, 'Income'),
+            $account->base_currency,
+            'Posted income in the selected month.'
+        );
+        $rows[] = $this->metricRow(
+            'Month',
+            'Expenses',
+            $this->numberCell($analytics['current_month_expenses'] ?? 0, 'Expense'),
+            $account->base_currency,
+            'Posted expenses in the selected month.'
+        );
+        $rows[] = $this->metricRow(
+            'Month',
+            'Net Cash Flow',
+            $this->amountCell($analytics['net_cash_flow'] ?? 0),
+            $account->base_currency,
+            'Income minus expenses for the selected month.'
+        );
+        $rows[] = $this->metricRow(
+            'Month',
+            'Savings',
+            $this->amountCell($analytics['current_month_savings']['amount'] ?? 0, 'Savings', 'Expense', 'AmountNeutral'),
+            $account->base_currency,
+            'Current month savings or shortfall.'
+        );
+        $rows[] = $this->metricRow(
+            'Month',
+            'Savings Rate',
+            $this->numberCell($analytics['current_month_savings']['rate'] ?? 0, 'PercentStrong'),
+            '%',
+            'Share of income kept after expenses.'
+        );
+        $rows[] = $this->metricRow(
+            'Month',
+            'Transaction Count',
+            $this->numberCell($analytics['current_month_transaction_count'] ?? 0, 'Integer'),
+            '',
+            'Posted transactions excluding opening balance rows.'
+        );
+
+        $rows[] = $this->blankRow(5);
+        $rows[] = $this->sectionRow('Forward Look', 5);
+        $rows[] = $this->metricRow(
+            'Forecast',
+            '30 Day Net Forecast',
+            $this->amountCell(data_get($forecast, 'forecast_30.net', 0)),
+            $account->base_currency,
+            'Based on the trailing 30-day daily average.'
+        );
+        $rows[] = $this->metricRow(
+            'Forecast',
+            '90 Day Net Forecast',
+            $this->amountCell(data_get($forecast, 'forecast_90.net', 0)),
+            $account->base_currency,
+            'Extended projection from the same recent trend.'
+        );
+        $rows[] = $this->metricRow(
+            'Forecast',
+            'Tracked Budget Lines',
+            $this->numberCell(count($analytics['budget_usage'] ?? []), 'Integer'),
+            '',
+            'Visible budget lines active in the selected month.'
+        );
+        $rows[] = $this->metricRow(
+            'Forecast',
+            'Tracked Savings Goals',
+            $this->numberCell($savingsGoals->count(), 'Integer'),
+            '',
+            'Goals visible to the exporting user.'
+        );
+
+        $rows[] = $this->blankRow(5);
+        $rows[] = $this->sectionRow('Data Coverage', 5);
+        $rows[] = $this->metricRow(
+            'Coverage',
+            'Transactions Exported',
+            $this->numberCell($transactions->count(), 'Integer'),
+            '',
+            'Complete ledger, not only the selected month.'
+        );
+        $rows[] = $this->metricRow(
+            'Coverage',
+            'Budgets Exported',
+            $this->numberCell($budgets->count(), 'Integer'),
+            '',
+            'Budget rows visible to the exporting user.'
+        );
+        $rows[] = $this->metricRow(
+            'Coverage',
+            'Members Included',
+            $this->numberCell($members->count(), 'Integer'),
+            '',
+            'Current account members with role metadata.'
+        );
+        $rows[] = $this->metricRow(
+            'Coverage',
+            'Latest Transaction Date',
+            $this->stringCell($this->formatDate($latestTransactionDate), 'Text'),
+            '',
+            'Most recent posted transaction in the account.'
+        );
+        $rows[] = $this->metricRow(
+            'Coverage',
+            'Missing FX Transactions',
+            $this->numberCell($missingRates['count'] ?? 0, 'Integer'),
+            '',
+            ! empty($missingRates['currencies'])
+                ? 'Currencies affected: '.implode(', ', $missingRates['currencies'])
+                : 'No FX gaps detected in the selected month.'
+        );
+
+        return $rows;
+    }
+
+    private function buildInsightsRows(Account $account, array $analytics): array
+    {
+        $rows = [];
+
+        $rows[] = $this->sectionRow('Top Categories (Last 30 Days)', 5);
+        foreach ($analytics['top_categories'] ?? [] as $category) {
+            $rows[] = $this->metricRow(
+                'Category',
+                $category['category'] ?? 'Unknown',
+                $this->amountCell($category['total'] ?? 0),
+                $account->base_currency,
+                sprintf('Share of spend: %s%%', $category['percentage'] ?? 0)
+            );
+        }
+
+        if (empty($analytics['top_categories'])) {
+            $rows[] = $this->metricRow(
+                'Category',
+                'No category spend yet',
+                $this->stringCell('No data', 'MutedText'),
+                '',
+                'Expense insights appear once the account has expense history.'
+            );
+        }
+
+        $rows[] = $this->blankRow(5);
+        $rows[] = $this->sectionRow('Top Subcategories (Last 30 Days)', 5);
+        foreach ($analytics['top_subcategories'] ?? [] as $subcategory) {
+            $rows[] = $this->metricRow(
+                'Subcategory',
+                $subcategory['label'] ?? $subcategory['subcategory'] ?? 'Unknown',
+                $this->amountCell($subcategory['total'] ?? 0),
+                $account->base_currency,
+                sprintf('Share of spend: %s%%', $subcategory['percentage'] ?? 0)
+            );
+        }
+
+        if (empty($analytics['top_subcategories'])) {
+            $rows[] = $this->metricRow(
+                'Subcategory',
+                'No subcategory spend yet',
+                $this->stringCell('No data', 'MutedText'),
+                '',
+                'Create subcategories to deepen expense analysis.'
+            );
+        }
+
+        $rows[] = $this->blankRow(5);
+        $rows[] = $this->sectionRow('Category Spikes', 5);
+        foreach ($analytics['category_spikes'] ?? [] as $spike) {
+            $rows[] = $this->metricRow(
+                'Spike',
+                $spike['category'] ?? 'Unknown',
+                $this->amountCell($spike['recent_total'] ?? 0),
+                $account->base_currency,
+                sprintf(
+                    '+%s%% vs baseline %s %s',
+                    $spike['delta_percent'] ?? 0,
+                    $spike['baseline'] ?? 0,
+                    $account->base_currency
+                )
+            );
+        }
+
+        if (empty($analytics['category_spikes'])) {
+            $rows[] = $this->metricRow(
+                'Spike',
+                'No unusual category spikes',
+                $this->stringCell('Stable', 'BadgePositive'),
+                '',
+                'No category exceeded the configured spike threshold.'
+            );
+        }
+
+        return $rows;
     }
 
     private function buildMonthlyOverviewRows(array $analytics): array
@@ -308,12 +537,12 @@ class AccountExportService
                 $balanceRow = $balanceHistory->get($row['month'], []);
 
                 return [
-                    $this->stringCell($row['month'] ?? ''),
-                    $this->numberCell($row['income'] ?? 0),
-                    $this->numberCell($row['expenses'] ?? 0),
-                    $this->numberCell($row['net'] ?? 0),
-                    $this->numberCell($balanceRow['balance'] ?? 0),
-                    $this->numberCell($balanceRow['savings'] ?? 0),
+                    $this->stringCell($row['month'] ?? '', 'Text'),
+                    $this->numberCell($row['income'] ?? 0, 'Income'),
+                    $this->numberCell($row['expenses'] ?? 0, 'Expense'),
+                    $this->amountCell($row['net'] ?? 0),
+                    $this->amountCell($balanceRow['balance'] ?? 0),
+                    $this->amountCell($balanceRow['savings'] ?? 0, 'Savings', 'Expense', 'AmountNeutral'),
                 ];
             })
             ->all();
@@ -323,20 +552,32 @@ class AccountExportService
     {
         return $transactions
             ->map(function (Transaction $transaction) {
+                $amountStyle = match ($transaction->type) {
+                    'income' => 'Income',
+                    'expense' => 'Expense',
+                    default => 'AmountNeutral',
+                };
+
+                $typeStyle = match ($transaction->type) {
+                    'income' => 'TypeIncome',
+                    'expense' => 'TypeExpense',
+                    default => 'TypeTransfer',
+                };
+
                 return [
-                    $this->numberCell($transaction->id),
-                    $this->stringCell($this->formatDate($transaction->date)),
-                    $this->stringCell(ucfirst($transaction->type)),
-                    $this->numberCell($transaction->amount),
-                    $this->stringCell($transaction->currency),
-                    $this->stringCell($transaction->category?->name ?: ''),
-                    $this->stringCell($transaction->subcategory?->name ?: ''),
-                    $this->stringCell($transaction->description ?: ''),
-                    $this->stringCell($transaction->payment_method ?: ''),
-                    $this->stringCell($transaction->creator?->name ?: $transaction->creator?->email ?: ''),
-                    $this->stringCell($transaction->tags->pluck('name')->implode(', ')),
-                    $this->stringCell($this->formatYesNo((bool) data_get($transaction->metadata, 'opening_balance', false))),
-                    $this->stringCell($this->formatDateTime($transaction->created_at)),
+                    $this->numberCell($transaction->id, 'Integer'),
+                    $this->stringCell($this->formatDate($transaction->date), 'Text'),
+                    $this->stringCell(ucfirst($transaction->type), $typeStyle),
+                    $this->numberCell($transaction->amount, $amountStyle),
+                    $this->stringCell($transaction->currency, 'MutedText'),
+                    $this->stringCell($transaction->category?->name ?: '', 'Text'),
+                    $this->stringCell($transaction->subcategory?->name ?: '', 'Text'),
+                    $this->stringCell($transaction->description ?: '', 'TextWrap'),
+                    $this->stringCell($transaction->payment_method ?: '', 'Text'),
+                    $this->stringCell($transaction->creator?->name ?: $transaction->creator?->email ?: '', 'Text'),
+                    $this->stringCell($transaction->tags->pluck('name')->implode(', '), 'TextWrap'),
+                    $this->yesNoCell((bool) data_get($transaction->metadata, 'opening_balance', false)),
+                    $this->stringCell($this->formatDateTime($transaction->created_at), 'MutedText'),
                 ];
             })
             ->all();
@@ -354,21 +595,21 @@ class AccountExportService
                 $remainingAmount = data_get($usage, 'remaining');
 
                 return [
-                    $this->numberCell($budget->id),
-                    $this->stringCell($budget->category?->name ?: 'All categories'),
-                    $this->stringCell($budget->subcategory?->name ?: ''),
-                    $this->stringCell($budget->user_id ? 'Personal' : 'Account-wide'),
-                    $this->stringCell($budget->user?->name ?: $budget->user?->email ?: ''),
-                    $this->numberCell($budget->amount),
-                    $this->stringCell($budget->currency),
-                    $this->stringCell(ucfirst($budget->period)),
-                    $this->stringCell($this->formatDate($budget->start_date)),
-                    $this->stringCell($this->formatDate($budget->end_date)),
-                    $this->stringCell($this->formatYesNo($usage !== null)),
-                    $this->numberCell($budgetAmount),
-                    $this->numberCell($spentAmount),
-                    $this->numberCell($remainingAmount),
-                    $this->numberCell($this->calculatePercentage($spentAmount, $budgetAmount)),
+                    $this->numberCell($budget->id, 'Integer'),
+                    $this->stringCell($budget->category?->name ?: 'All categories', 'Text'),
+                    $this->stringCell($budget->subcategory?->name ?: '', 'Text'),
+                    $this->scopeCell($budget->user_id !== null),
+                    $this->stringCell($budget->user?->name ?: $budget->user?->email ?: '', 'Text'),
+                    $this->numberCell($budget->amount, 'AmountNeutral'),
+                    $this->stringCell($budget->currency, 'MutedText'),
+                    $this->stringCell(ucfirst($budget->period), 'Text'),
+                    $this->stringCell($this->formatDate($budget->start_date), 'Text'),
+                    $this->stringCell($this->formatDate($budget->end_date), 'Text'),
+                    $this->yesNoCell($usage !== null),
+                    $this->numberCell($budgetAmount, 'AmountNeutral'),
+                    $this->numberCell($spentAmount, 'Expense'),
+                    $this->amountCell($remainingAmount),
+                    $this->numberCell($this->calculatePercentage($spentAmount, $budgetAmount), 'Percent'),
                 ];
             })
             ->all();
@@ -382,25 +623,25 @@ class AccountExportService
                 $projection = $this->savingsGoalService->calculateProjection($goal);
 
                 return [
-                    $this->numberCell($goal->id),
-                    $this->stringCell($goal->name),
-                    $this->stringCell($goal->user_id ? 'Personal' : 'Account-wide'),
-                    $this->stringCell($goal->user?->name ?: $goal->user?->email ?: ''),
-                    $this->numberCell($goal->target_amount),
-                    $this->stringCell($goal->currency),
-                    $this->numberCell($goal->initial_amount),
-                    $this->numberCell($progress['current_amount'] ?? 0),
-                    $this->numberCell($progress['contributed'] ?? 0),
-                    $this->numberCell($progress['remaining'] ?? 0),
-                    $this->numberCell($progress['percentage'] ?? 0),
-                    $this->stringCell($this->formatYesNo((bool) ($progress['is_complete'] ?? false))),
-                    $this->stringCell($this->formatTrackingMode($goal->tracking_mode)),
-                    $this->stringCell($goal->category?->name ?: ''),
-                    $this->stringCell($goal->subcategory?->name ?: ''),
-                    $this->stringCell($this->formatDate($goal->start_date)),
-                    $this->stringCell($this->formatDate($goal->target_date)),
-                    $this->stringCell($projection['projected_completion_date'] ?? ''),
-                    $this->numberCell($projection['required_monthly'] ?? null),
+                    $this->numberCell($goal->id, 'Integer'),
+                    $this->stringCell($goal->name, 'Text'),
+                    $this->scopeCell($goal->user_id !== null),
+                    $this->stringCell($goal->user?->name ?: $goal->user?->email ?: '', 'Text'),
+                    $this->numberCell($goal->target_amount, 'AmountNeutral'),
+                    $this->stringCell($goal->currency, 'MutedText'),
+                    $this->numberCell($goal->initial_amount, 'AmountNeutral'),
+                    $this->amountCell($progress['current_amount'] ?? 0, 'Savings', 'Expense', 'AmountNeutral'),
+                    $this->numberCell($progress['contributed'] ?? 0, 'Savings'),
+                    $this->amountCell($progress['remaining'] ?? 0),
+                    $this->numberCell($progress['percentage'] ?? 0, 'Percent'),
+                    $this->yesNoCell((bool) ($progress['is_complete'] ?? false)),
+                    $this->stringCell($this->formatTrackingMode($goal->tracking_mode), 'Text'),
+                    $this->stringCell($goal->category?->name ?: '', 'Text'),
+                    $this->stringCell($goal->subcategory?->name ?: '', 'Text'),
+                    $this->stringCell($this->formatDate($goal->start_date), 'Text'),
+                    $this->stringCell($this->formatDate($goal->target_date), 'Text'),
+                    $this->stringCell($projection['projected_completion_date'] ?? '', 'Text'),
+                    $this->numberCell($projection['required_monthly'] ?? null, 'AmountNeutral'),
                 ];
             })
             ->all();
@@ -411,13 +652,13 @@ class AccountExportService
         return $members
             ->map(function (User $member) {
                 return [
-                    $this->numberCell($member->id),
-                    $this->stringCell($member->name),
-                    $this->stringCell($member->email),
-                    $this->stringCell((string) $member->pivot?->role),
-                    $this->stringCell($this->formatYesNo((bool) $member->pivot?->is_active)),
-                    $this->stringCell($this->formatDateTime($member->pivot?->joined_at)),
-                    $this->stringCell($this->formatDateTime($member->pivot?->invited_at)),
+                    $this->numberCell($member->id, 'Integer'),
+                    $this->stringCell($member->name, 'Text'),
+                    $this->stringCell($member->email, 'Text'),
+                    $this->stringCell(Str::headline((string) $member->pivot?->role), 'Text'),
+                    $this->yesNoCell((bool) $member->pivot?->is_active),
+                    $this->stringCell($this->formatDateTime($member->pivot?->joined_at), 'Text'),
+                    $this->stringCell($this->formatDateTime($member->pivot?->invited_at), 'Text'),
                 ];
             })
             ->all();
@@ -427,29 +668,203 @@ class AccountExportService
     {
         $writer->startElement('Styles');
 
-        $writer->startElement('Style');
-        $writer->writeAttributeNs('ss', 'ID', null, 'Header');
-        $writer->startElement('Font');
-        $writer->writeAttributeNs('ss', 'Bold', null, '1');
-        $writer->endElement();
-        $writer->startElement('Interior');
-        $writer->writeAttributeNs('ss', 'Color', null, '#E2E8F0');
-        $writer->writeAttributeNs('ss', 'Pattern', null, 'Solid');
-        $writer->endElement();
-        $writer->endElement();
+        $this->writeStyle($writer, 'SheetTitle', [
+            'alignment' => ['Vertical' => 'Center'],
+            'font' => ['Bold' => '1', 'Size' => '16', 'Color' => '#FFFFFF'],
+            'interior' => ['Color' => '#0F172A', 'Pattern' => 'Solid'],
+            'borders' => $this->fullBorders('#0F172A'),
+        ]);
+
+        $this->writeStyle($writer, 'SheetSubtitle', [
+            'alignment' => ['Vertical' => 'Center', 'WrapText' => '1'],
+            'font' => ['Size' => '10', 'Color' => '#334155'],
+            'interior' => ['Color' => '#E2E8F0', 'Pattern' => 'Solid'],
+            'borders' => $this->fullBorders('#CBD5E1'),
+        ]);
+
+        $this->writeStyle($writer, 'SectionHeader', [
+            'alignment' => ['Vertical' => 'Center'],
+            'font' => ['Bold' => '1', 'Size' => '11', 'Color' => '#0F172A'],
+            'interior' => ['Color' => '#DBEAFE', 'Pattern' => 'Solid'],
+            'borders' => $this->fullBorders('#BFDBFE'),
+        ]);
+
+        $this->writeStyle($writer, 'TableHeader', [
+            'alignment' => ['Horizontal' => 'Center', 'Vertical' => 'Center', 'WrapText' => '1'],
+            'font' => ['Bold' => '1', 'Color' => '#FFFFFF'],
+            'interior' => ['Color' => '#1E293B', 'Pattern' => 'Solid'],
+            'borders' => $this->fullBorders('#0F172A'),
+        ]);
+
+        $this->writeStyle($writer, 'Label', [
+            'alignment' => ['Vertical' => 'Center'],
+            'font' => ['Bold' => '1', 'Color' => '#0F172A'],
+            'borders' => $this->bottomBorder('#E2E8F0'),
+        ]);
+
+        $this->writeStyle($writer, 'Text', [
+            'alignment' => ['Vertical' => 'Center'],
+            'font' => ['Color' => '#0F172A'],
+            'borders' => $this->bottomBorder('#E2E8F0'),
+        ]);
+
+        $this->writeStyle($writer, 'TextWrap', [
+            'alignment' => ['Vertical' => 'Center', 'WrapText' => '1'],
+            'font' => ['Color' => '#0F172A'],
+            'borders' => $this->bottomBorder('#E2E8F0'),
+        ]);
+
+        $this->writeStyle($writer, 'MutedText', [
+            'alignment' => ['Vertical' => 'Center'],
+            'font' => ['Color' => '#64748B'],
+            'borders' => $this->bottomBorder('#E2E8F0'),
+        ]);
+
+        $this->writeStyle($writer, 'Integer', [
+            'alignment' => ['Horizontal' => 'Right', 'Vertical' => 'Center'],
+            'font' => ['Color' => '#0F172A'],
+            'borders' => $this->bottomBorder('#E2E8F0'),
+            'number_format' => '0',
+        ]);
+
+        $this->writeStyle($writer, 'AmountNeutral', [
+            'alignment' => ['Horizontal' => 'Right', 'Vertical' => 'Center'],
+            'font' => ['Bold' => '1', 'Color' => '#0F172A'],
+            'borders' => $this->bottomBorder('#E2E8F0'),
+            'number_format' => '#,##0.00',
+        ]);
+
+        $this->writeStyle($writer, 'AmountPositive', [
+            'alignment' => ['Horizontal' => 'Right', 'Vertical' => 'Center'],
+            'font' => ['Bold' => '1', 'Color' => '#15803D'],
+            'borders' => $this->bottomBorder('#E2E8F0'),
+            'number_format' => '#,##0.00',
+        ]);
+
+        $this->writeStyle($writer, 'AmountNegative', [
+            'alignment' => ['Horizontal' => 'Right', 'Vertical' => 'Center'],
+            'font' => ['Bold' => '1', 'Color' => '#B91C1C'],
+            'borders' => $this->bottomBorder('#E2E8F0'),
+            'number_format' => '#,##0.00',
+        ]);
+
+        $this->writeStyle($writer, 'Income', [
+            'alignment' => ['Horizontal' => 'Right', 'Vertical' => 'Center'],
+            'font' => ['Bold' => '1', 'Color' => '#15803D'],
+            'borders' => $this->bottomBorder('#E2E8F0'),
+            'number_format' => '#,##0.00',
+        ]);
+
+        $this->writeStyle($writer, 'Expense', [
+            'alignment' => ['Horizontal' => 'Right', 'Vertical' => 'Center'],
+            'font' => ['Bold' => '1', 'Color' => '#DC2626'],
+            'borders' => $this->bottomBorder('#E2E8F0'),
+            'number_format' => '#,##0.00',
+        ]);
+
+        $this->writeStyle($writer, 'Savings', [
+            'alignment' => ['Horizontal' => 'Right', 'Vertical' => 'Center'],
+            'font' => ['Bold' => '1', 'Color' => '#2563EB'],
+            'borders' => $this->bottomBorder('#E2E8F0'),
+            'number_format' => '#,##0.00',
+        ]);
+
+        $this->writeStyle($writer, 'Percent', [
+            'alignment' => ['Horizontal' => 'Right', 'Vertical' => 'Center'],
+            'font' => ['Color' => '#0F172A'],
+            'borders' => $this->bottomBorder('#E2E8F0'),
+            'number_format' => '0.00',
+        ]);
+
+        $this->writeStyle($writer, 'PercentStrong', [
+            'alignment' => ['Horizontal' => 'Right', 'Vertical' => 'Center'],
+            'font' => ['Bold' => '1', 'Color' => '#0F172A'],
+            'borders' => $this->bottomBorder('#E2E8F0'),
+            'number_format' => '0.00',
+        ]);
+
+        $this->writeStyle($writer, 'BadgeShared', [
+            'alignment' => ['Horizontal' => 'Center', 'Vertical' => 'Center'],
+            'font' => ['Bold' => '1', 'Color' => '#1D4ED8'],
+            'interior' => ['Color' => '#DBEAFE', 'Pattern' => 'Solid'],
+            'borders' => $this->fullBorders('#BFDBFE'),
+        ]);
+
+        $this->writeStyle($writer, 'BadgePersonal', [
+            'alignment' => ['Horizontal' => 'Center', 'Vertical' => 'Center'],
+            'font' => ['Bold' => '1', 'Color' => '#7C3AED'],
+            'interior' => ['Color' => '#EDE9FE', 'Pattern' => 'Solid'],
+            'borders' => $this->fullBorders('#DDD6FE'),
+        ]);
+
+        $this->writeStyle($writer, 'BadgePositive', [
+            'alignment' => ['Horizontal' => 'Center', 'Vertical' => 'Center'],
+            'font' => ['Bold' => '1', 'Color' => '#166534'],
+            'interior' => ['Color' => '#DCFCE7', 'Pattern' => 'Solid'],
+            'borders' => $this->fullBorders('#BBF7D0'),
+        ]);
+
+        $this->writeStyle($writer, 'BadgeMuted', [
+            'alignment' => ['Horizontal' => 'Center', 'Vertical' => 'Center'],
+            'font' => ['Bold' => '1', 'Color' => '#475569'],
+            'interior' => ['Color' => '#E2E8F0', 'Pattern' => 'Solid'],
+            'borders' => $this->fullBorders('#CBD5E1'),
+        ]);
+
+        $this->writeStyle($writer, 'TypeIncome', [
+            'alignment' => ['Horizontal' => 'Center', 'Vertical' => 'Center'],
+            'font' => ['Bold' => '1', 'Color' => '#FFFFFF'],
+            'interior' => ['Color' => '#16A34A', 'Pattern' => 'Solid'],
+            'borders' => $this->fullBorders('#15803D'),
+        ]);
+
+        $this->writeStyle($writer, 'TypeExpense', [
+            'alignment' => ['Horizontal' => 'Center', 'Vertical' => 'Center'],
+            'font' => ['Bold' => '1', 'Color' => '#FFFFFF'],
+            'interior' => ['Color' => '#DC2626', 'Pattern' => 'Solid'],
+            'borders' => $this->fullBorders('#B91C1C'),
+        ]);
+
+        $this->writeStyle($writer, 'TypeTransfer', [
+            'alignment' => ['Horizontal' => 'Center', 'Vertical' => 'Center'],
+            'font' => ['Bold' => '1', 'Color' => '#FFFFFF'],
+            'interior' => ['Color' => '#475569', 'Pattern' => 'Solid'],
+            'borders' => $this->fullBorders('#334155'),
+        ]);
 
         $writer->endElement();
     }
 
-    private function writeWorksheet(XMLWriter $writer, string $name, array $headers, array $rows): void
-    {
+    private function writeWorksheet(
+        XMLWriter $writer,
+        string $name,
+        array $headers,
+        array $rows,
+        string $title,
+        string $subtitle,
+        array $columnWidths = []
+    ): void {
+        $columnCount = count($headers);
+
         $writer->startElement('Worksheet');
         $writer->writeAttributeNs('ss', 'Name', null, $this->sanitizeWorksheetName($name));
 
         $writer->startElement('Table');
+        $this->writeColumns($writer, $columnWidths);
+
+        $this->writeRow($writer, [
+            $this->stringCell($title, 'SheetTitle', max($columnCount - 1, 0)),
+        ]);
+        $this->writeRow($writer, [
+            $this->stringCell($subtitle, 'SheetSubtitle', max($columnCount - 1, 0)),
+        ]);
+        $this->writeRow($writer, [
+            $this->stringCell('', null, max($columnCount - 1, 0)),
+        ]);
+
         $this->writeRow(
             $writer,
-            array_map(fn (string $header) => $this->stringCell($header, 'Header'), $headers)
+            array_map(fn (string $header) => $this->stringCell($header, 'TableHeader'), $headers)
         );
 
         foreach ($rows as $row) {
@@ -458,6 +873,16 @@ class AccountExportService
 
         $writer->endElement();
         $writer->endElement();
+    }
+
+    private function writeColumns(XMLWriter $writer, array $columnWidths): void
+    {
+        foreach ($columnWidths as $width) {
+            $writer->startElement('Column');
+            $writer->writeAttributeNs('ss', 'AutoFitWidth', null, '0');
+            $writer->writeAttributeNs('ss', 'Width', null, (string) $width);
+            $writer->endElement();
+        }
     }
 
     private function writeRow(XMLWriter $writer, array $cells): void
@@ -469,19 +894,29 @@ class AccountExportService
                 $writer,
                 $cell['type'] ?? 'String',
                 $cell['value'] ?? '',
-                $cell['style'] ?? null
+                $cell['style'] ?? null,
+                $cell['merge_across'] ?? null
             );
         }
 
         $writer->endElement();
     }
 
-    private function writeCell(XMLWriter $writer, string $type, string $value, ?string $style = null): void
-    {
+    private function writeCell(
+        XMLWriter $writer,
+        string $type,
+        string $value,
+        ?string $style = null,
+        ?int $mergeAcross = null
+    ): void {
         $writer->startElement('Cell');
 
         if ($style) {
             $writer->writeAttributeNs('ss', 'StyleID', null, $style);
+        }
+
+        if ($mergeAcross !== null && $mergeAcross > 0) {
+            $writer->writeAttributeNs('ss', 'MergeAcross', null, (string) $mergeAcross);
         }
 
         $writer->startElement('Data');
@@ -492,36 +927,154 @@ class AccountExportService
         $writer->endElement();
     }
 
-    private function stringRow(string $section, string $metric, string $value, string $notes): array
+    private function writeStyle(XMLWriter $writer, string $id, array $config): void
+    {
+        $writer->startElement('Style');
+        $writer->writeAttributeNs('ss', 'ID', null, $id);
+
+        if (isset($config['alignment'])) {
+            $writer->startElement('Alignment');
+            foreach ($config['alignment'] as $attribute => $value) {
+                $writer->writeAttributeNs('ss', $attribute, null, (string) $value);
+            }
+            $writer->endElement();
+        }
+
+        if (isset($config['font'])) {
+            $writer->startElement('Font');
+            foreach ($config['font'] as $attribute => $value) {
+                $writer->writeAttributeNs('ss', $attribute, null, (string) $value);
+            }
+            $writer->endElement();
+        }
+
+        if (isset($config['interior'])) {
+            $writer->startElement('Interior');
+            foreach ($config['interior'] as $attribute => $value) {
+                $writer->writeAttributeNs('ss', $attribute, null, (string) $value);
+            }
+            $writer->endElement();
+        }
+
+        if (isset($config['borders'])) {
+            $writer->startElement('Borders');
+            foreach ($config['borders'] as $border) {
+                $writer->startElement('Border');
+                foreach ($border as $attribute => $value) {
+                    $writer->writeAttributeNs('ss', $attribute, null, (string) $value);
+                }
+                $writer->endElement();
+            }
+            $writer->endElement();
+        }
+
+        if (isset($config['number_format'])) {
+            $writer->startElement('NumberFormat');
+            $writer->writeAttributeNs('ss', 'Format', null, $config['number_format']);
+            $writer->endElement();
+        }
+
+        $writer->endElement();
+    }
+
+    private function fullBorders(string $color): array
     {
         return [
-            $this->stringCell($section),
-            $this->stringCell($metric),
-            $this->stringCell($value),
-            $this->stringCell($notes),
+            ['Position' => 'Bottom', 'LineStyle' => 'Continuous', 'Weight' => '1', 'Color' => $color],
+            ['Position' => 'Left', 'LineStyle' => 'Continuous', 'Weight' => '1', 'Color' => $color],
+            ['Position' => 'Right', 'LineStyle' => 'Continuous', 'Weight' => '1', 'Color' => $color],
+            ['Position' => 'Top', 'LineStyle' => 'Continuous', 'Weight' => '1', 'Color' => $color],
         ];
     }
 
-    private function stringCell(mixed $value, ?string $style = null): array
+    private function bottomBorder(string $color): array
+    {
+        return [
+            ['Position' => 'Bottom', 'LineStyle' => 'Continuous', 'Weight' => '1', 'Color' => $color],
+        ];
+    }
+
+    private function sectionRow(string $title, int $columnCount): array
+    {
+        return [
+            $this->stringCell($title, 'SectionHeader', max($columnCount - 1, 0)),
+        ];
+    }
+
+    private function blankRow(int $columnCount): array
+    {
+        return [
+            $this->stringCell('', null, max($columnCount - 1, 0)),
+        ];
+    }
+
+    private function metricRow(
+        string $theme,
+        string $metric,
+        array $valueCell,
+        string $unit = '',
+        string $comment = ''
+    ): array {
+        return [
+            $this->stringCell($theme, 'MutedText'),
+            $this->stringCell($metric, 'Label'),
+            $valueCell,
+            $this->stringCell($unit, 'MutedText'),
+            $this->stringCell($comment, 'TextWrap'),
+        ];
+    }
+
+    private function stringCell(mixed $value, ?string $style = null, ?int $mergeAcross = null): array
     {
         return [
             'type' => 'String',
             'value' => $value === null ? '' : (string) $value,
             'style' => $style,
+            'merge_across' => $mergeAcross,
         ];
     }
 
-    private function numberCell(mixed $value): array
+    private function numberCell(mixed $value, string $style = 'AmountNeutral'): array
     {
         if ($value === null || $value === '') {
-            return $this->stringCell('');
+            return $this->stringCell('', 'Text');
         }
 
         return [
             'type' => 'Number',
             'value' => (string) $value,
-            'style' => null,
+            'style' => $style,
+            'merge_across' => null,
         ];
+    }
+
+    private function amountCell(
+        mixed $value,
+        string $positiveStyle = 'AmountPositive',
+        string $negativeStyle = 'AmountNegative',
+        string $zeroStyle = 'AmountNeutral'
+    ): array {
+        $numericValue = (float) ($value ?? 0);
+
+        if ($numericValue > 0) {
+            return $this->numberCell($value, $positiveStyle);
+        }
+
+        if ($numericValue < 0) {
+            return $this->numberCell($value, $negativeStyle);
+        }
+
+        return $this->numberCell($value, $zeroStyle);
+    }
+
+    private function yesNoCell(bool $value): array
+    {
+        return $this->stringCell($value ? 'Yes' : 'No', $value ? 'BadgePositive' : 'BadgeMuted');
+    }
+
+    private function scopeCell(bool $personal): array
+    {
+        return $this->stringCell($personal ? 'Personal' : 'Account-wide', $personal ? 'BadgePersonal' : 'BadgeShared');
     }
 
     private function calculatePercentage(mixed $spent, mixed $budget): string
