@@ -124,22 +124,16 @@
                                         <button
                                             type="button"
                                             class="inline-flex h-5 w-5 flex-shrink-0 items-center justify-center rounded-full border border-gray-200 text-gray-400 transition hover:border-gray-300 hover:text-gray-600"
-                                            :aria-expanded="isMetricInfoOpen('monthly-income')"
+                                            :aria-expanded="openMetricInfo === 'monthly-income'"
+                                            aria-haspopup="dialog"
                                             aria-label="Explain Monthly Income"
-                                            @click="toggleMetricInfo('monthly-income')"
+                                            @click="openMetricInfoDialog('monthly-income')"
                                         >
                                             <svg class="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M12 2a10 10 0 100 20 10 10 0 000-20z" />
                                             </svg>
                                         </button>
                                     </dt>
-                                    <dd
-                                        v-if="isMetricInfoOpen('monthly-income')"
-                                        class="mt-2 rounded-lg border border-slate-200 bg-slate-50 px-3 py-2 text-xs leading-5 text-slate-600"
-                                    >
-                                        Sum of all income transactions in the selected month.
-                                        <span class="mt-1 block text-slate-700">Opening balance and deleted transactions are excluded.</span>
-                                    </dd>
                                     <dd class="text-lg font-medium text-gray-900">
                                         {{ formatCurrency(analytics.current_month_income) }}
                                     </dd>
@@ -167,22 +161,16 @@
                                         <button
                                             type="button"
                                             class="inline-flex h-5 w-5 flex-shrink-0 items-center justify-center rounded-full border border-gray-200 text-gray-400 transition hover:border-gray-300 hover:text-gray-600"
-                                            :aria-expanded="isMetricInfoOpen('monthly-expenses')"
+                                            :aria-expanded="openMetricInfo === 'monthly-expenses'"
+                                            aria-haspopup="dialog"
                                             aria-label="Explain Monthly Expenses"
-                                            @click="toggleMetricInfo('monthly-expenses')"
+                                            @click="openMetricInfoDialog('monthly-expenses')"
                                         >
                                             <svg class="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M12 2a10 10 0 100 20 10 10 0 000-20z" />
                                             </svg>
                                         </button>
                                     </dt>
-                                    <dd
-                                        v-if="isMetricInfoOpen('monthly-expenses')"
-                                        class="mt-2 rounded-lg border border-slate-200 bg-slate-50 px-3 py-2 text-xs leading-5 text-slate-600"
-                                    >
-                                        Sum of all expense transactions in the selected month.
-                                        <span class="mt-1 block text-slate-700">Deleted transactions are excluded.</span>
-                                    </dd>
                                     <dd class="text-lg font-medium text-gray-900">
                                         {{ formatCurrency(analytics.current_month_expenses) }}
                                     </dd>
@@ -210,22 +198,16 @@
                                         <button
                                             type="button"
                                             class="inline-flex h-5 w-5 flex-shrink-0 items-center justify-center rounded-full border border-gray-200 text-gray-400 transition hover:border-gray-300 hover:text-gray-600"
-                                            :aria-expanded="isMetricInfoOpen('monthly-savings')"
+                                            :aria-expanded="openMetricInfo === 'monthly-savings'"
+                                            aria-haspopup="dialog"
                                             aria-label="Explain Monthly Savings"
-                                            @click="toggleMetricInfo('monthly-savings')"
+                                            @click="openMetricInfoDialog('monthly-savings')"
                                         >
                                             <svg class="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M12 2a10 10 0 100 20 10 10 0 000-20z" />
                                             </svg>
                                         </button>
                                     </dt>
-                                    <dd
-                                        v-if="isMetricInfoOpen('monthly-savings')"
-                                        class="mt-2 rounded-lg border border-slate-200 bg-slate-50 px-3 py-2 text-xs leading-5 text-slate-600"
-                                    >
-                                        Monthly savings equals monthly income minus monthly expenses.
-                                        <span class="mt-1 block text-slate-700">Savings rate = savings / income × 100.</span>
-                                    </dd>
                                     <dd class="text-lg font-medium text-gray-900">
                                         {{ formatCurrency(analytics.current_month_savings?.amount || 0) }}
                                     </dd>
@@ -256,23 +238,16 @@
                                         <button
                                             type="button"
                                             class="inline-flex h-5 w-5 flex-shrink-0 items-center justify-center rounded-full border border-gray-200 text-gray-400 transition hover:border-gray-300 hover:text-gray-600"
-                                            :aria-expanded="isMetricInfoOpen('current-balance')"
+                                            :aria-expanded="openMetricInfo === 'current-balance'"
+                                            aria-haspopup="dialog"
                                             aria-label="Explain Current Balance"
-                                            @click="toggleMetricInfo('current-balance')"
+                                            @click="openMetricInfoDialog('current-balance')"
                                         >
                                             <svg class="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M12 2a10 10 0 100 20 10 10 0 000-20z" />
                                             </svg>
                                         </button>
                                     </dt>
-                                    <dd
-                                        v-if="isMetricInfoOpen('current-balance')"
-                                        class="mt-2 rounded-lg border border-slate-200 bg-slate-50 px-3 py-2 text-xs leading-5 text-slate-600"
-                                    >
-                                        Lifetime balance for this account.
-                                        <span class="mt-1 block text-slate-700">Formula: all income - all expenses, including the opening balance. Transfers are not included.</span>
-                                        <span class="mt-1 block text-slate-700">Transactions in other currencies are converted to the account base currency first.</span>
-                                    </dd>
                                     <dd class="text-lg font-medium text-gray-900">
                                         {{ formatCurrency(analytics.total_balance) }}
                                     </dd>
@@ -288,7 +263,7 @@
                                         </span>
                                     </div>
                                     <div class="flex items-start justify-between gap-3 text-gray-500">
-                                        <span>Change since opening balance</span>
+                                        <span>Net</span>
                                         <span :class="['text-right font-medium', balanceChangeTextClass]">
                                             {{ balanceChangeSummary }}
                                         </span>
@@ -333,22 +308,16 @@
                                         <button
                                             type="button"
                                             class="inline-flex h-5 w-5 flex-shrink-0 items-center justify-center rounded-full border border-gray-200 text-gray-400 transition hover:border-gray-300 hover:text-gray-600"
-                                            :aria-expanded="isMetricInfoOpen('active-budgets')"
+                                            :aria-expanded="openMetricInfo === 'active-budgets'"
+                                            aria-haspopup="dialog"
                                             aria-label="Explain Active Budgets"
-                                            @click="toggleMetricInfo('active-budgets')"
+                                            @click="openMetricInfoDialog('active-budgets')"
                                         >
                                             <svg class="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M12 2a10 10 0 100 20 10 10 0 000-20z" />
                                             </svg>
                                         </button>
                                     </dt>
-                                    <dd
-                                        v-if="isMetricInfoOpen('active-budgets')"
-                                        class="mt-2 rounded-lg border border-slate-200 bg-slate-50 px-3 py-2 text-xs leading-5 text-slate-600"
-                                    >
-                                        Number of monthly budgets active in the selected month.
-                                        <span class="mt-1 block text-slate-700">Includes account-wide budgets and your visible personal budgets.</span>
-                                    </dd>
                                     <dd class="text-lg font-medium text-gray-900">
                                         {{ analytics.budget_usage?.length || 0 }}
                                     </dd>
@@ -376,22 +345,16 @@
                                         <button
                                             type="button"
                                             class="inline-flex h-5 w-5 flex-shrink-0 items-center justify-center rounded-full border border-gray-200 text-gray-400 transition hover:border-gray-300 hover:text-gray-600"
-                                            :aria-expanded="isMetricInfoOpen('monthly-transactions')"
+                                            :aria-expanded="openMetricInfo === 'monthly-transactions'"
+                                            aria-haspopup="dialog"
                                             aria-label="Explain Monthly Transactions"
-                                            @click="toggleMetricInfo('monthly-transactions')"
+                                            @click="openMetricInfoDialog('monthly-transactions')"
                                         >
                                             <svg class="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M12 2a10 10 0 100 20 10 10 0 000-20z" />
                                             </svg>
                                         </button>
                                     </dt>
-                                    <dd
-                                        v-if="isMetricInfoOpen('monthly-transactions')"
-                                        class="mt-2 rounded-lg border border-slate-200 bg-slate-50 px-3 py-2 text-xs leading-5 text-slate-600"
-                                    >
-                                        Count of non-deleted transactions in the selected month.
-                                        <span class="mt-1 block text-slate-700">Opening balance entries are excluded.</span>
-                                    </dd>
                                     <dd class="text-lg font-medium text-gray-900">
                                         {{ analytics.current_month_transaction_count || 0 }}
                                     </dd>
@@ -863,6 +826,55 @@
                 </div>
             </div>
         </div>
+
+        <Modal :show="!!activeMetricInfo" max-width="lg" @close="closeMetricInfoDialog">
+            <div v-if="activeMetricInfo" class="p-6">
+                <div class="flex items-start justify-between gap-4">
+                    <div>
+                        <p class="text-xs font-semibold uppercase tracking-[0.18em] text-sky-600">
+                            Dashboard metric
+                        </p>
+                        <h2 class="mt-2 text-xl font-semibold text-slate-900">
+                            {{ activeMetricInfo.title }}
+                        </h2>
+                    </div>
+                    <button
+                        type="button"
+                        class="inline-flex h-9 w-9 items-center justify-center rounded-full border border-slate-200 text-slate-500 transition hover:border-slate-300 hover:text-slate-700"
+                        aria-label="Close metric explanation"
+                        @click="closeMetricInfoDialog"
+                    >
+                        <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                        </svg>
+                    </button>
+                </div>
+
+                <p class="mt-4 text-sm leading-6 text-slate-600">
+                    {{ activeMetricInfo.description }}
+                </p>
+
+                <div class="mt-4 rounded-xl border border-slate-200 bg-slate-50 p-4">
+                    <div class="text-xs font-semibold uppercase tracking-[0.18em] text-slate-500">
+                        Calculation
+                    </div>
+                    <div class="mt-2 text-sm font-medium text-slate-900">
+                        {{ activeMetricInfo.formula }}
+                    </div>
+                </div>
+
+                <ul class="mt-4 space-y-2 text-sm leading-6 text-slate-600">
+                    <li
+                        v-for="note in activeMetricInfo.notes"
+                        :key="note"
+                        class="flex gap-2"
+                    >
+                        <span class="mt-2 h-1.5 w-1.5 flex-shrink-0 rounded-full bg-slate-300" />
+                        <span>{{ note }}</span>
+                    </li>
+                </ul>
+            </div>
+        </Modal>
     </AppLayout>
 </template>
 
@@ -870,6 +882,7 @@
 import { computed, ref } from 'vue';
 import { Link, router } from '@inertiajs/vue3';
 import AppLayout from '../Layouts/AppLayout.vue';
+import Modal from '../Components/Modal.vue';
 import { Doughnut, Line, Bar } from 'vue-chartjs';
 import {
     Chart as ChartJS,
@@ -916,11 +929,84 @@ const selectedMonth = computed(() => props.selectedMonth || {
 
 const openMetricInfo = ref(null);
 
-const toggleMetricInfo = (key) => {
-    openMetricInfo.value = openMetricInfo.value === key ? null : key;
+const metricInfoContent = {
+    'monthly-income': {
+        title: 'Monthly Income',
+        description: 'This card shows how much income was recorded in the selected month.',
+        formula: 'Monthly Income = sum of income transactions in the selected month',
+        notes: [
+            'Opening balance entries are excluded.',
+            'Deleted transactions are excluded.',
+            'Transactions in other currencies are converted to the account base currency first.',
+        ],
+    },
+    'monthly-expenses': {
+        title: 'Monthly Expenses',
+        description: 'This card shows how much was spent in the selected month.',
+        formula: 'Monthly Expenses = sum of expense transactions in the selected month',
+        notes: [
+            'Deleted transactions are excluded.',
+            'Transactions in other currencies are converted to the account base currency first.',
+        ],
+    },
+    'monthly-savings': {
+        title: 'Monthly Savings',
+        description: 'This card shows what remained from the selected month after expenses.',
+        formula: 'Monthly Savings = Monthly Income - Monthly Expenses',
+        notes: [
+            'Savings rate = Monthly Savings / Monthly Income × 100.',
+            'If expenses are higher than income, this value becomes negative.',
+        ],
+    },
+    'current-balance': {
+        title: 'Current Balance',
+        description: 'This card shows the lifetime balance for the active account, not just the selected month.',
+        formula: 'Current Balance = all income - all expenses',
+        notes: [
+            'Opening balance is included in this total.',
+            'Net = current balance - opening balance.',
+            'That means net shows income minus expenses after the opening balance was set.',
+            'Transfers are not included in this calculation.',
+            'Transactions in other currencies are converted to the account base currency first.',
+            'The breakdown below the total shows opening balance, net, and equivalent values in other currencies.',
+        ],
+    },
+    'active-budgets': {
+        title: 'Active Budgets',
+        description: 'This card shows how many monthly budgets apply to the selected month.',
+        formula: 'Active Budgets = count of visible monthly budgets active in the selected month',
+        notes: [
+            'Includes account-wide budgets.',
+            'Includes your visible personal budgets when applicable.',
+            'Ended or deleted budgets are excluded.',
+        ],
+    },
+    'monthly-transactions': {
+        title: 'Monthly Transactions',
+        description: 'This card shows how many transactions were recorded in the selected month.',
+        formula: 'Monthly Transactions = count of non-deleted transactions in the selected month',
+        notes: [
+            'Opening balance entries are excluded.',
+            'Income, expense, and transfer transactions in the month are counted.',
+        ],
+    },
 };
 
-const isMetricInfoOpen = (key) => openMetricInfo.value === key;
+const activeMetricInfo = computed(() => {
+    if (!openMetricInfo.value) {
+        return null;
+    }
+
+    return metricInfoContent[openMetricInfo.value] ?? null;
+});
+
+const openMetricInfoDialog = (key) => {
+    openMetricInfo.value = key;
+};
+
+const closeMetricInfoDialog = () => {
+    openMetricInfo.value = null;
+};
 
 const visitMonth = (month) => {
     if (!month || month === selectedMonth.value.value) {
