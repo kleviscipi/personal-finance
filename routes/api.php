@@ -41,6 +41,7 @@ Route::prefix('v1')->group(function () {
         Route::delete('categories/{categoryId}/subcategories/{subcategoryId}', [SubcategoryController::class, 'destroy']);
 
         Route::get('transactions', [TransactionController::class, 'index']);
+        Route::post('transactions/scan', [TransactionController::class, 'scanDraft']);
         Route::post('transactions', [TransactionController::class, 'store']);
         Route::get('transactions/{transactionId}', [TransactionController::class, 'show']);
         Route::patch('transactions/{transactionId}', [TransactionController::class, 'update']);

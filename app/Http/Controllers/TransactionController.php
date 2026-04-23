@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\Transaction;
 use App\Services\CurrencyService;
 use App\Services\TransactionService;
+use App\Services\TransactionScanService;
 use App\Support\ActiveAccount;
 use Illuminate\Http\Request;
 use Illuminate\Validation\Rule;
@@ -14,7 +15,8 @@ class TransactionController extends Controller
 {
     public function __construct(
         private TransactionService $transactionService,
-        private CurrencyService $currencyService
+        private CurrencyService $currencyService,
+        private TransactionScanService $transactionScanService
     ) {}
 
     public function index(Request $request)
@@ -143,6 +145,7 @@ class TransactionController extends Controller
             'currentAccount' => $account,
             'categories' => $categories,
             'tags' => $tags,
+            'invoiceScanEnabled' => $this->transactionScanService->isConfigured(),
         ]);
     }
 
@@ -174,6 +177,26 @@ class TransactionController extends Controller
         $this->transactionService->createTransaction($account, $request->user(), $validated);
 
         return redirect()->route('transactions.index')->with('message', 'Transaction created successfully.');
+    }
+
+    public function scanDraft(Request $request)
+    {
+        $account = ActiveAccount::resolve($request);
+        abort_unless($account, 404, 'Account not found.');
+
+        $validated = $request->validate([
+            'document' => ['required', 'file', 'mimes:jpg,jpeg,png,webp,gif,pdf', 'max:12288'],
+        ]);
+
+        try {
+            $draft = $this->transactionScanService->scanDraft($validated['document'], $account->base_currency);
+        } catch (\RuntimeException $exception) {
+            return response()->json([
+                'message' => $exception->getMessage(),
+            ], 422);
+        }
+
+        return response()->json($draft);
     }
 
     public function edit(Transaction $transaction)
