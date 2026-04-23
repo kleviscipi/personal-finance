@@ -67,6 +67,7 @@ Route::middleware(['auth'])->group(function () {
     Route::get('/settings', [SettingsController::class, 'show'])->name('settings');
     Route::patch('/settings', [SettingsController::class, 'update'])->name('settings.update');
     Route::get('/statistics', [StatisticsController::class, 'index'])->name('statistics.index');
+    Route::get('/statistics/export', [StatisticsController::class, 'download'])->name('statistics.export');
     Route::get('/exchange-rates', [ExchangeRateController::class, 'index'])->name('exchange-rates.index');
     Route::post('/exchange-rates/sync', [ExchangeRateController::class, 'sync'])->name('exchange-rates.sync');
     Route::patch('/exchange-rates/settings', [ExchangeRateController::class, 'updateSettings'])

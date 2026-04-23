@@ -201,6 +201,11 @@ const missingRateMessage = computed(() => {
     return `Missing FX rates for ${count} transactions${currencyList}. Totals use a 1:1 fallback.`;
 });
 
+const exportHref = computed(() => route('statistics.export', {
+    start: filters.start,
+    end: filters.end,
+}));
+
 const applyFilters = () => {
     router.get(route('statistics.index'), filters, {
         preserveState: true,
@@ -243,6 +248,15 @@ const applyFilters = () => {
                             @change="applyFilters"
                         />
                     </div>
+                    <a
+                        :href="exportHref"
+                        class="inline-flex items-center justify-center gap-2 rounded-xl bg-slate-900 px-4 py-2.5 text-sm font-medium text-white transition hover:bg-slate-800 focus:outline-none focus:ring-2 focus:ring-slate-500 focus:ring-offset-2"
+                    >
+                        <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 3v12m0 0l4-4m-4 4l-4-4m12 8H4" />
+                        </svg>
+                        <span>Export Excel</span>
+                    </a>
                 </div>
             </div>
 
